@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUpRight, MapPin, Pencil, Sparkles, Tag, UserRound, X } from "lucide-react";
-import type { DemoStore } from "@/lib/site";
+import type { DemoStore, DemoProduct } from "@/lib/site";
 import { DemoMock } from "./DemoMock";
 import { OneTapUpsellMock } from "./OneTapUpsellMock";
 
@@ -104,6 +104,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
   const [phase, setPhase] = useState<Phase>("upsell");
   const [section, setSection] = useState<Section | null>("shipping");
   const [tourMode, setTourMode] = useState(false);
+  const [upsellItem, setUpsellItem] = useState<DemoProduct | null>(null);
   const current = section ? INFO[section] : null;
 
   return (
@@ -228,6 +229,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                   maxHeight={560}
                   tourMode={tourMode}
                   onTourEnd={() => setTourMode(false)}
+                  extraItem={upsellItem ?? undefined}
                 />
               </div>
             </div>
@@ -296,7 +298,14 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
               </div>
 
               <div className="relative z-10 w-full">
-                <OneTapUpsellMock store={store} onComplete={() => { setPhase("editing"); setTourMode(true); }} />
+                <OneTapUpsellMock
+                  store={store}
+                  onComplete={(wasAdded) => {
+                    if (wasAdded) setUpsellItem(store.products[1] ?? store.products[0]);
+                    setPhase("editing");
+                    setTourMode(true);
+                  }}
+                />
               </div>
             </div>
           </motion.div>

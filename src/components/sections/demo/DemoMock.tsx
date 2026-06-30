@@ -35,6 +35,7 @@ export function DemoMock({
   tourMode = false,
   onTourEnd,
   forceOneTap = false,
+  extraItem,
 }: {
   store: DemoStore;
   initialOpen?: Section | null;
@@ -44,6 +45,7 @@ export function DemoMock({
   tourMode?: boolean;
   onTourEnd?: () => void;
   forceOneTap?: boolean;
+  extraItem?: DemoProduct;
 }) {
   const brand = store.brandColor || "#1652f0";
   const fmt = (n: number) => money(n, store.currency || "USD");
@@ -52,9 +54,11 @@ export function DemoMock({
   const purchased = store.products[0];
   const upsellPool = store.products.slice(1).length ? store.products.slice(1) : store.products;
 
-  const [items, setItems] = useState<LineItem[]>(
-    (purchased ? [purchased] : store.products).map((p) => ({ ...p, uid: uid() }))
-  );
+  const [items, setItems] = useState<LineItem[]>(() => {
+    const base = purchased ? [purchased] : store.products;
+    const all = extraItem ? [...base, extraItem] : base;
+    return all.map((p) => ({ ...p, uid: uid() }));
+  });
   const [open, setOpen] = useState<Section | null>(initialOpen);
   const [cancelled, setCancelled] = useState(false);
   const [processing, setProcessing] = useState<string | null>(null);

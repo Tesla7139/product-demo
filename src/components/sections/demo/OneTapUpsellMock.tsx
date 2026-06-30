@@ -8,7 +8,7 @@ import type { DemoStore } from "@/lib/site";
 const money = (n: number, currency = "USD") =>
   new Intl.NumberFormat("en", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
 
-export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: DemoStore; onComplete?: () => void; accentColor?: string }) {
+export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: DemoStore; onComplete?: (wasAdded: boolean) => void; accentColor?: string }) {
   const brand = accentColor ?? "#155FFF";
   const currency = store.currency || "USD";
   const fmt = (n: number) => money(n, currency);
@@ -27,10 +27,10 @@ export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: De
 
   const handleAdd = () => {
     setAdded(true);
-    setTimeout(() => onComplete?.(), 1600);
+    setTimeout(() => onComplete?.(true), 1600);
   };
 
-  const handleSkip = () => onComplete?.();
+  const handleSkip = () => onComplete?.(false);
 
   const slug = (store.brandName || "yourstore").toLowerCase().replace(/\s+/g, "-");
   const url = `${slug}.myshopify.com/checkouts/post-purchase`;
