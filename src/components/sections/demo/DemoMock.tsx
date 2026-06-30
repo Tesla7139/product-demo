@@ -182,7 +182,7 @@ export function DemoMock({
     window.setTimeout(() => {
       setItems((prev) => [...prev, { ...p, uid: uid(), qty: 1 }]);
       setProcessing(null);
-      flash(`Added ${p.title.split(" ").slice(0, 3).join(" ")}`);
+      flash(`${p.title.split(" ").slice(0, 3).join(" ")} added — ${fmt(p.price)} pending`);
     }, 1300);
   };
 
@@ -359,7 +359,7 @@ export function DemoMock({
                         className="mt-1.5 w-full rounded-md py-1.5 text-xs font-semibold text-white"
                         style={{ background: brand }}
                       >
-                        Add to order
+                        Add · {fmt(p.price)}
                       </button>
                     </div>
                   ))}
