@@ -19,7 +19,8 @@ import type { DemoStore, DemoProduct } from "@/lib/site";
 type LineItem = DemoProduct & { uid: string };
 type Section = "contact" | "shipping" | "order" | "discount" | "cancel";
 
-const money = (n: number) => `$${n.toFixed(2)}`;
+const money = (n: number, currency = "USD") =>
+  new Intl.NumberFormat("en", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
 
 let counter = 0;
 const uid = () => `li-${counter++}`;
@@ -45,6 +46,7 @@ export function DemoMock({
   forceOneTap?: boolean;
 }) {
   const brand = store.brandColor || "#1652f0";
+  const fmt = (n: number) => money(n, store.currency || "USD");
 
   // First product is the "purchased" item; the rest become upsell suggestions.
   const purchased = store.products[0];
@@ -214,7 +216,7 @@ export function DemoMock({
                 </div>
                 <p className="font-semibold text-neutral-900">Order cancelled</p>
                 <p className="mt-1 text-sm text-neutral-500">
-                  A refund of {money(subtotal)} has been issued.
+                  A refund of {fmt(subtotal)} has been issued.
                 </p>
                 <button
                   onClick={() => setCancelled(false)}
@@ -278,7 +280,7 @@ export function DemoMock({
                           <Thumb src={item.image} alt={item.title} />
                           <div className="min-w-0 flex-1">
                             <div className="truncate text-sm font-medium text-neutral-800">{item.title}</div>
-                            <div className="text-xs text-neutral-500">{money(item.price)}</div>
+                            <div className="text-xs text-neutral-500">{fmt(item.price)}</div>
                           </div>
                           <Stepper qty={item.qty} onDec={() => setQty(item.uid, -1)} onInc={() => setQty(item.uid, 1)} />
                         </div>
@@ -311,7 +313,7 @@ export function DemoMock({
 
                   <AccordionRow icon={X} label="Cancel Your Order" isOpen={open === "cancel"} onClick={() => toggle("cancel")}>
                     <p className="text-sm text-neutral-600">
-                      Cancelling will refund {money(subtotal)} to your original payment method.
+                      Cancelling will refund {fmt(subtotal)} to your original payment method.
                     </p>
                     <button
                       onClick={() => { setCancelled(true); setOpen(null); flash("Order cancelled"); }}
@@ -337,7 +339,7 @@ export function DemoMock({
                         <Thumb src={p.image} alt={p.title} full />
                       </div>
                       <div className="mt-1.5 line-clamp-2 text-xs font-medium text-neutral-800">{p.title}</div>
-                      <div className="text-xs text-neutral-500">{money(p.price)}</div>
+                      <div className="text-xs text-neutral-500">{fmt(p.price)}</div>
                       <button
                         onClick={() => addUpsell(p)}
                         className="mt-1.5 w-full rounded-md py-1.5 text-xs font-semibold text-white"
@@ -366,19 +368,19 @@ export function DemoMock({
                     </span>
                   </div>
                   <div className="min-w-0 flex-1 text-xs font-medium text-neutral-800">{item.title}</div>
-                  <div className="text-xs font-semibold text-neutral-900">{money(item.price * item.qty)}</div>
+                  <div className="text-xs font-semibold text-neutral-900">{fmt(item.price * item.qty)}</div>
                 </div>
               ))}
             </div>
             <div className="mt-5 space-y-1.5 border-t border-border pt-4 text-sm">
-              <Row label="Subtotal" value={money(subtotal)} />
+              <Row label="Subtotal" value={fmt(subtotal)} />
               <Row label="Shipping" value="FREE" />
             </div>
             <div className="mt-3 flex items-baseline justify-between border-t border-border pt-3">
               <span className="font-bold text-neutral-900">Total</span>
               <span className="text-lg font-bold text-neutral-900">
                 <span className="mr-1 text-xs font-normal text-neutral-400">USD</span>
-                {money(cancelled ? 0 : subtotal)}
+                {fmt(cancelled ? 0 : subtotal)}
               </span>
             </div>
           </aside>

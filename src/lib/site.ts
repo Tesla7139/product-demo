@@ -394,12 +394,14 @@ export type DemoStore = {
   brandName: string;
   brandColor: string;
   logo?: string | null; // absolute URL to the store's logo/favicon (when personalized)
+  currency?: string | null; // ISO 4217 code, e.g. "INR", "USD", "GBP"
   products: DemoProduct[];
 };
 
 export const mockStore: DemoStore = {
   brandName: "Northwind Goods",
   brandColor: "#1f7a5a",
+  currency: "USD",
   products: [
     { id: "p1", title: "Merino Wool Crew", variant: "Charcoal / M", price: 89, qty: 1 },
     { id: "p2", title: "Everyday Tote", variant: "Sand", price: 64, qty: 1 },

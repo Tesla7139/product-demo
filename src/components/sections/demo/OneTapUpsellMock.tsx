@@ -5,10 +5,13 @@ import { motion } from "framer-motion";
 import { Check, ChevronDown } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
 
-const money = (n: number) => `$${n.toFixed(2)}`;
+const money = (n: number, currency = "USD") =>
+  new Intl.NumberFormat("en", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
 
 export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: DemoStore; onComplete?: () => void; accentColor?: string }) {
   const brand = accentColor ?? "#155FFF";
+  const currency = store.currency || "USD";
+  const fmt = (n: number) => money(n, currency);
   const offer = store.products[1] ?? store.products[0];
   const full = offer?.price ?? 12;
   const deal = Math.round(full * 0.5 * 100) / 100;
@@ -125,8 +128,8 @@ export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: De
                   {offer?.title ?? "Add-on product"}
                 </h3>
                 <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-[16px] text-neutral-400 line-through">{money(full)}</span>
-                  <span className="text-[22px] font-bold text-red-500">{money(deal)}</span>
+                  <span className="text-[16px] text-neutral-400 line-through">{fmt(full)}</span>
+                  <span className="text-[22px] font-bold text-red-500">{fmt(deal)}</span>
                 </div>
                 <p className="mt-1 text-[12px] text-neutral-500">
                   Don&apos;t miss out on this offer... it expires after you leave this page!
@@ -136,7 +139,7 @@ export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: De
                 <div className="mt-4 flex items-center justify-between rounded-lg border border-neutral-300 px-4 py-2.5 text-[13px] text-neutral-700">
                   <div>
                     <div className="text-[10px] text-neutral-400">Size</div>
-                    <div className="font-medium">{offer?.variant ?? "Default"} — {money(deal)}</div>
+                    <div className="font-medium">{offer?.variant ?? "Default"} — {fmt(deal)}</div>
                   </div>
                   <ChevronDown className="size-4 text-neutral-400" />
                 </div>
@@ -159,7 +162,7 @@ export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: De
                   className="w-full rounded-lg py-3.5 text-[14px] font-semibold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
                   style={{ background: brand }}
                 >
-                  Add to order · {money(deal)} USD
+                  Add to order · {fmt(deal)} USD
                 </button>
                 <button
                   onClick={handleSkip}

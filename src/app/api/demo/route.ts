@@ -15,6 +15,7 @@ type Branding = {
   brandName: string | null;
   brandColor: string | null;
   logo: string | null;
+  currency: string | null;
   products: DemoProductOut[];
 };
 
@@ -216,6 +217,13 @@ function capitalize(s: string) {
   return s.length ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
 
+function parseCurrency(json: unknown): string | null {
+  if (!json || typeof json !== "object") return null;
+  const c = (json as Record<string, unknown>).currency;
+  if (typeof c === "string" && /^[A-Z]{3}$/.test(c)) return c;
+  return null;
+}
+
 export async function POST(req: Request) {
   let body: { url?: string };
   try {
@@ -235,13 +243,15 @@ export async function POST(req: Request) {
     return NextResponse.json(hit.data);
   }
 
-  // Fetch branding (homepage <head>) and products (public products.json) together.
-  const [html, productsJson] = await Promise.all([
+  // Fetch branding (homepage <head>), products, and cart currency together.
+  const [html, productsJson, cartJson] = await Promise.all([
     fetchText(url.toString()),
     fetchJson(`${url.origin}/products.json?limit=8`),
+    fetchJson(`${url.origin}/cart.js`),
   ]);
 
   const products = parseProducts(productsJson);
+  const currency = parseCurrency(cartJson);
 
   if (!html && products.length === 0) {
     return NextResponse.json({ error: "Could not read store" }, { status: 502 });
@@ -255,7 +265,7 @@ export async function POST(req: Request) {
         logo: null,
       };
 
-  const data: Branding = { ...branding, products };
+  const data: Branding = { ...branding, currency, products };
   cache.set(key, { data, at: Date.now() });
   return NextResponse.json(data);
 }

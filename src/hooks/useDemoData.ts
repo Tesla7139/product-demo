@@ -9,6 +9,7 @@ type BrandingResponse = {
   brandName: string | null;
   brandColor: string | null;
   logo: string | null;
+  currency: string | null;
   products: DemoProduct[];
 };
 
@@ -49,6 +50,7 @@ export function useDemoData() {
       brandName: branding?.brandName || deriveBrandName(url) || mockStore.brandName,
       brandColor: branding?.brandColor || mockStore.brandColor,
       logo: branding?.logo || null,
+      currency: branding?.currency || "USD",
       products:
         branding?.products && branding.products.length > 0
           ? branding.products
