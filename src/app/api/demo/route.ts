@@ -176,7 +176,7 @@ function absolutize(href: string | null, base: URL): string | null {
   }
 }
 
-function parseBranding(html: string, base: URL): Omit<Branding, "products"> {
+function parseBranding(html: string, base: URL): Omit<Branding, "products" | "currency"> {
   const siteName =
     metaContent(html, [
       /<meta[^>]+property=["']og:site_name["'][^>]+content=["']([^"']+)["']/i,
