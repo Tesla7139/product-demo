@@ -9,7 +9,7 @@ const money = (n: number, currency = "USD") =>
   new Intl.NumberFormat("en", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
 
 export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: DemoStore; onComplete?: (wasAdded: boolean) => void; accentColor?: string }) {
-  const brand = accentColor ?? "#155FFF";
+  const brand = store.brandColor || accentColor || "#155FFF";
   const currency = store.currency || "USD";
   const fmt = (n: number) => money(n, currency);
   const offer = store.products[1] ?? store.products[0];
@@ -148,7 +148,8 @@ export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: De
                   <div className="relative mt-4">
                     <button
                       onClick={() => setShowSizes((v) => !v)}
-                      className="flex w-full items-center justify-between rounded-lg border border-neutral-300 px-4 py-2.5 text-[13px] text-neutral-700 transition-colors hover:border-neutral-400"
+                      className="flex w-full items-center justify-between rounded-lg border px-4 py-2.5 text-[13px] text-neutral-700 transition-colors"
+                      style={{ borderColor: showSizes ? brand : "#d1d5db" }}
                     >
                       <div className="text-left">
                         <div className="text-[10px] text-neutral-400">Size</div>
@@ -162,7 +163,8 @@ export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: De
                           <button
                             key={i}
                             onClick={() => { setSelectedIdx(i); setShowSizes(false); }}
-                            className={`flex w-full items-center justify-between px-4 py-2.5 text-[13px] transition-colors hover:bg-neutral-50 ${i === selectedIdx ? "font-semibold text-neutral-900" : "text-neutral-600"}`}
+                            className={`flex w-full items-center justify-between px-4 py-2.5 text-[13px] transition-colors hover:bg-neutral-50 ${i === selectedIdx ? "font-semibold" : "text-neutral-600"}`}
+                            style={i === selectedIdx ? { color: brand } : undefined}
                           >
                             <span>{v.title}</span>
                             <span>{fmt(v.price)}</span>
