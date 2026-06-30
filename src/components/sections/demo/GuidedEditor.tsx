@@ -201,12 +201,6 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
               <div className="pointer-events-none absolute right-1/4 top-1/3 h-1/2 w-1/2 -rotate-12 rounded-full bg-white/25 blur-2xl" />
 
               <div className="relative z-10 flex flex-wrap justify-center gap-2">
-                <button
-                  onClick={() => setTourMode(true)}
-                  className="flex items-center gap-1.5 rounded-full bg-white/15 px-3.5 py-1.5 text-[12px] font-semibold text-white ring-1 ring-white/30 backdrop-blur transition-colors hover:bg-white/25"
-                >
-                  <Sparkles className="size-3.5" /> Take a tour
-                </button>
                 {PILLS.map((p) => {
                   const on = p.key === section;
                   return (
@@ -302,7 +296,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
               </div>
 
               <div className="relative z-10 w-full">
-                <OneTapUpsellMock store={store} onComplete={() => setPhase("editing")} />
+                <OneTapUpsellMock store={store} onComplete={() => { setPhase("editing"); setTourMode(true); }} />
               </div>
             </div>
           </motion.div>
