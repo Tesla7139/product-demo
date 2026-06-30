@@ -19,7 +19,7 @@ const TABS: { key: Tab; label: string; icon: React.ComponentType<{ className?: s
 ];
 
 export function GuidedEditor({ store }: { store: DemoStore }) {
-  const [tab, setTab] = useState<Tab>("upsell");
+  const [tab, setTab] = useState<Tab>("editing");
   const [tourMode, setTourMode] = useState(false);
   const [upsellItem, setUpsellItem] = useState<DemoProduct | null>(null);
 
