@@ -387,7 +387,8 @@ export type DemoProduct = {
   variant: string;
   price: number;
   qty: number;
-  image?: string | null; // product image URL when personalized from the store
+  image?: string | null;
+  variants?: { title: string; price: number }[];
 };
 
 export type DemoStore = {

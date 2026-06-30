@@ -13,8 +13,16 @@ export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: De
   const currency = store.currency || "USD";
   const fmt = (n: number) => money(n, currency);
   const offer = store.products[1] ?? store.products[0];
-  const full = offer?.price ?? 12;
-  const deal = Math.round(full * 0.5 * 100) / 100;
+
+  // variant picker
+  const variantList = offer?.variants && offer.variants.length > 0
+    ? offer.variants
+    : offer?.variant ? [{ title: offer.variant, price: offer?.price ?? 0 }] : [];
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const [showSizes, setShowSizes] = useState(false);
+  const selectedVariant = variantList[selectedIdx] ?? variantList[0];
+  const full = selectedVariant?.price ?? offer?.price ?? 0;
+  const deal = Math.round(full * 0.5);
 
   const [secs, setSecs] = useState(9 * 60 + 54);
   useEffect(() => {
@@ -135,14 +143,35 @@ export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: De
                   Don&apos;t miss out on this offer... it expires after you leave this page!
                 </p>
 
-                {/* mock variant selector */}
-                <div className="mt-4 flex items-center justify-between rounded-lg border border-neutral-300 px-4 py-2.5 text-[13px] text-neutral-700">
-                  <div>
-                    <div className="text-[10px] text-neutral-400">Size</div>
-                    <div className="font-medium">{offer?.variant ?? "Default"} — {fmt(deal)}</div>
+                {/* interactive variant selector */}
+                {variantList.length > 0 && (
+                  <div className="relative mt-4">
+                    <button
+                      onClick={() => setShowSizes((v) => !v)}
+                      className="flex w-full items-center justify-between rounded-lg border border-neutral-300 px-4 py-2.5 text-[13px] text-neutral-700 transition-colors hover:border-neutral-400"
+                    >
+                      <div className="text-left">
+                        <div className="text-[10px] text-neutral-400">Size</div>
+                        <div className="font-medium">{selectedVariant?.title} — {fmt(selectedVariant?.price ?? deal)}</div>
+                      </div>
+                      <ChevronDown className={`size-4 text-neutral-400 transition-transform ${showSizes ? "rotate-180" : ""}`} />
+                    </button>
+                    {showSizes && (
+                      <div className="absolute left-0 right-0 top-full z-10 mt-1 overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-lg">
+                        {variantList.map((v, i) => (
+                          <button
+                            key={i}
+                            onClick={() => { setSelectedIdx(i); setShowSizes(false); }}
+                            className={`flex w-full items-center justify-between px-4 py-2.5 text-[13px] transition-colors hover:bg-neutral-50 ${i === selectedIdx ? "font-semibold text-neutral-900" : "text-neutral-600"}`}
+                          >
+                            <span>{v.title}</span>
+                            <span>{fmt(v.price)}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <ChevronDown className="size-4 text-neutral-400" />
-                </div>
+                )}
 
                 <div className="mt-4 space-y-1.5 border-t border-border pt-4 text-[13px]">
                   <div className="flex justify-between text-neutral-600">
@@ -162,7 +191,7 @@ export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: De
                   className="w-full rounded-lg py-3.5 text-[14px] font-semibold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
                   style={{ background: brand }}
                 >
-                  Add to order · {fmt(deal)} USD
+                  Add to order · {fmt(deal)}
                 </button>
                 <button
                   onClick={handleSkip}

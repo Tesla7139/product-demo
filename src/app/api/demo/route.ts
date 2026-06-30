@@ -9,6 +9,7 @@ type DemoProductOut = {
   price: number;
   qty: number;
   image: string | null;
+  variants: { title: string; price: number }[];
 };
 
 type Branding = {
@@ -138,6 +139,12 @@ function parseProducts(json: unknown): DemoProductOut[] {
       const variant = v?.title && v.title !== "Default Title" ? v.title : "";
       const price = Math.round(Number(v?.price ?? 0)) || 0;
       const image = p.images?.[0]?.src ?? null;
+      const variants = (p.variants ?? [])
+        .map((vv) => ({
+          title: vv?.title && vv.title !== "Default Title" ? vv.title : "Default",
+          price: Math.round(Number(vv?.price ?? 0)) || price,
+        }))
+        .filter((vv) => vv.title !== "Default" || (p.variants ?? []).length === 1);
       return {
         id: String(p.id ?? p.handle ?? Math.random()),
         title: String(p.title ?? "Product"),
@@ -145,6 +152,7 @@ function parseProducts(json: unknown): DemoProductOut[] {
         price,
         qty: 1,
         image,
+        variants,
       };
     })
     .filter((p) => p.title && p.title !== "Product");
