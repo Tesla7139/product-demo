@@ -115,7 +115,10 @@ export function DemoMock({
   useEffect(() => {
     if (!tourActive) return;
     if (tourStep === 0 || tourStep === 1) { setOpen(null); setDemoMode("edit"); }
-    if (tourStep === 2) { setDemoMode("edit"); setOpen("shipping"); }
+    if (tourStep === 2) {
+      setDemoMode("edit"); setOpen("shipping");
+      setTimeout(() => saveBtnDivRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 120);
+    }
     if (tourStep === 3) {
       setDemoMode("edit");
       setOpen(null);
@@ -126,7 +129,7 @@ export function DemoMock({
     }
     const TOUR_REFS = [countdownRef, shippingRowRef, saveBtnDivRef, upsellRowRef, oneTapAddBtnRef];
     // step 2 needs accordion animation to finish; step 4 needs demoMode switch to render
-    const delay = tourStep === 2 ? 370 : tourStep === 4 ? 180 : 80;
+    const delay = tourStep === 2 ? 520 : tourStep === 4 ? 180 : 80;
     const t = setTimeout(() => {
       const el = TOUR_REFS[tourStep]?.current;
       if (!el) return;
