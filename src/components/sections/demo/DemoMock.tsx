@@ -121,7 +121,14 @@ export function DemoMock({
     if (tourStep === 0 || tourStep === 1) { setOpen(null); setDemoMode("edit"); }
     if (tourStep === 2) {
       setDemoMode("edit"); setOpen("shipping");
-      setTimeout(() => saveBtnDivRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 120);
+      setTimeout(() => {
+        saveBtnDivRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        // also scroll the page so the element lands in the visible viewport
+        const r = saveBtnDivRef.current?.getBoundingClientRect();
+        if (r && (r.bottom > window.innerHeight || r.top < 0)) {
+          window.scrollBy({ top: r.bottom - window.innerHeight + 80, behavior: "smooth" });
+        }
+      }, 120);
     }
     if (tourStep === 3) {
       setDemoMode("edit");
@@ -706,10 +713,15 @@ function TourOverlay({
 }) {
   if (typeof window === "undefined") return null;
   const PAD = 10;
+  const TOOLTIP_H = 300; // generous estimate so we never clip the button
   const sl = { top: rect.top - PAD, left: rect.left - PAD, width: rect.width + PAD * 2, height: rect.height + PAD * 2 };
   const stepData = TOUR_STEPS_DATA[step];
   const spaceBelow = window.innerHeight - (sl.top + sl.height);
-  const tooltipBelow = spaceBelow >= 196;
+  const spaceAbove = sl.top;
+  // prefer below unless it would clip; fall back to above; last resort: clamp
+  const tooltipBelow = spaceBelow >= TOOLTIP_H + 14 || spaceBelow >= spaceAbove;
+  const rawTop = tooltipBelow ? sl.top + sl.height + 14 : sl.top - TOOLTIP_H - 14;
+  const clampedTop = Math.min(Math.max(rawTop, 8), window.innerHeight - TOOLTIP_H - 8);
   const tooltipLeft = Math.min(Math.max(sl.left, 12), window.innerWidth - 296);
 
   return createPortal(
@@ -765,11 +777,7 @@ function TourOverlay({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
         className="absolute w-[280px] overflow-hidden rounded-2xl bg-white shadow-2xl"
-        style={
-          tooltipBelow
-            ? { top: sl.top + sl.height + 14, left: tooltipLeft }
-            : { bottom: window.innerHeight - sl.top + 14, left: tooltipLeft }
-        }
+        style={{ top: clampedTop, left: tooltipLeft }}
       >
         <div className="h-[3px] w-full" style={{ background: `linear-gradient(90deg, ${TOUR_ACCENT}, #7c3aed)` }} />
         <div className="p-4">
