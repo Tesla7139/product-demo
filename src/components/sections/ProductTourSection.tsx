@@ -18,7 +18,7 @@ export function ProductTourSection() {
             See every feature live
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
-            Click any feature or take the guided tour to see order editing and both upsell types in action — no sign-up required.
+            Pick any product from the sidebar and interact with a live demo — no sign-up required.
           </p>
         </div>
 
