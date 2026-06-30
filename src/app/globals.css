@@ -1,0 +1,213 @@
+@import "tailwindcss";
+
+/* ============================================================
+   DESIGN TOKENS  (see BUILD_SPEC.txt §3)
+   Visual-first, premium, clean. Blue accent (placeholder brand).
+   ============================================================ */
+:root {
+  --background: #f1efe8;
+  --background-muted: #e9e5db;
+  --foreground: #0b0b0f;
+  --muted-foreground: #5a6070;
+  --border: #e6e8ec;
+  --card: #ffffff;
+  --primary: #2f5bff;
+  --primary-foreground: #ffffff;
+  --accent-soft: #eaf0ff;
+  --ring: #2f5bff;
+
+  --radius: 0.75rem; /* 12px — buttons/cards */
+  --radius-lg: 1rem; /* 16px — images/panels */
+
+  --shadow-sm: 0 1px 2px 0 rgb(11 11 15 / 0.04), 0 1px 3px 0 rgb(11 11 15 / 0.06);
+  --shadow-md: 0 4px 12px -2px rgb(11 11 15 / 0.08), 0 2px 6px -2px rgb(11 11 15 / 0.06);
+  --shadow-xl: 0 24px 60px -12px rgb(11 11 15 / 0.18), 0 8px 24px -8px rgb(11 11 15 / 0.1);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-muted: var(--background-muted);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-card: var(--card);
+  --color-card-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent-soft: var(--accent-soft);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-md: var(--radius);
+  --radius-xl: var(--radius-lg);
+
+  --shadow-soft-sm: var(--shadow-sm);
+  --shadow-soft-md: var(--shadow-md);
+  --shadow-soft-xl: var(--shadow-xl);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  /* page base color lives here so the fixed globe layer (-z-10 on body)
+     is not painted over by an opaque body background */
+  background: var(--background);
+}
+
+body {
+  background: transparent;
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+/* Fluid type scale */
+.text-display {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 6vw, 4.25rem);
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+.text-h2 {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 3.6vw, 3rem);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+.text-h3 {
+  font-size: clamp(1.25rem, 1.6vw, 1.5rem);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  font-weight: 600;
+}
+.text-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Focus ring for accessibility */
+:where(a, button, input, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Reduced motion: kill transforms, keep opacity */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Marquee keyframes (text-name scroller) */
+@keyframes marquee-x {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee-x var(--marquee-duration, 32s) linear infinite;
+}
+.marquee-group:hover .animate-marquee {
+  animation-play-state: paused;
+}
+
+/* Radix accordion expand/collapse */
+@keyframes accordion-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+}
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+/* Mobile sheet / overlay */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Subtle grain/scrim helper for text over the globe */
+.text-scrim {
+  background: radial-gradient(
+    ellipse at center,
+    rgb(255 255 255 / 0.85) 0%,
+    rgb(255 255 255 / 0.6) 45%,
+    rgb(255 255 255 / 0) 75%
+  );
+}
+
+/* Custom Masonry Grid styling to ensure proper layout spacing and columns */
+.masonry-grid {
+  column-count: 1;
+  column-gap: 1.5rem;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .masonry-grid {
+    column-count: 2;
+  }
+}
+@media (min-width: 1024px) {
+  .masonry-grid {
+    column-count: 3;
+  }
+}
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 1.5rem;
+}
+
+/* hide scrollbar (used inside the hero phone mock) */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

@@ -1,0 +1,539 @@
+================================================================================
+WEBSITE RECREATION BUILD SPECIFICATION
+Reference design language: getamply.co  →  Rebranded for: CLICKPOST
+================================================================================
+
+PURPOSE
+-------
+Recreate the *design language, layout system, animations, and overall premium
+feel* of the reference site (getamply.co), while replacing 100% of the original
+brand assets with Clickpost's own brand, copy, content, and (placeholder) imagery.
+
+This document is the single source of truth for the build. It captures the
+structure to reproduce and the originality rules to obey.
+
+
+================================================================================
+0. NON-NEGOTIABLE ORIGINALITY RULES
+================================================================================
+DO NOT copy, reuse, or reference any of the following from the reference site:
+  - Logos / wordmarks
+  - Company name ("Amply") or product names
+  - Marketing copy / headlines / body text (write fresh copy)
+  - Photos, illustrations, videos, screenshots
+  - Brand-unique icons
+  - Customer names, testimonials, logos, case studies
+
+WHAT TO REPRODUCE (design only, not content):
+  - Section order & page flow
+  - Grid system & layout proportions
+  - Spacing rhythm / vertical padding scale
+  - Typographic scale & hierarchy
+  - Color *roles* (re-skinned with Clickpost palette)
+  - Component styling patterns (cards, buttons, nav, footer)
+  - Border radius, shadow, and elevation language
+  - Animation, scroll, hover, and micro-interaction behavior
+  - Responsive breakpoint behavior
+
+REPLACE WITH CLICKPOST:
+  - Clickpost logo (drop into /public/brand/logo.svg)
+  - Clickpost brand colors (see palette below — adjust to brand kit)
+  - Clickpost product story (logistics / shipment tracking / post-purchase)
+  - Placeholder images (use solid/gradient blocks or /public/placeholders/*)
+    until real assets are supplied. Every <Image> must have a TODO marker.
+
+CLICKPOST PRODUCT FRAMING (rewrite all copy around this real product):
+  Product: "CP: Order Editing & Upsell" — a Shopify app by Clickpost.
+  Pitch: self-service post-purchase order management that cuts support costs
+  and boosts AOV. Lets shoppers edit/cancel their own orders and adds
+  post-purchase upsells. "Built for Shopify" badge, 5.0★ (51 reviews).
+
+  Core capabilities (use these as the feature set — write FRESH copy, do not
+  copy the listing's marketing text verbatim):
+    - Self-service order editing: variants, quantities, items, addresses
+    - Instant cancellations with automated refunds
+    - Google Maps-powered address validation (prevents failed deliveries)
+    - Post-purchase upsells (lifts average order value)
+    - 3PL / WMS sync (e.g. Unicommerce) so edits stay in sync with fulfillment
+    - Customizable editing windows + edit logging/tracking
+    - Bulk editing + customer portal access
+  Benefits: fewer support tickets, lower return rates, higher AOV, fewer
+  failed deliveries, automated workflows.
+  Integrations: Shopify Checkout extensions, Customer accounts, Shopify Flow,
+    Shopify Admin, Klaviyo, Judge.me, Easycom, Unicommerce, shipping/3PL apps.
+  Languages: English, Spanish, French, German, Portuguese.
+  Pricing tiers (for a Pricing section / band):
+    - Free: 0–500 orders/mo, 25 free edits/mo, then $1/edit
+    - Growth: $49/mo, 500–5,000 orders/mo, unlimited edits + upsells
+    - Scale: $129/mo, 5,000–20,000 orders/mo, unlimited + dedicated AM
+    - 14-day free trial on paid plans
+  Replace every retail-store-operations narrative from the reference with this
+  Shopify post-purchase / order-editing narrative.
+
+
+================================================================================
+0.5 GLOBAL DIRECTIVE — VISUAL-FIRST, LOW TEXT
+================================================================================
+Bias the entire site toward IMAGERY over copy. The product UI sells itself.
+  - Every section leads with a visual (product screenshot, UI mock, graphic).
+    Text is supporting, not primary.
+  - Copy budget per section: short eyebrow + punchy headline (≤ ~6 words) +
+    at most 1 short sentence OR 2–3 tight bullets. No paragraphs of prose.
+  - Feature rows: large product image dominates; text column is minimal
+    (label + title + one line). Let the screenshot do the explaining.
+  - Prefer captioned visuals, icon+label chips, and image grids over text
+    blocks. Replace any text-heavy block with a visual wherever possible.
+  - Add MORE image surfaces than the reference: bigger hero visual, an extra
+    product-screenshot gallery/grid, image-backed feature cards, a visual
+    "how it works" strip (3–4 captioned UI shots), device/browser mockups.
+  - Use generous full-bleed or large rounded image panels with soft shadows.
+  - All images = sized PLACEHOLDERS now (marked TODO: replace), shaped to the
+    real product screenshots so swapping in finals needs no layout changes.
+Keep accessibility: every image needs alt text; don't put essential copy
+inside images only (provide a text equivalent).
+
+
+================================================================================
+1. TECH STACK
+================================================================================
+  - Next.js (App Router, latest stable)
+  - React + TypeScript (strict mode)
+  - Tailwind CSS (with custom design tokens in tailwind.config.ts)
+  - Framer Motion (all animations / scroll reveals / micro-interactions)
+  - shadcn/ui (Button, Accordion, NavigationMenu, Dialog, Form, Input, etc.)
+  - Lucide Icons (all iconography — never brand-unique icons)
+
+Quality bar: production-ready, accessible (WCAG AA), fast (lazy images,
+no layout shift), SEO-friendly (metadata, OpenGraph, semantic HTML, sitemap).
+
+
+================================================================================
+2. PROJECT STRUCTURE
+================================================================================
+  app/
+    layout.tsx                 // root layout, fonts, metadata, <Navbar/> <Footer/>
+    page.tsx                   // composes all sections in order
+    globals.css                // tailwind + CSS variables (design tokens)
+    sitemap.ts, robots.ts
+  components/
+    layout/
+      Navbar.tsx               // sticky nav + dropdown mega-menus
+      Footer.tsx
+      AnnouncementBanner.tsx
+    sections/
+      Hero.tsx
+      LogoMarquee.tsx          // "X+ shipments tracked" + scrolling logos
+      Testimonials.tsx
+      MetricsStrip.tsx         // 3-up stat blocks
+      FeatureShowcase.tsx      // alternating image/text feature rows
+      PlatformOverview.tsx     // "Built for modern logistics"
+      GlobalReachMap.tsx       // world map + global stats
+      TestimonialCarousel.tsx  // auto-looping
+      AudienceSegments.tsx     // "Who we serve" 3-column
+      IntegrationsGrid.tsx     // carrier/integration logo grid
+      ResourceCallout.tsx      // "ready-to-use" CTA band
+      ContactForm.tsx
+      FAQ.tsx                  // shadcn Accordion
+    ui/                        // shadcn components
+    primitives/
+      Container.tsx            // max-w wrapper, consistent gutters
+      SectionHeading.tsx       // eyebrow + title + subtitle pattern
+      AnimatedReveal.tsx       // Framer Motion scroll-in wrapper
+      Marquee.tsx              // reusable infinite scroller
+  lib/
+    motion.ts                  // shared Framer Motion variants & transitions
+    site.ts                    // nav config, footer links, copy constants
+  public/
+    brand/logo.svg
+    placeholders/*.svg
+
+
+================================================================================
+3. DESIGN TOKENS
+================================================================================
+COLOR ROLES (reference is black/white/gray minimalist; re-skin to Clickpost.
+Use Clickpost brand colors — values below are a sensible starting palette,
+tune to the official brand kit):
+
+  --background        #FFFFFF   (page base)
+  --background-muted  #F6F7F9   (alternating section bg, stats band)
+  --foreground        #0B0B0F   (headings — near-black)
+  --muted-foreground  #5A6070   (body text, secondary)
+  --border            #E6E8EC
+  --primary           #2F5BFF   (Clickpost accent — CTAs, links, highlights)
+  --primary-foreground#FFFFFF
+  --accent-soft       #EAF0FF   (tinted chips / icon backgrounds)
+
+  Buttons in reference are solid-black; map "solid" to --primary, keep a
+  high-contrast solid + an outline/ghost secondary variant.
+
+TYPOGRAPHY:
+  Font: clean geometric/grotesque sans (e.g. Inter, or Clickpost brand font
+  via next/font). Define scale:
+    Display (hero h1)  : clamp(2.5rem, 5vw, 4rem),  weight 700, tight tracking, line-height ~1.05
+    H2 (section title) : clamp(2rem, 3.5vw, 3rem),  weight 700
+    H3 (card title)    : 1.25–1.5rem, weight 600
+    Eyebrow / label    : 0.8rem, weight 600, UPPERCASE, letter-spacing 0.08em, --primary or --muted-foreground
+    Body               : 1rem–1.125rem, weight 400, line-height 1.6
+    Small / caption    : 0.875rem
+  High contrast between bold headings and regular body. Quotes can be italic.
+
+SPACING / RHYTHM:
+  - Section vertical padding: py-20 (mobile) → py-28/py-32 (desktop). Generous.
+  - Container max-width: ~1200–1280px, horizontal gutter px-6 (mobile) / px-8.
+  - Consistent 8px spacing base; gaps of 16/24/32/48/64/80/96/128.
+
+RADIUS:
+  - Buttons & cards: rounded-xl (12px). Pills/chips: rounded-full.
+  - Images/screenshots: rounded-2xl (16px) with subtle border.
+
+SHADOWS / ELEVATION:
+  - Cards: subtle — shadow-sm to shadow-md, soft, low-spread, low-opacity.
+  - Floating product imagery: larger soft shadow (shadow-xl, blurred).
+  - Sticky nav: faint shadow / border appears only after scroll.
+
+
+================================================================================
+4. SECTION-BY-SECTION SPEC (in order, top → bottom)
+================================================================================
+
+(1) ANNOUNCEMENT BANNER  [AnnouncementBanner.tsx]
+    - Thin full-width bar above nav. Centered text + arrow link.
+    - Reference promotes an event; rewrite as a Clickpost event/launch
+      (e.g. webinar, new feature, conference). Dismissible (X) optional.
+    - Subtle slide-down on mount.
+
+(2) NAVBAR  [Navbar.tsx]  — STICKY
+    - Layout: [logo] ........ [primary menu w/ dropdowns] .... [secondary links] [CTA button] [phone]
+    - Primary items have chevron-down → mega-menu dropdowns (use shadcn
+      NavigationMenu). Rewrite menu groups for Clickpost, e.g.:
+        Product ▾ | Solutions ▾ | Use cases ▾ | Industries ▾ | Resources ▾
+        + flat links: "Clickpost AI", "About", "Pricing"
+    - Right: solid primary "Get Started" / "Sign Up" button + "Talk to us" phone.
+    - Behavior: transparent/clean at top → on scroll adds bg + subtle shadow
+      + slight height shrink (animate with Framer Motion / scroll listener).
+    - Dropdowns: fade+slide-down on hover (desktop) / accordion in mobile sheet.
+    - Mobile: hamburger → full-screen or slide-in Sheet (shadcn) menu.
+
+(3) HERO  [Hero.tsx]
+    - Layout: left-aligned text column + right product visual (2-col on desktop,
+      stacked on mobile). Generous top/bottom padding.
+    - Eyebrow (optional) → big Display h1 → subheading paragraph → two CTAs
+      (primary "Get Started" + secondary/outline "Book a Demo").
+    - Right: composite product screenshot (PLACEHOLDER block w/ soft shadow,
+      rounded-2xl). Subtle float / parallax drift.
+    - Animation: staggered fade-up of eyebrow→headline→subhead→buttons→image
+      on load (Framer Motion stagger, ~0.08s children delay, easeOut).
+    - Copy: rewrite around Clickpost ("One platform for every shipment", etc.).
+
+(4) LOGO MARQUEE / SOCIAL PROOF  [LogoMarquee.tsx]
+    - Headline stat ("27,000+ stores" in ref) → rewrite ("X+ shipments tracked"
+      / "Trusted by N+ brands").
+    - Infinite horizontal auto-scrolling strip of TEXT NAMES (NOT logo images).
+      Each item = the partner/integration NAME rendered as text:
+        Shopify Checkout · Customer accounts · Shopify Flow · Klaviyo ·
+        Judge.me · Easycom · Unicommerce
+      Style: medium-weight text chips, muted/grayscale color, transition to
+      --primary/full-color on hover. Optional separator dot (·) between names.
+    - Pure CSS/Framer marquee loop, constant speed, seamless wrap; pause on
+      hover. Duplicate the list once in the DOM for the seamless loop.
+
+(5) TESTIMONIALS (intro block)  [Testimonials.tsx]
+    - Quote card(s): italic quote + circular avatar + name/title + company.
+    - Placeholder avatars. Rewrite quotes for Clickpost customers (fictional/
+      clearly-placeholder until provided).
+
+(6) METRICS STRIP  [MetricsStrip.tsx]
+    - Section title ("Simplifying ..." → rewrite "Simplifying logistics ops").
+    - 3-up columns of BIG bold numbers + caption tied to the product, e.g.
+      "Fewer support tickets", "Higher AOV via upsells", "5.0★ on Shopify
+      (51 reviews)". Use placeholder/illustrative figures until real ones land.
+    - Count-up animation on scroll-into-view (Framer Motion / useInView).
+    - Background: --background-muted band.
+
+(7) FEATURE SHOWCASE  [FeatureShowcase.tsx]
+    - 5–6 feature rows, ALTERNATING image-left/text-right then flipped.
+    - Each row: UPPERCASE eyebrow label + H3 title + short desc + bullet list
+      + optional "Learn more →" link, beside a placeholder product image.
+    - Rewrite the 6 features as CP: Order Editing & Upsell capabilities:
+        EDITING       → Self-service order editing (items, variants, qty)
+        ADDRESS       → Google Maps address validation
+        CANCELLATIONS → Instant cancellations + automated refunds
+        UPSELL        → Post-purchase upsells that lift AOV
+        SYNC          → 3PL / WMS sync (keeps fulfillment in lockstep)
+        CONTROL       → Editing windows, edit logs, bulk edits, portal
+    - Animation: each row fades/slides in on scroll (image and text from
+      slightly different offsets for depth).
+    - REFERENCE UI (from the product's own Shopify screenshots — these are
+      Clickpost's own assets; use as guide for placeholder shape/captions,
+      swap for real exports later):
+        1. Self-service order edits on thank-you & order-status page
+        2. Edit address / contact / cancel order / edit items (portal view)
+        3. Post-purchase AI upsell recommendations on order page
+        4. AOV / revenue impact view (metrics + upsell + edit item)
+        5. Google Maps address validator (flags bad addresses)
+        6. Cancellations & edits with store-credit / refund options
+      Product UI style observed: clean layout, BLUE accent, clear CTA buttons
+      (confirms the --primary blue direction in the tokens).
+
+(8) PLATFORM OVERVIEW  [PlatformOverview.tsx]
+    - "Built for modern store ops" → "Built for modern logistics teams".
+    - Centered heading + supporting grid of small feature cards or a single
+      hero visual. Subtle scroll reveal.
+
+(9) GLOBAL REACH + MAP  [GlobalReachMap.tsx]
+    - World map graphic (use a generic/open SVG world map placeholder, NOT the
+      reference's asset) + global usage stats around it.
+    - Dots/pulses can animate. Stats count-up on view.
+
+(10) TESTIMONIAL CAROUSEL  [TestimonialCarousel.tsx]
+    - Auto-rotating, infinitely looping testimonial cards. Pause on hover,
+      prev/next controls + dots. Embla (via shadcn) or Framer.
+
+(11) AUDIENCE SEGMENTS / "WHO WE SERVE"  [AudienceSegments.tsx]
+    - 3-column cards. Rewrite segments for the product, e.g.:
+        D2C / Shopify brands | High-volume merchants | Brands using 3PL/WMS
+    - Each card: icon (Lucide) + title + short blurb + link.
+    - Hover: lift + shadow increase + border/primary accent.
+
+(12) INTEGRATIONS GRID  [IntegrationsGrid.tsx]
+    - Grid of integration/carrier logo tiles (3–4 per row, responsive).
+    - Rewrite as the product's integrations using PLACEHOLDER tiles:
+      Shopify Checkout, Customer accounts, Shopify Flow, Klaviyo, Judge.me,
+      Easycom, Unicommerce, shipping/3PL apps. Grayscale → color on hover.
+      Subtle stagger reveal.
+
+(13) RESOURCE / SOP CALLOUT BAND  [ResourceCallout.tsx]
+    - Full-width tinted band with heading + CTA button.
+    - Rewrite ("Ready-to-use tracking templates" / "Get started in minutes").
+
+(14) CONTACT FORM  [ContactForm.tsx]
+    - 2-col: left = heading + value props; right = form card.
+    - Fields: name, work email, company, message + submit (shadcn Form + Input
+      + Button, react-hook-form + zod validation).
+    - Focus states, inline validation, success state. Accessible labels.
+
+(15) FAQ  [FAQ.tsx]
+    - shadcn Accordion. Smooth expand/collapse (height animation), chevron
+      rotates. Rewrite Q&A around Clickpost.
+
+(16) FOOTER  [Footer.tsx]
+    - Multi-column: brand col (logo + social: LinkedIn/Instagram via Lucide)
+      + link columns (Product / Solutions / Industries / Resources / Contact).
+    - Rewrite the reference's "Explore AI Summary" col as a Clickpost-relevant
+      column (or drop it). Bottom bar: © Clickpost, Terms, Privacy.
+
+
+================================================================================
+4.4 SIGNATURE BACKGROUND — SCROLL-DRIVEN 3D GLOBE  [GlobeBackground.tsx]
+================================================================================
+Ambient 3D globe in the background that REACTS TO SCROLL (inspired by the
+redo.com homepage globe). It is the site's signature visual motif. Decorative
+only (aria-hidden) — never carries essential content.
+
+TECH:
+  - three.js via @react-three/fiber (+ @react-three/drei), OR react-globe.gl.
+    Prefer react-three-fiber for full control of scroll-linked camera/material.
+  - Rendered in a FIXED/PINNED background layer behind page content (z-index
+    below text, above page bg). pointer-events: none.
+  - Dynamic import with { ssr: false }; lazy-mount; render loop only when the
+    canvas is on-screen (IntersectionObserver) and tab is visible.
+
+IDLE BEHAVIOR:
+  - Slow continuous auto-rotation + gentle floating bob.
+  - Subtle atmosphere/glow rim in --primary (brand color) tint.
+  - Soft directional + ambient lighting; faint star/particle field optional.
+
+SCROLL-DRIVEN BEHAVIOR (the key effect):
+  - Use Framer Motion useScroll (page progress) + useTransform to map scroll
+    progress → globe rotation (Y/X), tilt, zoom (camera distance / scale),
+    and on-screen X/Y offset. Apply per-frame via useFrame (lerp/damp for
+    smoothness, never snap).
+  - Choreography by section, e.g.:
+      Hero            : centered-ish, large, slow spin behind the headline+demo
+      Mid sections    : drifts to one side, slightly smaller, faster spin
+      "Global reach"  : scales up / re-centers, dots + arcs emphasized
+      Footer approach : settles, dims down
+  - PRODUCT NARRATIVE (DECIDED — trial, may change): arcs = "orders saved",
+    not shipments. Each arc represents a shopper self-serving instead of
+    contacting support. As an arc lands, a small label/tooltip fires:
+      "Address corrected — Austin, TX" / "Order edited — Lisbon" /
+      "Upsell accepted — Berlin" / "Cancellation avoided — Mumbai"
+    Pair with a LIVE COUNT-UP stat that ticks as arcs land
+      ("X edits handled · $Y upsell revenue · Z cancellations recovered").
+    Use placeholder/illustrative numbers until real ones are supplied.
+  - Glowing location DOTS + animated ARCS on a loop.
+
+PERFORMANCE:
+  - Cap devicePixelRatio (e.g. min(window.dpr, 2)); throttle on mobile.
+  - Pause render when offscreen / tab hidden. Dispose geometries on unmount.
+  - Keep texture sizes modest; compress. Target 60fps desktop, no jank.
+
+FALLBACKS:
+  - prefers-reduced-motion, low-power, or small/mobile screens → render a
+    STATIC globe image or a CSS radial-gradient glow instead of WebGL.
+  - If WebGL unavailable → graceful static fallback, no errors.
+
+A11Y:
+  - aria-hidden="true", not focusable, decorative only. All copy/contrast must
+    pass independently of the globe (ensure text remains legible over it —
+    add a subtle scrim/blur behind text where they overlap).
+
+
+================================================================================
+4.5 FLAGSHIP FEATURE — "DEMO FROM YOUR STORE URL"  [LiveDemoGenerator.tsx]
+================================================================================
+This is the hero/standout feature (inspired by redo.com's store-URL demo
+flow, e.g. redo.com/search/brands/{store}?products=order-editing). It must be
+the most polished, best-animated part of the site. Make it visual-first.
+
+CONCEPT:
+  User pastes their store URL → we generate a PERSONALIZED, branded demo that
+  shows the CP: Order Editing & Upsell experience running on THEIR own store's
+  branding + real products. Zero setup, instant "wow".
+
+PLACEMENT (DECIDED):
+  - Input lives IN THE HERO, front-and-center ("See it on your store — paste
+    your URL"). This is the headline feature. Submitting reveals the generated
+    demo directly below the hero with a smooth scroll/expand transition.
+
+BUILD MODE (DECIDED):
+  - MOCK DATA FOR NOW. Build the full UI + animation + interactive widget using
+    hardcoded sample store data (a realistic fake store: logo, brand color, a
+    few products w/ placeholder images). Structure the code so the real
+    /api/demo fetch (Shopify products.json + OG branding) can be wired in later
+    with no UI changes — keep a single data-provider seam (e.g. useDemoData()
+    that currently returns the mock and will later call the route).
+
+UX FLOW:
+  1. Input field + "Generate demo" button. Validate URL; accept bare domains
+     (judo.com) and full URLs. Show example/placeholder text.
+  2. On submit: optimistic loading state — branded skeleton + playful status
+     copy ("Reading your store…", "Pulling your products…", "Building your
+     demo…"). Staggered shimmer. Keep it ~1–2s even if fast (feels crafted).
+  3. Reveal: an interactive MOCK order-status / thank-you page, re-skinned with
+     the store's logo + brand color, populated with the store's real products
+     and imagery, with the CP widget live on top.
+  4. Interactive widget actions the visitor can click through:
+       - Edit items / quantities / variants
+       - Change shipping address (Google-Maps-style validation UI)
+       - Cancel order → refund / store-credit options
+       - Post-purchase UPSELL card (recommends another of their products)
+     Each action animates (modal/drawer, success toasts) — fully clickable,
+     no real mutations (sandbox/mock state only).
+
+DATA SOURCING (Next.js Route Handler, server-side):
+  - POST /api/demo  { url }  → returns { brand: {name, logo, color}, products[] }
+  - Products + images: fetch the store's PUBLIC Shopify JSON:
+        https://{store}/products.json?limit=12   (and /collections/all/products.json)
+  - Brand: fetch the homepage HTML, parse Open Graph (og:image, og:site_name)
+    + <link rel="icon"> for logo, and sample a theme/brand color (meta
+    theme-color, or derive from logo). Cache results (short TTL).
+  - Sanitize + proxy remote images via next/image remotePatterns or an image
+    proxy route to avoid hotlink/CORS issues.
+  - Rate-limit the route; timeout fetches (~4s); never block the UI thread.
+
+FALLBACKS (must never break):
+  - Non-Shopify / blocked / no products / error → show a polished GENERIC demo
+    using neutral placeholder branding + placeholder products, with a small
+    note ("Showing a sample demo"). The flow still fully works.
+  - prefers-reduced-motion → skip shimmer/parallax, keep instant reveal.
+
+ANIMATION (best-in-class):
+  - Input → results: smooth height/scroll transition (Framer Motion layout).
+  - Branded reveal: logo/color "paint-in", products stagger-fade into a grid.
+  - Widget actions: spring-based drawers/modals, micro success animations.
+  - Optional device/browser frame around the mock for realism.
+
+ACCESSIBILITY:
+  - Input has a real <label>; button announces loading (aria-busy/live region).
+  - Mock interactions keyboard-operable; focus moves into revealed demo.
+
+COMPONENTS:
+  LiveDemoGenerator.tsx (orchestrator), DemoUrlInput.tsx, DemoSkeleton.tsx,
+  DemoStorefront.tsx (branded mock), OrderEditWidget.tsx (the CP widget mock),
+  UpsellCard.tsx, AddressValidator.tsx. Mock state via a small reducer/hook.
+
+
+================================================================================
+5. ANIMATION & INTERACTION SYSTEM (match the reference's quality)
+================================================================================
+GLOBAL MOTION PRINCIPLES:
+  - Easing: easeOut / custom cubic-bezier(0.16, 1, 0.3, 1) for entrances.
+  - Durations: 0.4–0.7s entrances; 0.15–0.25s hover/tap feedback.
+  - Respect prefers-reduced-motion → disable transforms, keep opacity only.
+
+SCROLL REVEALS:
+  - Sections/elements fade-up (opacity 0→1, y 24→0) when entering viewport.
+  - Use Framer Motion `whileInView` + `viewport={{ once: true, margin }}`.
+  - Stagger children within a section for a cascading reveal.
+
+HERO:
+  - Staggered load-in. Optional subtle parallax on the product image as you
+    scroll (useScroll + useTransform).
+
+MARQUEES / CAROUSELS:
+  - Infinite loop, constant speed, pause on hover.
+
+HOVER MICRO-INTERACTIONS:
+  - Buttons: slight scale (1.0→1.02) + bg/shade shift, 0.2s.
+  - Cards: translateY(-4px) + shadow increase + optional border→primary.
+  - Logos: grayscale→color, opacity 0.6→1.
+  - Links: animated underline (left-to-right) or color shift + arrow nudge (→).
+
+NAV:
+  - Scroll-aware bg/shadow/shrink transition.
+  - Dropdown mega-menus fade+slide.
+
+NUMBERS:
+  - Count-up animation when stats scroll into view.
+
+PAGE TRANSITIONS:
+  - Subtle fade between route changes (Framer Motion AnimatePresence) if
+    multi-page; otherwise smooth in-page anchor scrolling.
+
+
+================================================================================
+6. RESPONSIVE BEHAVIOR
+================================================================================
+BREAKPOINTS (Tailwind defaults): sm 640 / md 768 / lg 1024 / xl 1280 / 2xl 1536.
+  - Mobile (<768): single column everything; nav → hamburger Sheet; hero text
+    centers above stacked image; feature rows stack (image then text); 3-col
+    grids → 1 col; reduce section padding (py-16/20); larger tap targets (44px).
+  - Tablet (768–1024): 2-col grids; nav may keep condensed menu.
+  - Desktop (>1024): full multi-column layouts, alternating feature rows,
+    hover interactions enabled.
+  - Fluid type via clamp(); images max-w-full, no horizontal overflow/CLS.
+
+
+================================================================================
+7. ACCESSIBILITY / SEO / PERFORMANCE CHECKLIST
+================================================================================
+  [ ] Semantic landmarks (header/nav/main/section/footer), one h1 per page.
+  [ ] All interactive elements keyboard-navigable; visible focus rings.
+  [ ] Color contrast ≥ AA against chosen Clickpost palette.
+  [ ] alt text on every image; aria-labels on icon-only buttons.
+  [ ] prefers-reduced-motion honored.
+  [ ] next/image for all imagery; lazy-load below the fold; explicit sizes.
+  [ ] Metadata + OpenGraph + Twitter cards; sitemap.ts + robots.ts.
+  [ ] Lighthouse target: 90+ across Performance/Accessibility/Best/SEO.
+  [ ] No CLS: reserve space for images/embeds; fonts via next/font (swap).
+
+
+================================================================================
+8. BUILD ORDER (suggested)
+================================================================================
+  1. Scaffold Next.js + TS + Tailwind + shadcn + Framer Motion + Lucide.
+  2. Define design tokens (tailwind.config + globals.css CSS vars) + fonts.
+  3. Build primitives: Container, SectionHeading, AnimatedReveal, Marquee.
+  4. Build Navbar + Footer + AnnouncementBanner (layout shell).
+  5. Build sections top→bottom with placeholder content & images.
+  6. Layer in Framer Motion animations + scroll reveals.
+  7. Wire responsive behavior + test all breakpoints.
+  8. Accessibility + SEO + performance pass.
+  9. Swap placeholders for real Clickpost assets when provided
+     (search for "TODO: replace placeholder").
+
+================================================================================
+END OF SPEC
+================================================================================
