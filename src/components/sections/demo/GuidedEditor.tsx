@@ -10,6 +10,7 @@ import type { DemoStore } from "@/lib/site";
 import type { Addr } from "./DemoMock";
 import { DemoMock } from "./DemoMock";
 import { OneTapUpsellMock } from "./OneTapUpsellMock";
+import { AddressValidationMock } from "./AddressValidationMock";
 import { TourOverlay, type TourRect } from "./TourOverlay";
 
 const ACCENT = "#155FFF";
@@ -890,7 +891,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                   )
                 )}
                 {tab === "address" && (
-                  <DemoMock store={store} initialOpen="shipping" forceOpen="shipping" maxHeight={560} />
+                  <AddressValidationMock store={store} />
                 )}
                 {tab === "cancel" && (
                   <DemoMock store={store} initialOpen="cancel" forceOpen="cancel" maxHeight={560} />
