@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowRight, Check, Sparkles, Clock, Code2, ShieldCheck, Star, ShoppingBag, CalendarDays, Lock, Gem,
+  ArrowRight, Check, Sparkles, Clock, Code2, ShieldCheck, Star, ShoppingBag, CalendarDays,
 } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
 import type { Addr } from "./DemoMock";
@@ -487,9 +487,6 @@ function FeaturesRail({
         <h3 className="max-w-[13rem] font-sans text-[22px] font-extrabold leading-[1.1] tracking-tight text-foreground">
           Ready to try it on your Shopify store?
         </h3>
-        <p className="mt-2 text-[13px] leading-snug text-neutral-500">
-          Install in under 2 minutes. No code required.
-        </p>
 
         {/* quick facts */}
         <div className="mt-3 flex flex-wrap items-center gap-x-3.5 gap-y-1.5 text-[12px] font-medium text-neutral-500">
@@ -526,16 +523,6 @@ function FeaturesRail({
         >
           <CalendarDays className="size-4" /> Book a 15-min demo
         </Link>
-
-        {/* trust row */}
-        <div className="mt-4 flex items-center justify-between text-[11px] font-medium text-neutral-500">
-          <span className="inline-flex items-center gap-1.5 rounded-md bg-neutral-100 px-2 py-1">
-            <Gem className="size-3 text-[#155FFF]" /> Built for Shopify
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <Lock className="size-3" /> GDPR Compliant
-          </span>
-        </div>
       </div>
     </div>
   );
