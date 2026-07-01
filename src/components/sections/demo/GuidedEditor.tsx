@@ -398,18 +398,19 @@ function ClickpostMark({ className }: { className?: string }) {
 }
 
 /** Brand-result notes that type out and interchange in the CTA's top line. */
-const RESULT_NOTES = [
-  "Mars by GHC lifted AOV 23% and added $18K in upsell this month.",
-  "Doonails deflected 58% of tickets and saved $12K this month.",
-  "Haute Sauce grew AOV by 15% and added $7K in upsell this month.",
+type BrandNote = { name: string; stat: string };
+const RESULT_NOTES: BrandNote[] = [
+  { name: "Mars by GHC", stat: "lifted AOV 23% and added $18K in upsell this month." },
+  { name: "Doonails", stat: "deflected 58% of tickets and saved $12K this month." },
+  { name: "Haute Sauce", stat: "grew AOV by 15% and added $7K in upsell this month." },
 ];
 
-function RotatingNote({ notes }: { notes: string[] }) {
+function RotatingNote({ notes }: { notes: BrandNote[] }) {
   const [i, setI] = useState(0);
   const [text, setText] = useState("");
   const [phase, setPhase] = useState<"type" | "hold" | "delete">("type");
   useEffect(() => {
-    const full = notes[i];
+    const full = notes[i].stat;
     let t: ReturnType<typeof setTimeout>;
     if (phase === "type") {
       if (text.length < full.length) t = setTimeout(() => setText(full.slice(0, text.length + 1)), 30);
@@ -424,6 +425,7 @@ function RotatingNote({ notes }: { notes: string[] }) {
   }, [text, phase, i, notes]);
   return (
     <span>
+      <span className="font-sans text-[15px] font-extrabold not-italic tracking-tight text-neutral-900">{notes[i].name}</span>{" "}
       {text}
       <span className="ml-px inline-block w-[2px] animate-pulse text-[#155FFF]">▍</span>
     </span>
