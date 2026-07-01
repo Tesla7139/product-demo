@@ -397,6 +397,39 @@ function ClickpostMark({ className }: { className?: string }) {
   );
 }
 
+/** Brand-result notes that type out and interchange in the CTA's top line. */
+const RESULT_NOTES = [
+  "Doonails cut support tickets 58% and made $12K in upsell revenue.",
+  "Mars by GHC lifted AOV 23% and added $18K in upsell revenue.",
+  "Modomu recovered lost sales with one-tap post-purchase upsells.",
+];
+
+function RotatingNote({ notes }: { notes: string[] }) {
+  const [i, setI] = useState(0);
+  const [text, setText] = useState("");
+  const [phase, setPhase] = useState<"type" | "hold" | "delete">("type");
+  useEffect(() => {
+    const full = notes[i];
+    let t: ReturnType<typeof setTimeout>;
+    if (phase === "type") {
+      if (text.length < full.length) t = setTimeout(() => setText(full.slice(0, text.length + 1)), 30);
+      else t = setTimeout(() => setPhase("hold"), 1900);
+    } else if (phase === "hold") {
+      t = setTimeout(() => setPhase("delete"), 100);
+    } else {
+      if (text.length > 0) t = setTimeout(() => setText(text.slice(0, -1)), 14);
+      else { t = setTimeout(() => { setI((n) => (n + 1) % notes.length); setPhase("type"); }, 250); }
+    }
+    return () => clearTimeout(t);
+  }, [text, phase, i, notes]);
+  return (
+    <span>
+      {text}
+      <span className="ml-px inline-block w-[2px] animate-pulse text-[#155FFF]">▍</span>
+    </span>
+  );
+}
+
 /* ----------------------------- features rail ----------------------------- */
 function FeaturesRail({
   tab,
@@ -493,21 +526,23 @@ function FeaturesRail({
 
       {/* install CTA */}
       <div className="relative mt-5 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-5 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md">
-        <h3 className="mx-auto max-w-[15rem] font-sans text-[22px] font-extrabold leading-[1.15] tracking-tight text-foreground">
-          Ready to try it on your Shopify store?
-        </h3>
+        {/* rotating brand-result note (types out & interchanges) */}
+        <p className="mx-auto flex min-h-[3.4em] max-w-[17rem] items-center justify-center font-serif text-[13.5px] font-medium italic leading-snug text-neutral-700">
+          <RotatingNote notes={RESULT_NOTES} />
+        </p>
 
-        {/* app identity + Shopify rating */}
-        <div className="mt-4 flex flex-col items-center gap-2">
-          <div className="flex items-center gap-2.5">
-            <ClickpostMark className="size-8 shrink-0 rounded-[8px] shadow-sm" />
-            <span className="text-sm font-bold leading-tight text-neutral-900">CP Order Editing &amp; Upsell</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            {/* eslint-disable-next-line @next/next/no-img-element -- Shopify icon from /public */}
-            <img src="/shopify-icon.png" alt="Shopify App Store" className="size-5 object-contain" />
-            <Star className="size-4 fill-amber-400 text-amber-400" />
-            <span className="text-[13px] font-bold text-neutral-900">5.0</span>
+        {/* app identity — Shopify rating sits beside the name */}
+        <div className="mt-2 flex items-center justify-center gap-2.5">
+          <ClickpostMark className="size-8 shrink-0 rounded-[8px] shadow-sm" />
+          <div className="text-left">
+            <div className="text-[13px] font-bold leading-tight text-neutral-900">CP Order Editing &amp; Upsell</div>
+            <div className="mt-0.5 flex items-center gap-1 text-[11px] text-neutral-500">
+              {/* eslint-disable-next-line @next/next/no-img-element -- Shopify icon from /public */}
+              <img src="/shopify-icon.png" alt="Shopify" className="size-3.5 object-contain" />
+              <Star className="size-3 fill-amber-400 text-amber-400" />
+              <span className="font-bold text-neutral-900">5.0</span>
+              <span>· 50+ reviews</span>
+            </div>
           </div>
         </div>
 
