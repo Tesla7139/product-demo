@@ -209,6 +209,22 @@ export function TourOverlay({
         <rect width="100%" height="100%" fill="rgba(4,9,30,0.72)" mask={`url(#tsp-${step})`} />
       </svg>
 
+      {/* Interaction blockers — swallow every tap / swipe / click OUTSIDE the spotlight,
+          so only the highlighted element stays usable during the tour. */}
+      {(() => {
+        const swallow = (e: React.SyntheticEvent) => { e.preventDefault(); e.stopPropagation(); };
+        const block = "pointer-events-auto absolute";
+        const s = { touchAction: "none" as const };
+        return (
+          <div aria-hidden onClickCapture={swallow} onPointerDownCapture={swallow} onTouchStartCapture={swallow}>
+            <div className={block} style={{ ...s, top: 0, left: 0, width: "100%", height: Math.max(0, sl.top) }} />
+            <div className={block} style={{ ...s, top: sl.top + sl.height, left: 0, right: 0, bottom: 0 }} />
+            <div className={block} style={{ ...s, top: sl.top, left: 0, width: Math.max(0, sl.left), height: sl.height }} />
+            <div className={block} style={{ ...s, top: sl.top, left: sl.left + sl.width, right: 0, height: sl.height }} />
+          </div>
+        );
+      })()}
+
       {/* Pulsing ring */}
       <div
         className="pointer-events-none absolute animate-pulse rounded-[10px]"
