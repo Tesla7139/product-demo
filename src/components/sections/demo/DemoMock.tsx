@@ -157,18 +157,30 @@ export function DemoMock({
   const [formEmphasis, setFormEmphasis] = useState(false); // whole-address highlight after the edit
   const [orderEmphasis, setOrderEmphasis] = useState(false); // highlight the bumped item row
 
-  // apply a corrected address pushed in by the guided tour — one field at a time,
-  // with a moving highlight, then highlight the whole address once it's done
+  // apply a corrected address pushed in by the guided tour — typed out field by
+  // field (clear, then type char by char), then highlight the whole address
   useEffect(() => {
     if (!addressOverride) return;
     const keys = Object.keys(addressOverride) as (keyof Addr)[];
-    const timers = keys.map((k, i) =>
-      window.setTimeout(() => {
-        setAddr((prev) => ({ ...prev, [k]: addressOverride[k] as string }));
+    const timers: number[] = [];
+    let t = 300;
+    keys.forEach((k) => {
+      const val = String(addressOverride[k] ?? "");
+      // highlight + clear the field before retyping it
+      timers.push(window.setTimeout(() => {
         setEmphasis((e) => ({ ...e, [k]: true }));
-      }, 250 + i * 350)
-    );
-    timers.push(window.setTimeout(() => setFormEmphasis(true), 250 + keys.length * 350));
+        setAddr((prev) => ({ ...prev, [k]: "" }));
+      }, t));
+      t += 140;
+      // type the corrected value one character at a time
+      for (let c = 1; c <= val.length; c++) {
+        const slice = val.slice(0, c);
+        timers.push(window.setTimeout(() => setAddr((prev) => ({ ...prev, [k]: slice })), t));
+        t += 42;
+      }
+      t += 260; // pause before the next field
+    });
+    timers.push(window.setTimeout(() => setFormEmphasis(true), t));
     return () => timers.forEach((t) => clearTimeout(t));
   }, [addressOverride]);
 
