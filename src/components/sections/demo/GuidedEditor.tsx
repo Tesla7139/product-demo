@@ -177,7 +177,7 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
     title: "Add or change items",
     desc: "Add one more, swap, or remove — the total updates live.",
     cta: "Next",
-    measureDelayMs: 420,
+    measureDelayMs: 300,
     tapTarget: true,
     hideCta: true, // tap the order to add one more
     dotId: "order-plus", // point the dot at the + button, not delete
@@ -739,26 +739,37 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, pendingEditingTour]);
 
-  // measure the spotlight for the active step
+  // measure the spotlight for the active step — retries until the target(s) mount
   useEffect(() => {
     if (!activeTour) return;
     const list = activeTour === "editing" ? EDITING_TOUR_STEPS : UPSELL_TOUR_STEPS;
     const s = list[tourStep];
     if (!s) return;
-    const delay = s.measureDelayMs ?? 80;
-    const t = setTimeout(() => {
+    let cancelled = false;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const run = (attempt: number) => {
+      if (cancelled) return;
       const el = getStepTarget(s.spotlightId ?? s.id);
-      if (!el) return;
+      if (!el) {
+        if (attempt < 8) timers.push(setTimeout(() => run(attempt + 1), 120));
+        return;
+      }
       scrollInnerIntoView(el); // scroll the inner screen only, never the outer modal
       const r = el.getBoundingClientRect();
       setSpotlightRect({ top: r.top, left: r.left, width: r.width, height: r.height });
-      // the dot may point at a different element than the spotlight (e.g. Save inside the box)
+      // the dot may point at a different element than the spotlight (e.g. the + or Save inside the box)
       const dotEl = getStepTarget(s.dotId ?? s.spotlightId ?? s.id);
+      if (!dotEl && s.dotId && attempt < 8) {
+        // dot target not mounted yet — keep the spotlight, retry until it appears
+        timers.push(setTimeout(() => run(attempt + 1), 120));
+        return;
+      }
       const dr = (dotEl ?? el).getBoundingClientRect();
       setDotRect({ top: dr.top, left: dr.left, width: dr.width, height: dr.height });
       setMeasuredStep(tourStep);
-    }, delay);
-    return () => clearTimeout(t);
+    };
+    timers.push(setTimeout(() => run(0), s.measureDelayMs ?? 80));
+    return () => { cancelled = true; timers.forEach(clearTimeout); };
   }, [activeTour, tourStep]);
 
   // editing-window open state: tour-controlled during the tour, pill-controlled otherwise
