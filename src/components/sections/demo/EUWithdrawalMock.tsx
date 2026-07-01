@@ -43,14 +43,45 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-function SelectField({ label, value }: { label: string; value: string }) {
+const WITHDRAWAL_REASONS = [
+  "I changed my mind",
+  "Ordered by mistake",
+  "Found a better price elsewhere",
+  "No longer needed",
+  "Delivery is taking too long",
+  "Ordered the wrong item or size",
+];
+
+/** Interactive reason dropdown, styled like the order-editing fields. */
+function ReasonSelect({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
   return (
-    <div className="relative rounded-md border border-border px-3 pt-5 pb-1.5">
-      <span className="pointer-events-none absolute left-3 top-1.5 text-[10px] font-medium uppercase tracking-wide text-neutral-400">{label}</span>
-      <div className="flex items-center justify-between text-sm text-neutral-800">
-        {value}
-        <ChevronDown className="size-4 text-neutral-400" />
-      </div>
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="relative w-full rounded-md border px-3 pt-5 pb-1.5 text-left transition-colors"
+        style={{ borderColor: open ? "#111827" : "var(--border, #e5e7eb)" }}
+      >
+        <span className="pointer-events-none absolute left-3 top-1.5 text-[10px] font-medium uppercase tracking-wide text-neutral-400">{label}</span>
+        <span className="flex items-center justify-between text-sm text-neutral-800">
+          {value}
+          <ChevronDown className={`size-4 text-neutral-400 transition-transform ${open ? "rotate-180" : ""}`} />
+        </span>
+      </button>
+      {open && (
+        <div className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-md border border-neutral-200 bg-white shadow-lg">
+          {WITHDRAWAL_REASONS.map((r) => (
+            <button
+              key={r}
+              onClick={() => { onChange(r); setOpen(false); }}
+              className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors hover:bg-neutral-50 ${r === value ? "font-semibold text-neutral-900" : "text-neutral-600"}`}
+            >
+              {r}
+              {r === value && <Check className="size-3.5 text-neutral-900" strokeWidth={3} />}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -73,6 +104,7 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"form" | "done">("form");
   const [agreed, setAgreed] = useState(false);
+  const [reason, setReason] = useState(WITHDRAWAL_REASONS[0]);
 
   const toggle = () => {
     const next = !open;
@@ -135,7 +167,7 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
                     >
                       {step === "form" ? (
                         <div className="flex flex-col gap-2.5 px-3.5 pb-4 pt-1">
-                          <SelectField label="Reason for withdrawal" value="I changed my mind" />
+                          <ReasonSelect label="Reason for withdrawal" value={reason} onChange={setReason} />
                           <Field label="Email" value={DEFAULT_EMAIL} />
                           <Field label="Phone" value={DEFAULT_PHONE} />
                           <label className="relative block rounded-md border border-border px-3 pt-5 pb-2">
