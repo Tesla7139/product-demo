@@ -8,6 +8,7 @@ import { GuidedEditor } from "./GuidedEditor";
 import { OneTapUpsell } from "./OneTapUpsell";
 import { CustomerLogos } from "@/components/sections/CustomerLogos";
 import { WallOfLoveTeaser } from "@/components/sections/WallOfLoveTeaser";
+import { Footer } from "@/components/layout/Footer";
 
 type Status = "idle" | "loading" | "ready";
 type Step = "welcome" | "editing" | "upsell";
@@ -272,9 +273,10 @@ function EditingView({ store, onUpsell }: { store: DemoStore; onUpsell: () => vo
         <GuidedEditor store={store} onUpsell={onUpsell} />
       </div>
 
-      {/* below the demo: moving brand marquee + Wall of Love reviews */}
+      {/* below the demo: moving brand marquee + Wall of Love reviews + footer */}
       <CustomerLogos />
       <WallOfLoveTeaser />
+      <Footer />
     </motion.div>
   );
 }
