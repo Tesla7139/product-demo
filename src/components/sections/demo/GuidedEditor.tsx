@@ -389,14 +389,9 @@ function FeaturesRail({
   return (
     <div className="flex h-full w-full flex-col lg:max-w-[340px]">
       {/* heading */}
-      <div>
-        <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-neutral-400">
-          Try the experience
-        </p>
-        <h3 className="mt-3 font-sans text-[2.1rem] font-extrabold leading-[1.04] tracking-tight text-foreground">
-          Click a feature to run it live.
-        </h3>
-      </div>
+      <h3 className="font-sans text-[1.65rem] font-extrabold leading-tight tracking-tight text-foreground">
+        Click a feature to run it live.
+      </h3>
 
       {/* feature cards — single-select toggle, glass + hover tooltip */}
       <div className="mt-4 flex flex-col gap-3">
@@ -475,8 +470,8 @@ function FeaturesRail({
         })}
       </div>
 
-      {/* install CTA — pinned to the bottom of the rail */}
-      <div className="relative mt-6 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-5 shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md lg:mt-auto">
+      {/* install CTA */}
+      <div className="relative mt-5 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-5 shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md">
         {/* hand-drawn arrow doodle */}
         <svg viewBox="0 0 80 80" className="pointer-events-none absolute right-2 top-1 h-14 w-14 text-[#155FFF]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <path d="M58 12 C 70 28, 64 48, 42 54" />
