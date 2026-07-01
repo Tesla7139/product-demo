@@ -53,6 +53,7 @@ export function TourOverlay({
   outcomeHref,
   nextLabel,
   finalStep = false,
+  blurRect,
   onAdvance,
   onClose,
 }: {
@@ -81,6 +82,8 @@ export function TourOverlay({
   nextLabel?: string;
   /** Final step of the whole chain — the advance affordance reads "Finish" and closes. */
   finalStep?: boolean;
+  /** The editing/demo window rect — outcome steps blur only this region. */
+  blurRect?: TourRect | null;
   onAdvance: () => void;
   onClose: () => void;
 }) {
@@ -93,86 +96,102 @@ export function TourOverlay({
 
   if (typeof window === "undefined") return null;
 
-  // ---- Outcome overlay: blurred backdrop (next card stays crisp) + centered CTA ----
+  // ---- Outcome overlay ----
+  // In-between hops: light blur over the demo window only + a small "Explore next" callout.
+  // Final step (end of the chain): a bigger centered conversion window with the app name.
   if (outcome) {
-    const OPAD = 8;
-    const hole = rect
-      ? { top: rect.top - OPAD, left: rect.left - OPAD, width: rect.width + OPAD * 2, height: rect.height + OPAD * 2 }
+    const swallow = (e: React.SyntheticEvent) => { e.preventDefault(); e.stopPropagation(); };
+    // light dim/blur limited to the editing window (fallback: whole screen, still light)
+    const dim = blurRect
+      ? { top: blurRect.top, left: blurRect.left, width: blurRect.width, height: blurRect.height }
       : null;
-    const strip = "pointer-events-auto absolute bg-[rgba(4,9,30,0.55)] backdrop-blur-md";
+    const dimClass = "pointer-events-auto absolute bg-[rgba(15,23,42,0.14)] backdrop-blur-[3px]";
+
+    // small callout anchored beside the highlighted next-feature card
+    const calloutTop = rect ? Math.max(12, Math.min(rect.top, window.innerHeight - 130)) : 0;
+    const calloutLeft = rect ? Math.min(rect.left + rect.width + 14, window.innerWidth - 236) : 0;
+
     return createPortal(
       <div className="pointer-events-none fixed inset-0 z-[500]">
-        {hole ? (
-          <>
-            {/* four blurred strips around the highlighted card so it stays sharp */}
-            <div className={strip} style={{ top: 0, left: 0, width: "100%", height: hole.top }} />
-            <div className={strip} style={{ top: hole.top + hole.height, left: 0, width: "100%", bottom: 0 }} />
-            <div className={strip} style={{ top: hole.top, left: 0, width: hole.left, height: hole.height }} />
-            <div className={strip} style={{ top: hole.top, left: hole.left + hole.width, right: 0, height: hole.height }} />
-            {/* glowing ring around the highlighted (crisp) card */}
-            <motion.div
-              className="pointer-events-none absolute rounded-2xl"
-              style={{ top: hole.top, left: hole.left, width: hole.width, height: hole.height }}
-              animate={{ boxShadow: ["0 0 0 2px rgba(21,95,255,0.9), 0 0 24px 2px rgba(21,95,255,0.35)", "0 0 0 3px rgba(21,95,255,1), 0 0 40px 6px rgba(21,95,255,0.55)", "0 0 0 2px rgba(21,95,255,0.9), 0 0 24px 2px rgba(21,95,255,0.35)"] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-            />
-          </>
+        {/* light blur over the editing window */}
+        {dim ? (
+          <div className={`${dimClass} rounded-[1.75rem]`} style={{ top: dim.top, left: dim.left, width: dim.width, height: dim.height }} onClickCapture={swallow} onPointerDownCapture={swallow} onTouchStartCapture={swallow} />
         ) : (
-          <div className="pointer-events-auto absolute inset-0 bg-[rgba(4,9,30,0.6)] backdrop-blur-md" />
+          <div className={`${dimClass} inset-0`} onClickCapture={swallow} onPointerDownCapture={swallow} onTouchStartCapture={swallow} />
         )}
 
-        {/* centered conversion card */}
-        <motion.div
-          key={`outcome-${step}`}
-          initial={{ opacity: 0, scale: 0.94, y: 8 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="pointer-events-auto absolute left-1/2 top-1/2 w-[min(92vw,380px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-white shadow-2xl"
-        >
-          <div className="h-[4px] w-full" style={{ background: `linear-gradient(90deg, ${TOUR_ACCENT}, #7c3aed)` }} />
-          <div className="px-7 py-7 text-center">
-            <span
-              className="mx-auto mb-4 flex size-12 items-center justify-center rounded-2xl"
-              style={{ background: `${TOUR_ACCENT}14`, color: TOUR_ACCENT }}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z" />
-              </svg>
-            </span>
-            <div className="font-serif text-[22px] font-bold leading-tight tracking-tight text-neutral-900">
-              {outcomeHeadline ?? title}
+        {finalStep ? (
+          /* ---- final centered conversion window ---- */
+          <motion.div
+            key={`outcome-${step}`}
+            initial={{ opacity: 0, scale: 0.94, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="pointer-events-auto absolute left-1/2 top-1/2 w-[min(93vw,420px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-white shadow-2xl"
+          >
+            <div className="h-[4px] w-full" style={{ background: `linear-gradient(90deg, ${TOUR_ACCENT}, #7c3aed)` }} />
+            <div className="px-8 py-8 text-center">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-neutral-500">
+                CP Order Editing &amp; Upsell
+              </div>
+              <h3 className="mt-4 font-serif text-[25px] font-bold leading-tight tracking-tight text-neutral-900">
+                Ready to do this on your store?
+              </h3>
+              <p className="mx-auto mt-2 max-w-[20rem] text-[14px] font-medium leading-relaxed text-neutral-500">
+                {outcomeHeadline ?? desc}
+              </p>
+              <a
+                href={outcomeHref}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
+                style={{ background: TOUR_ACCENT, boxShadow: `0 8px 24px -6px ${TOUR_ACCENT}88` }}
+              >
+                {outcomeButton ?? "Get started"}
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M7 17 17 7M9 7h8v8" />
+                </svg>
+              </a>
+              <button onClick={onAdvance} className="mt-3 text-[13px] font-semibold text-neutral-500 transition-colors hover:text-neutral-800">
+                Finish tour
+              </button>
             </div>
-            <p className="mx-auto mt-2 max-w-[19rem] text-[13.5px] font-medium leading-relaxed text-neutral-500">{desc}</p>
-            <a
-              href={outcomeHref}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[14px] font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
-              style={{ background: TOUR_ACCENT, boxShadow: `0 8px 24px -6px ${TOUR_ACCENT}88` }}
+          </motion.div>
+        ) : rect ? (
+          /* ---- in-between hop: highlight next card + small explore callout ---- */
+          <>
+            <motion.div
+              className="pointer-events-none absolute rounded-2xl"
+              style={{ top: rect.top - 6, left: rect.left - 6, width: rect.width + 12, height: rect.height + 12 }}
+              animate={{ boxShadow: ["0 0 0 2px rgba(21,95,255,0.85), 0 0 20px 2px rgba(21,95,255,0.3)", "0 0 0 3px rgba(21,95,255,1), 0 0 34px 5px rgba(21,95,255,0.5)", "0 0 0 2px rgba(21,95,255,0.85), 0 0 20px 2px rgba(21,95,255,0.3)"] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              key={`callout-${step}`}
+              initial={{ opacity: 0, x: -6 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="pointer-events-auto absolute w-[220px] rounded-2xl bg-white p-4 shadow-2xl"
+              style={{ top: calloutTop, left: calloutLeft }}
             >
-              {outcomeButton ?? "Get started"}
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M7 17 17 7M9 7h8v8" />
-              </svg>
-            </a>
-            <button
-              onClick={onAdvance}
-              className="mt-3 flex w-full items-center justify-center gap-1.5 text-[13px] font-semibold text-neutral-500 transition-colors hover:text-neutral-800"
-            >
-              {finalStep ? "Finish tour" : nextLabel ? `Continue — up next: ${nextLabel}` : "Continue tour"}
-              {!finalStep && (
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-400">Up next</div>
+              <button
+                onClick={onAdvance}
+                className="mt-1.5 flex w-full items-center justify-between gap-2 text-left text-[15px] font-extrabold tracking-tight text-neutral-900 transition-colors hover:text-[#155FFF]"
+              >
+                Explore {nextLabel ?? "the next feature"}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={TOUR_ACCENT} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
-              )}
-            </button>
-          </div>
-        </motion.div>
+              </button>
+            </motion.div>
+          </>
+        ) : null}
 
         {/* Skip — always available */}
         <button
           onClick={onClose}
-          className="pointer-events-auto absolute right-5 top-5 rounded-full bg-white/10 px-4 py-2 text-[12px] font-medium text-white backdrop-blur-sm ring-1 ring-white/20 transition-colors hover:bg-white/20"
+          className="pointer-events-auto absolute right-5 top-5 rounded-full bg-neutral-900/80 px-4 py-2 text-[12px] font-medium text-white ring-1 ring-white/20 transition-colors hover:bg-neutral-900"
         >
           Skip tour
         </button>

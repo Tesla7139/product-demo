@@ -624,6 +624,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
   const [spotlightRect, setSpotlightRect] = useState<TourRect | null>(null);
   const [dotRect, setDotRect] = useState<TourRect | null>(null); // where the red dot points (may differ from spotlight)
   const [measuredStep, setMeasuredStep] = useState(-1); // which step the current rect belongs to
+  const [demoRect, setDemoRect] = useState<TourRect | null>(null); // editing-window bounds (blurred on outcome steps)
   const [pendingTour, setPendingTour] = useState<Tour | null>(null); // start this tour once its tab mounts
 
   // controlled bits during the tour
@@ -642,6 +643,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
   }
 
   const rootRef = useRef<HTMLDivElement>(null);
+  const demoFrameRef = useRef<HTMLDivElement>(null); // the editing/demo window (blurred on outcome steps)
 
   // tour ref registry
   const countdownRef = useRef<HTMLDivElement>(null);
@@ -907,6 +909,11 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     let cancelled = false;
     const timers: ReturnType<typeof setTimeout>[] = [];
     // capture the spotlight + dot rects from the (now-settled) DOM
+    const measureDemo = () => {
+      if (!s.outcome || !demoFrameRef.current) return;
+      const d = demoFrameRef.current.getBoundingClientRect();
+      setDemoRect({ top: d.top, left: d.left, width: d.width, height: d.height });
+    };
     const capture = (doScroll: boolean) => {
       if (cancelled) return;
       const el = getStepTarget(s.spotlightId ?? s.id);
@@ -917,6 +924,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
       setSpotlightRect({ top: r.top, left: r.left, width: r.width, height: r.height });
       const dr = (dotEl ?? el).getBoundingClientRect();
       setDotRect({ top: dr.top, left: dr.left, width: dr.width, height: dr.height });
+      measureDemo();
       setMeasuredStep(tourStep);
     };
     const run = (attempt: number) => {
@@ -926,7 +934,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
       // wait until both the spotlight and (if any) the dot target have mounted
       if (!el || (s.dotId && !dotEl)) {
         // an outcome step with no card to highlight → full-screen blurred CTA
-        if (s.outcome) { setSpotlightRect(null); setMeasuredStep(tourStep); return; }
+        if (s.outcome) { setSpotlightRect(null); measureDemo(); setMeasuredStep(tourStep); return; }
         if (attempt < 10) timers.push(setTimeout(() => run(attempt + 1), 120));
         return;
       }
@@ -955,7 +963,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
         <FeaturesRail tab={tab} onSelect={selectFeature} cardRefs={cardRefs} />
 
         {/* ---- RIGHT: aurora frame ---- */}
-        <div className="relative flex w-full flex-col gap-3 overflow-hidden rounded-[1.75rem] p-4 shadow-soft-xl sm:p-5">
+        <div ref={demoFrameRef} className="relative flex w-full flex-col gap-3 overflow-hidden rounded-[1.75rem] p-4 shadow-soft-xl sm:p-5">
           <div className="absolute inset-0 -z-0" style={{ background: "linear-gradient(135deg, #cdddff 0%, #6f9bff 48%, #2f5bff 100%)" }} />
           <div className="pointer-events-none absolute -right-16 -top-16 h-3/4 w-3/4 rounded-full bg-white/35 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-20 -left-16 h-3/4 w-3/4 rounded-full bg-[#bcd4ff]/45 blur-3xl" />
@@ -1109,6 +1117,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
           outcomeHref={APP_URL}
           nextLabel={curStep.nextLabel}
           finalStep={curStep.finalStep}
+          blurRect={demoRect}
           onAdvance={advanceTour}
           onClose={closeTour}
         />
