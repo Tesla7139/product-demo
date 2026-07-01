@@ -136,15 +136,6 @@ export function AddressValidationMock({ store, tourRefs, onConfirmed }: { store:
               <TriangleAlert className="size-3.5" /> Using your address — delivery not guaranteed
             </p>
           )}
-          {step === "done" && (
-            <button
-              onClick={() => { setStep("review"); setChoice("recommended"); }}
-              className="mt-3 text-[12px] font-semibold"
-              style={{ color: GOOGLE_BLUE }}
-            >
-              Run validation again
-            </button>
-          )}
         </div>
 
         {/* right: confirm popup */}
