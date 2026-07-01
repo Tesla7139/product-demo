@@ -63,6 +63,7 @@ export function DemoMock({
     countdown?: React.RefObject<HTMLDivElement | null>;
     shippingRow?: React.RefObject<HTMLDivElement | null>;
     addressForm?: React.RefObject<HTMLDivElement | null>;
+    addressBlock?: React.RefObject<HTMLDivElement | null>;
     saveBtn?: React.RefObject<HTMLDivElement | null>;
     orderRow?: React.RefObject<HTMLDivElement | null>;
     orderBtn?: React.RefObject<HTMLDivElement | null>;
@@ -312,24 +313,26 @@ export function DemoMock({
 
                   <div ref={tourRefs?.shippingRow}>
                     <AccordionRow icon={MapPin} label="Edit Shipping Address" isOpen={open === "shipping"} onClick={() => toggle("shipping")}>
-                      <div ref={tourRefs?.addressForm} className="flex flex-col gap-2.5">
-                        <SelectField label="Country" value="United States" emphasize={formEmphasis} />
-                        <div className="grid grid-cols-2 gap-2.5">
-                          <Field label="First Name" value={addr.first} onChange={(v) => setAddr({ ...addr, first: v })} emphasize={formEmphasis} />
-                          <Field label="Last Name" value={addr.last} onChange={(v) => setAddr({ ...addr, last: v })} emphasize={formEmphasis} />
+                      <div ref={tourRefs?.addressBlock} className="flex flex-col gap-2.5">
+                        <div ref={tourRefs?.addressForm} className="flex flex-col gap-2.5">
+                          <SelectField label="Country" value="United States" emphasize={formEmphasis} />
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <Field label="First Name" value={addr.first} onChange={(v) => setAddr({ ...addr, first: v })} emphasize={formEmphasis} />
+                            <Field label="Last Name" value={addr.last} onChange={(v) => setAddr({ ...addr, last: v })} emphasize={formEmphasis} />
+                          </div>
+                          <Field label="Address 1" value={addr.line1} onChange={(v) => setAddr({ ...addr, line1: v })} emphasize={emphasis.line1 || formEmphasis} />
+                          <Field label="Address 2" value="" onChange={() => {}} />
+                          <div className="grid grid-cols-3 gap-2.5">
+                            <Field label="City" value={addr.city} onChange={(v) => setAddr({ ...addr, city: v })} emphasize={emphasis.city || formEmphasis} />
+                            <SelectField label="Province / State" value={addr.state} emphasize={formEmphasis} />
+                            <Field label="Postal Code" value={addr.zip} onChange={(v) => setAddr({ ...addr, zip: v })} emphasize={emphasis.zip || formEmphasis} />
+                          </div>
                         </div>
-                        <Field label="Address 1" value={addr.line1} onChange={(v) => setAddr({ ...addr, line1: v })} emphasize={emphasis.line1 || formEmphasis} />
-                        <Field label="Address 2" value="" onChange={() => {}} />
-                        <div className="grid grid-cols-3 gap-2.5">
-                          <Field label="City" value={addr.city} onChange={(v) => setAddr({ ...addr, city: v })} emphasize={emphasis.city || formEmphasis} />
-                          <SelectField label="Province / State" value={addr.state} emphasize={formEmphasis} />
-                          <Field label="Postal Code" value={addr.zip} onChange={(v) => setAddr({ ...addr, zip: v })} emphasize={emphasis.zip || formEmphasis} />
+                        <div ref={tourRefs?.saveBtn}>
+                          <PrimaryButton onClick={() => { flash("Shipping address updated"); onShippingSaved?.(); }}>
+                            Update Shipping Address
+                          </PrimaryButton>
                         </div>
-                      </div>
-                      <div ref={tourRefs?.saveBtn}>
-                        <PrimaryButton onClick={() => { flash("Shipping address updated"); onShippingSaved?.(); }}>
-                          Update Shipping Address
-                        </PrimaryButton>
                       </div>
                     </AccordionRow>
                   </div>

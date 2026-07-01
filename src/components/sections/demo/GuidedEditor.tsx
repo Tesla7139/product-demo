@@ -146,6 +146,8 @@ type TourStepDef = {
   hideCard?: boolean;
   /** hide the Next button (the user advances by tapping the highlighted element) */
   hideCta?: boolean;
+  /** keep the current scroll position (don't scroll the target into view) */
+  noScroll?: boolean;
   /** end-of-feature conversion step: blurred backdrop + centered CTA linking to the app */
   outcome?: boolean;
   outcomeHeadline?: string;
@@ -182,8 +184,9 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
     measureDelayMs: 1450, // wait for the address to finish auto-filling before the dot moves to Save
     clickThrough: true,
     tapTarget: true,
-    spotlightId: "shipping-box", // keep the whole (highlighted) address visible
-    dotId: "addr-save",          // but point the dot at the Save button
+    noScroll: true,              // stay put — the form + button are already framed from the last step
+    spotlightId: "addr-block",   // highlight the form AND the Update button as one block
+    dotId: "addr-save",          // point the dot at the Update button
     hideCard: true,              // no tooltip — the highlighted address + Save dot say it all
   },
   {
@@ -601,6 +604,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
   const countdownRef = useRef<HTMLDivElement>(null);
   const shippingRowRef = useRef<HTMLDivElement>(null);
   const addressFormRef = useRef<HTMLDivElement>(null);
+  const addressBlockRef = useRef<HTMLDivElement>(null);
   const saveBtnRef = useRef<HTMLDivElement>(null);
   const orderRowRef = useRef<HTMLDivElement>(null);
   const orderBtnRef = useRef<HTMLDivElement>(null);
@@ -637,6 +641,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
       case "window": return countdownRef.current;
       case "addr-row": return addressFormRef.current;
       case "addr-save": return saveBtnRef.current;
+      case "addr-block": return addressBlockRef.current;
       case "shipping-box": return shippingRowRef.current;
       case "order-row": return orderRowRef.current;
       case "order-btn": return orderBtnRef.current;
@@ -851,8 +856,8 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
         return;
       }
       // scroll the inner screen to the ACTIONABLE element (the + / Save / Update button),
-      // so it's always in view — never the outer modal
-      scrollInnerIntoView(dotEl ?? el);
+      // so it's always in view — never the outer modal. Some steps stay put (noScroll).
+      if (!s.noScroll) scrollInnerIntoView(dotEl ?? el);
       const r = el.getBoundingClientRect();
       setSpotlightRect({ top: r.top, left: r.left, width: r.width, height: r.height });
       const dr = (dotEl ?? el).getBoundingClientRect();
@@ -957,7 +962,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                     initialOpen={null}
                     forceOpen={editingForceOpen}
                     maxHeight={560}
-                    tourRefs={{ countdown: countdownRef, shippingRow: shippingRowRef, addressForm: addressFormRef, saveBtn: saveBtnRef, orderRow: orderRowRef, orderBtn: orderBtnRef, orderPlusBtn: orderPlusBtnRef, payPanel: payPanelRef, payBtn: payBtnRef, sections: sectionsRef }}
+                    tourRefs={{ countdown: countdownRef, shippingRow: shippingRowRef, addressForm: addressFormRef, addressBlock: addressBlockRef, saveBtn: saveBtnRef, orderRow: orderRowRef, orderBtn: orderBtnRef, orderPlusBtn: orderPlusBtnRef, payPanel: payPanelRef, payBtn: payBtnRef, sections: sectionsRef }}
                     addressOverride={addrOverride}
                     onShippingSaved={() => { if (curStep?.id === "addr-save") advanceAfterPause(); }}
                     qtyBump={qtyBump}
