@@ -492,25 +492,18 @@ function FeaturesRail({
       </div>
 
       {/* install CTA */}
-      <div className="relative mt-5 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-5 shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md">
-        {/* hand-drawn arrow doodle */}
-        <svg viewBox="0 0 80 80" className="pointer-events-none absolute right-2 top-1 h-14 w-14 text-[#155FFF]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <path d="M58 12 C 70 28, 64 48, 42 54" />
-          <path d="M42 54 l 12 1" />
-          <path d="M42 54 l 5 -11" />
-        </svg>
-
-        <h3 className="max-w-[13rem] font-sans text-[22px] font-extrabold leading-[1.1] tracking-tight text-foreground">
+      <div className="relative mt-5 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-5 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md">
+        <h3 className="mx-auto max-w-[15rem] font-sans text-[22px] font-extrabold leading-[1.15] tracking-tight text-foreground">
           Ready to try it on your Shopify store?
         </h3>
 
         {/* app identity + Shopify rating */}
-        <div className="mt-4">
+        <div className="mt-4 flex flex-col items-center gap-2">
           <div className="flex items-center gap-2.5">
             <ClickpostMark className="size-8 shrink-0 rounded-[8px] shadow-sm" />
             <span className="text-sm font-bold leading-tight text-neutral-900">CP Order Editing &amp; Upsell</span>
           </div>
-          <div className="mt-2.5 flex items-center justify-center gap-1.5">
+          <div className="flex items-center gap-1.5">
             {/* eslint-disable-next-line @next/next/no-img-element -- Shopify icon from /public */}
             <img src="/shopify-icon.png" alt="Shopify App Store" className="size-5 object-contain" />
             <Star className="size-4 fill-amber-400 text-amber-400" />
@@ -519,7 +512,7 @@ function FeaturesRail({
         </div>
 
         {/* CTAs — side by side */}
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="mt-5 grid grid-cols-2 gap-2.5">
           <a
             href={APP_URL}
             target="_blank"
