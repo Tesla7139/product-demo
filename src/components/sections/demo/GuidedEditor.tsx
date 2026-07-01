@@ -11,13 +11,14 @@ import type { Addr } from "./DemoMock";
 import { DemoMock } from "./DemoMock";
 import { OneTapUpsellMock } from "./OneTapUpsellMock";
 import { AddressValidationMock } from "./AddressValidationMock";
+import { EUWithdrawalMock } from "./EUWithdrawalMock";
 import { TourOverlay, type TourRect } from "./TourOverlay";
 
 const ACCENT = "#155FFF";
 const APP_URL = "https://apps.shopify.com/clickpost-order-edit-cancel";
 
-type Tab = "editing" | "upsell" | "address" | "cancel";
-type Tour = "editing" | "upsell" | "address";
+type Tab = "editing" | "upsell" | "address" | "cancel" | "eu-withdrawal";
+type Tour = "editing" | "upsell" | "address" | "eu-withdrawal";
 type Section = "contact" | "shipping" | "order" | "discount" | "cancel";
 
 /** Address the guided tour drops into the form to demonstrate an edit. */
@@ -72,6 +73,20 @@ const FEATURE_CARDS: {
     ],
     stats: [
       { value: "~30%", label: "fewer failed deliveries" },
+    ],
+  },
+  {
+    key: "eu-withdrawal",
+    title: "EU Withdrawal",
+    desc: "Give EU shoppers a compliant one-tap withdrawal function.",
+    capLabel: "What it handles",
+    points: [
+      "Clearly-labeled 'Withdraw Contract' on the order status page",
+      "Available through the 14-day cooling-off period",
+      "Auto-acknowledged; order held before fulfillment",
+    ],
+    stats: [
+      { value: "Jun 19, 2026", label: "EU rule — ready out of the box" },
     ],
   },
 ];
@@ -342,10 +357,58 @@ const ADDRESS_TOUR_STEPS: TourStepDef[] = [
   },
 ];
 
+const EU_WITHDRAWAL_TOUR_STEPS: TourStepDef[] = [
+  {
+    id: "eu-card",
+    title: "EU withdrawal, built in",
+    desc: "From 19 June 2026, EU shoppers need a clear withdrawal function — not a hidden support email.",
+    cta: "Next",
+    measureDelayMs: 320,
+    spotlightId: "eu-card",
+  },
+  {
+    id: "eu-open",
+    title: "A clearly labeled path",
+    desc: "'Withdraw from contract' sits right on the order status page, through the 14-day cooling-off period.",
+    cta: "Next",
+    measureDelayMs: 320,
+    tapTarget: true,
+    hideCta: true,
+    clickThrough: true,
+    spotlightId: "eu-withdraw-row",
+    dotId: "eu-withdraw-row",
+  },
+  {
+    id: "eu-submit",
+    title: "Two-step submission",
+    desc: "Complete the request, then confirm with one clearly-labeled button — acknowledged instantly by email.",
+    cta: "Next",
+    measureDelayMs: 360,
+    clickThrough: true,
+    tapTarget: true,
+    hideCard: true,
+    spotlightId: "eu-withdraw-row",
+    dotId: "eu-withdraw-btn",
+  },
+  {
+    id: "eu-finish",
+    title: "EU-ready withdrawal",
+    desc: "A compliant, well-routed withdrawal flow that holds the order and keeps your team in control.",
+    cta: "Finish",
+    measureDelayMs: 320,
+    outcome: true,
+    outcomeHeadline: "EU-ready withdrawal",
+    outcomeButton: "Get the EU withdrawal function for my store now",
+    nextTour: null,
+    finalStep: true,
+  },
+];
+
 const TOUR_STEPS: Record<Tour, TourStepDef[]> = {
   editing: EDITING_TOUR_STEPS,
   upsell: UPSELL_TOUR_STEPS,
   address: ADDRESS_TOUR_STEPS,
+  "eu-withdrawal": EU_WITHDRAWAL_TOUR_STEPS,
 };
 
 /* ----------------------------- features rail ----------------------------- */
@@ -616,12 +679,17 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
   const addrFlaggedRef = useRef<HTMLDivElement>(null);
   const addrRecommendedRef = useRef<HTMLButtonElement>(null);
   const addrConfirmRef = useRef<HTMLButtonElement>(null);
+  // EU-withdrawal tour targets
+  const euCardRef = useRef<HTMLDivElement>(null);
+  const euWithdrawRowRef = useRef<HTMLDivElement>(null);
+  const euWithdrawBtnRef = useRef<HTMLButtonElement>(null);
   // rail feature-card refs (for highlighting the "next" feature on outcome steps)
   const editingCardRef = useRef<HTMLButtonElement>(null);
   const upsellCardRef = useRef<HTMLButtonElement>(null);
   const addressCardRef = useRef<HTMLButtonElement>(null);
+  const euWithdrawalCardRef = useRef<HTMLButtonElement>(null);
   const cardRefs: Partial<Record<Tab, React.RefObject<HTMLButtonElement | null>>> = {
-    editing: editingCardRef, upsell: upsellCardRef, address: addressCardRef,
+    editing: editingCardRef, upsell: upsellCardRef, address: addressCardRef, "eu-withdrawal": euWithdrawalCardRef,
   };
   const pauseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -654,6 +722,9 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
       case "addr-flagged": return addrFlaggedRef.current;
       case "addr-recommended": return addrRecommendedRef.current;
       case "addr-confirm": return addrConfirmRef.current;
+      case "eu-card": return euCardRef.current;
+      case "eu-withdraw-row": return euWithdrawRowRef.current;
+      case "eu-withdraw-btn": return euWithdrawBtnRef.current;
       default: return null;
     }
   }
@@ -810,10 +881,11 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     }
     setActiveTour(null);
     setSpotlightRect(null);
-    setPendingTour(null);
     setActivePill("tour");
     setTourForcedOpen(null);
     setTab(k);
+    // the EU Withdrawal card launches its own standalone mini-tour on click
+    setPendingTour(k === "eu-withdrawal" ? "eu-withdrawal" : null);
   }
 
   // start a pending tour once its tab swap has mounted the targets
@@ -947,6 +1019,12 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                 Address Validation — live preview
               </span>
             )}
+
+            {tab === "eu-withdrawal" && (
+              <span className="rounded-full bg-white/15 px-3.5 py-1.5 text-[12px] font-semibold text-white ring-1 ring-white/30 backdrop-blur">
+                EU Withdrawal — live preview
+              </span>
+            )}
           </div>
 
           {/* body */}
@@ -999,6 +1077,14 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                     store={store}
                     tourRefs={{ flaggedAddr: addrFlaggedRef, recommended: addrRecommendedRef, confirmBtn: addrConfirmRef }}
                     onConfirmed={() => { if (curStep?.id === "addr-confirm") advanceAfterPause(); }}
+                  />
+                )}
+                {tab === "eu-withdrawal" && (
+                  <EUWithdrawalMock
+                    store={store}
+                    tourRefs={{ euCard: euCardRef, withdrawRow: euWithdrawRowRef, withdrawBtn: euWithdrawBtnRef }}
+                    onWithdrawOpened={() => { if (curStep?.id === "eu-open") advanceAfterPause(); }}
+                    onWithdrawn={() => { if (curStep?.id === "eu-submit") advanceAfterPause(); }}
                   />
                 )}
                 {tab === "cancel" && (
