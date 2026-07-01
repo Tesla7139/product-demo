@@ -42,6 +42,7 @@ export const mainNav: NavItem[] = [
     ],
   },
   { label: "Integrations", href: "/integrations" },
+  { label: "Analytics", href: "/analytics" },
   { label: "Pricing", href: "/#pricing" },
 ];
 
@@ -362,6 +363,7 @@ export const footerColumns = [
     links: [
       { label: "Live demo", href: "/#demo" },
       { label: "Integrations", href: "/integrations" },
+      { label: "Analytics", href: "/analytics" },
       { label: "Pricing", href: "/#pricing" },
       { label: "FAQ", href: "/#faq" },
     ],
