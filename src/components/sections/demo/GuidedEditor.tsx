@@ -399,11 +399,11 @@ function ClickpostMark({ className }: { className?: string }) {
 
 /** Brand-result notes that type out and interchange in the CTA's top line. */
 const RESULT_NOTES = [
-  "Mars by GHC lifted AOV 23% — $18K in upsell this month.",
-  "Doonails deflected 58% of tickets — $12K saved this month.",
-  "Modomu turned edits into add-ons — $9K in upsell this month.",
-  "Curl Warehouse cut edit emails — 640 tickets deflected this month.",
-  "Haute Sauce grew order value — $7K in upsell this month.",
+  "Mars by GHC lifted AOV 23% and added $18K in upsell this month.",
+  "Doonails deflected 58% of tickets and saved $12K this month.",
+  "Modomu recovered 210 orders and added $9K in upsell this month.",
+  "Curl Warehouse cut edit emails 44% and deflected 640 tickets this month.",
+  "Haute Sauce grew AOV 15% and added $7K in upsell this month.",
 ];
 
 function RotatingNote({ notes }: { notes: string[] }) {
