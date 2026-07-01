@@ -1,6 +1,5 @@
 "use client";
 
-import { createPortal } from "react-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -9,15 +8,23 @@ import {
   Loader2,
   Pencil,
   Tag,
+  Trash2,
   TriangleAlert,
   UserRound,
   MapPin,
   X,
 } from "lucide-react";
 import type { DemoStore, DemoProduct } from "@/lib/site";
+import { ThankYouProducts } from "./ThankYouProducts";
+import { ThankYouUpsell } from "./ThankYouUpsell";
+import { TooGoodToMiss } from "./TooGoodToMiss";
 
-type LineItem = DemoProduct & { uid: string };
+type LineItem = DemoProduct & { uid: string; postPurchase?: boolean; dealPrice?: number };
+
+/** Price actually charged for a line item (post-purchase upsells are discounted). */
+const priceOf = (i: LineItem) => (i.postPurchase && i.dealPrice != null ? i.dealPrice : i.price);
 type Section = "contact" | "shipping" | "order" | "discount" | "cancel";
+export type Addr = { first: string; last: string; line1: string; city: string; state: string; zip: string };
 
 const money = (n: number, currency = "USD") =>
   new Intl.NumberFormat("en", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
@@ -32,31 +39,65 @@ export function DemoMock({
   onOpenChange,
   forceOpen,
   maxHeight,
-  tourMode = false,
-  onTourEnd,
   forceOneTap = false,
   extraItem,
+  tourRefs,
+  addressOverride,
+  onShippingSaved,
+  qtyBump,
+  onOrderUpdated,
+  onPaid,
+  upsellFirst = false,
+  onUpsellAdded,
 }: {
   store: DemoStore;
   initialOpen?: Section | null;
   onOpenChange?: (s: Section | null) => void;
   forceOpen?: Section | null;
   maxHeight?: number;
-  tourMode?: boolean;
-  onTourEnd?: () => void;
   forceOneTap?: boolean;
   extraItem?: DemoProduct;
+  /** External refs (owned by a parent tour controller) attached to key elements. */
+  tourRefs?: {
+    countdown?: React.RefObject<HTMLDivElement | null>;
+    shippingRow?: React.RefObject<HTMLDivElement | null>;
+    addressForm?: React.RefObject<HTMLDivElement | null>;
+    saveBtn?: React.RefObject<HTMLDivElement | null>;
+    orderRow?: React.RefObject<HTMLDivElement | null>;
+    orderBtn?: React.RefObject<HTMLDivElement | null>;
+    payPanel?: React.RefObject<HTMLDivElement | null>;
+    payBtn?: React.RefObject<HTMLButtonElement | null>;
+    upsellRow?: React.RefObject<HTMLDivElement | null>;
+    upsellAddBtn?: React.RefObject<HTMLButtonElement | null>;
+    sections?: React.RefObject<HTMLDivElement | null>;
+  };
+  /** Show the "You may also like" cross-sell at the TOP (thank-you page style). */
+  upsellFirst?: boolean;
+  /** Fired when a cross-sell item is added (so the tour can advance). */
+  onUpsellAdded?: () => void;
+  /** A corrected address pushed in by the guided tour; merged into the form. */
+  addressOverride?: Partial<Addr>;
+  /** Fired when the shipping Save button is pressed (so the tour can advance). */
+  onShippingSaved?: () => void;
+  /** Bump this counter to add one more of the first item (guided tour). */
+  qtyBump?: number;
+  /** Fired when the order Update button is pressed (so the tour can advance). */
+  onOrderUpdated?: () => void;
+  /** Fired when the Pay balance button is pressed (so the tour can advance). */
+  onPaid?: () => void;
 }) {
   const brand = store.brandColor || "#1652f0";
   const fmt = (n: number) => money(n, store.currency || "USD");
 
-  // First product is the "purchased" item; the rest become upsell suggestions.
-  const purchased = store.products[0];
-  const upsellPool = store.products.slice(1).length ? store.products.slice(1) : store.products;
+  // The order starts with two distinct items (so a quantity edit can also remove one);
+  // remaining products become the in-page cross-sell suggestions.
+  const cartProducts = store.products.slice(0, 2).length ? store.products.slice(0, 2) : store.products;
+  const cartIds = new Set(cartProducts.map((p) => p.id));
+  const rest = store.products.filter((p) => !cartIds.has(p.id));
+  const upsellPool = rest.length ? rest : store.products.slice(1).length ? store.products.slice(1) : store.products;
 
   const [items, setItems] = useState<LineItem[]>(() => {
-    const base = purchased ? [purchased] : store.products;
-    const all = extraItem ? [...base, extraItem] : base;
+    const all = extraItem ? [...cartProducts, extraItem] : cartProducts;
     return all.map((p) => ({ ...p, uid: uid() }));
   });
   const [open, setOpen] = useState<Section | null>(initialOpen);
@@ -64,29 +105,26 @@ export function DemoMock({
   const [processing, setProcessing] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
-  // tour refs
-  const countdownRef = useRef<HTMLDivElement>(null);
-  const shippingRowRef = useRef<HTMLDivElement>(null);
-  const saveBtnDivRef = useRef<HTMLDivElement>(null);
-  const upsellRowRef = useRef<HTMLDivElement>(null);
-  const oneTapAddBtnRef = useRef<HTMLButtonElement>(null);
+  // amount already paid at checkout — quantity bumps & in-page upsells owe the difference
+  const [paid, setPaid] = useState<number>(() => {
+    const all = extraItem ? [...cartProducts, extraItem] : cartProducts;
+    return all.reduce((s, p) => s + p.price * p.qty, 0);
+  });
 
-  // tour state
-  const [tourActive, setTourActive] = useState(false);
-  const [tourStep, setTourStep] = useState(0);
-  const [spotlightRect, setSpotlightRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
+  // one-tap add button ref (optional one-tap panel)
+  const oneTapAddBtnRef = useRef<HTMLButtonElement>(null);
 
   // switches the left panel between "editing UI" and "one tap upsell UI"
   const [demoMode, setDemoMode] = useState<"edit" | "onetap">(forceOneTap ? "onetap" : "edit");
-
   useEffect(() => {
-    if (!tourActive) setDemoMode(forceOneTap ? "onetap" : "edit");
-  }, [forceOneTap, tourActive]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- controlled from parent
+    setDemoMode(forceOneTap ? "onetap" : "edit");
+  }, [forceOneTap]);
 
   // editable field state (sample-prefilled — this is a UI demo)
   const [email, setEmail] = useState("your_email@gmail.com");
   const [phone, setPhone] = useState("+1 760-637-2644");
-  const [addr, setAddr] = useState({ first: "Tucker", last: "Briggs", line1: "4563 Coronado Dr", city: "Oceanside", state: "California", zip: "92057" });
+  const [addr, setAddr] = useState<Addr>({ first: "Tucker", last: "Briggs", line1: "4563 Coronado Dr", city: "Oceanside", state: "California", zip: "92057" });
   const [discount, setDiscount] = useState("");
 
   // report which section is open (so an outer panel can explain it)
@@ -94,61 +132,42 @@ export function DemoMock({
     onOpenChange?.(open);
   }, [open, onOpenChange]);
 
-  // let an outer control (top pills) open a section (suspended during tour)
+  // let an outer control (top pills / guided tour) open a section
   useEffect(() => {
-    if (tourActive) return;
     if (forceOpen === undefined) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- controlled open from parent pills
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- controlled open from parent
     setOpen(forceOpen);
-  }, [forceOpen, tourActive]);
+  }, [forceOpen]);
 
-  // activate tour when prop flips on
-  useEffect(() => {
-    if (tourMode) {
-      setTourStep(0);
-      setOpen(null);
-      setDemoMode("edit");
-      setTourActive(true);
-    } else {
-      setTourActive(false);
-      setDemoMode("edit");
-    }
-  }, [tourMode]);
+  // fields the tour just auto-filled (kept highlighted so the edit is obvious)
+  const [emphasis, setEmphasis] = useState<Partial<Record<keyof Addr, boolean>>>({});
+  const [formEmphasis, setFormEmphasis] = useState(false); // whole-address highlight after the edit
+  const [orderEmphasis, setOrderEmphasis] = useState(false); // highlight the bumped item row
 
-  // manage demo state + measure spotlight position per step
+  // apply a corrected address pushed in by the guided tour — one field at a time,
+  // with a moving highlight, then highlight the whole address once it's done
   useEffect(() => {
-    if (!tourActive) return;
-    if (tourStep === 0 || tourStep === 1) { setOpen(null); setDemoMode("edit"); }
-    if (tourStep === 2) {
-      setDemoMode("edit"); setOpen("shipping");
-      setTimeout(() => {
-        saveBtnDivRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-        // also scroll the page so the element lands in the visible viewport
-        const r = saveBtnDivRef.current?.getBoundingClientRect();
-        if (r && (r.bottom > window.innerHeight || r.top < 0)) {
-          window.scrollBy({ top: r.bottom - window.innerHeight + 80, behavior: "smooth" });
-        }
-      }, 120);
-    }
-    if (tourStep === 3) {
-      setDemoMode("edit");
-      setOpen(null);
-      setTimeout(() => upsellRowRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 120);
-    }
-    if (tourStep === 4) {
-      setDemoMode("onetap");
-    }
-    const TOUR_REFS = [countdownRef, shippingRowRef, saveBtnDivRef, upsellRowRef, oneTapAddBtnRef];
-    // step 2 needs accordion animation to finish; step 4 needs demoMode switch to render
-    const delay = tourStep === 2 ? 520 : tourStep === 4 ? 180 : 80;
-    const t = setTimeout(() => {
-      const el = TOUR_REFS[tourStep]?.current;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      setSpotlightRect({ top: r.top, left: r.left, width: r.width, height: r.height });
-    }, delay);
+    if (!addressOverride) return;
+    const keys = Object.keys(addressOverride) as (keyof Addr)[];
+    const timers = keys.map((k, i) =>
+      window.setTimeout(() => {
+        setAddr((prev) => ({ ...prev, [k]: addressOverride[k] as string }));
+        setEmphasis((e) => ({ ...e, [k]: true }));
+      }, 250 + i * 350)
+    );
+    timers.push(window.setTimeout(() => setFormEmphasis(true), 250 + keys.length * 350));
+    return () => timers.forEach((t) => clearTimeout(t));
+  }, [addressOverride]);
+
+  // guided tour: add one more of the first item, with a highlight
+  useEffect(() => {
+    if (!qtyBump) return;
+    const t = window.setTimeout(() => {
+      setItems((prev) => prev.map((it, i) => (i === 0 ? { ...it, qty: it.qty + 1 } : it)));
+      setOrderEmphasis(true);
+    }, 250);
     return () => clearTimeout(t);
-  }, [tourStep, tourActive]);
+  }, [qtyBump]);
 
   // live editing-window countdown (default 15 minutes), ticking every second
   const [secondsLeft, setSecondsLeft] = useState(15 * 60 - 1);
@@ -162,7 +181,12 @@ export function DemoMock({
     .toString()
     .padStart(2, "0")} seconds`;
 
-  const subtotal = useMemo(() => items.reduce((s, i) => s + i.price * i.qty, 0), [items]);
+  const subtotal = useMemo(() => items.reduce((s, i) => s + priceOf(i) * i.qty, 0), [items]);
+  const savings = useMemo(
+    () => items.reduce((s, i) => s + (i.postPurchase && i.dealPrice != null ? (i.price - i.dealPrice) * i.qty : 0), 0),
+    [items]
+  );
+  const due = cancelled ? 0 : Math.max(0, subtotal - paid);
 
   const toggle = (s: Section) => setOpen((cur) => (cur === s ? null : s));
 
@@ -177,23 +201,33 @@ export function DemoMock({
       prev.map((i) => (i.uid === id ? { ...i, qty: Math.max(1, i.qty + delta) } : i))
     );
 
-  const addUpsell = (p: DemoProduct) => {
+  const removeItem = (id: string) => {
+    setItems((prev) => (prev.length > 1 ? prev.filter((i) => i.uid !== id) : prev));
+    flash("Item removed");
+  };
+
+  const addUpsell = (p: DemoProduct, discounted = true) => {
+    const charge = discounted ? Math.max(1, Math.round(p.price * 0.5)) : p.price;
+    onUpsellAdded?.();
     setProcessing("Syncing with your order…");
     window.setTimeout(() => {
-      setItems((prev) => [...prev, { ...p, uid: uid(), qty: 1 }]);
+      setItems((prev) => [
+        ...prev,
+        { ...p, uid: uid(), qty: 1, postPurchase: discounted, dealPrice: discounted ? charge : undefined },
+      ]);
       setProcessing(null);
-      flash(`${p.title.split(" ").slice(0, 3).join(" ")} added — ${fmt(p.price)} pending`);
+      flash(`${p.title.split(" ").slice(0, 3).join(" ")} added — ${fmt(charge)} pending`);
     }, 1300);
   };
 
-  const advanceTour = () => {
-    if (tourStep >= TOUR_STEPS_DATA.length - 1) {
-      setTourActive(false);
-      setDemoMode("edit");
-      onTourEnd?.();
-    } else {
-      setTourStep((s) => s + 1);
-    }
+  const payBalance = () => {
+    const amount = due;
+    setProcessing("Collecting payment…");
+    window.setTimeout(() => {
+      setPaid(subtotal);
+      setProcessing(null);
+      flash(`Balance paid — ${fmt(amount)} charged`);
+    }, 1300);
   };
 
   return (
@@ -209,6 +243,12 @@ export function DemoMock({
               <OneTapPanel store={store} brand={brand} addBtnRef={oneTapAddBtnRef} />
             ) : (
             <>
+            {/* cross-sell at the TOP (thank-you page style) */}
+            {upsellFirst && !cancelled && (
+              <div className="mb-4">
+                <ThankYouUpsell store={store} brand={brand} products={upsellPool} onAdd={(p, discounted) => addUpsell(p, discounted)} gridRef={tourRefs?.upsellRow} addBtnRef={tourRefs?.upsellAddBtn} />
+              </div>
+            )}
             {/* confirmation header */}
             <div className="mb-3 flex items-center gap-3">
               <span
@@ -247,7 +287,7 @@ export function DemoMock({
                 </h3>
 
                 {/* edit window banner */}
-                <div ref={countdownRef} className="mb-3 flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-neutral-700">
+                <div ref={tourRefs?.countdown} className="mb-3 flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-neutral-700">
                   <TriangleAlert className="size-4 shrink-0 text-amber-500" />
                   <span>
                     You can make changes to order for another{" "}
@@ -255,7 +295,7 @@ export function DemoMock({
                   </span>
                 </div>
 
-                <div className="flex flex-col gap-2">
+                <div ref={tourRefs?.sections} className="flex flex-col gap-2">
                   <AccordionRow icon={UserRound} label="Change Contact Information" isOpen={open === "contact"} onClick={() => toggle("contact")}>
                     <Field label="Email" value={email} onChange={setEmail} />
                     <Field label="Phone" value={phone} onChange={setPhone} />
@@ -265,45 +305,62 @@ export function DemoMock({
                     </PrimaryButton>
                   </AccordionRow>
 
-                  <div ref={shippingRowRef}>
+                  <div ref={tourRefs?.shippingRow}>
                     <AccordionRow icon={MapPin} label="Edit Shipping Address" isOpen={open === "shipping"} onClick={() => toggle("shipping")}>
-                      <SelectField label="Country" value="United States" />
-                      <div className="grid grid-cols-2 gap-2.5">
-                        <Field label="First Name" value={addr.first} onChange={(v) => setAddr({ ...addr, first: v })} />
-                        <Field label="Last Name" value={addr.last} onChange={(v) => setAddr({ ...addr, last: v })} />
+                      <div ref={tourRefs?.addressForm} className="flex flex-col gap-2.5">
+                        <SelectField label="Country" value="United States" emphasize={formEmphasis} />
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <Field label="First Name" value={addr.first} onChange={(v) => setAddr({ ...addr, first: v })} emphasize={formEmphasis} />
+                          <Field label="Last Name" value={addr.last} onChange={(v) => setAddr({ ...addr, last: v })} emphasize={formEmphasis} />
+                        </div>
+                        <Field label="Address 1" value={addr.line1} onChange={(v) => setAddr({ ...addr, line1: v })} emphasize={emphasis.line1 || formEmphasis} />
+                        <Field label="Address 2" value="" onChange={() => {}} />
+                        <div className="grid grid-cols-3 gap-2.5">
+                          <Field label="City" value={addr.city} onChange={(v) => setAddr({ ...addr, city: v })} emphasize={emphasis.city || formEmphasis} />
+                          <SelectField label="Province / State" value={addr.state} emphasize={formEmphasis} />
+                          <Field label="Postal Code" value={addr.zip} onChange={(v) => setAddr({ ...addr, zip: v })} emphasize={emphasis.zip || formEmphasis} />
+                        </div>
                       </div>
-                      <Field label="Address 1" value={addr.line1} onChange={(v) => setAddr({ ...addr, line1: v })} />
-                      <Field label="Address 2" value="" onChange={() => {}} />
-                      <div className="grid grid-cols-3 gap-2.5">
-                        <Field label="City" value={addr.city} onChange={(v) => setAddr({ ...addr, city: v })} />
-                        <SelectField label="Province / State" value={addr.state} />
-                        <Field label="Postal Code" value={addr.zip} onChange={(v) => setAddr({ ...addr, zip: v })} />
-                      </div>
-                      <div ref={saveBtnDivRef}>
-                        <PrimaryButton brand={brand} onClick={() => { flash("Shipping address updated"); setOpen(null); }}>
+                      <div ref={tourRefs?.saveBtn}>
+                        <PrimaryButton brand={brand} onClick={() => { flash("Shipping address updated"); onShippingSaved?.(); }}>
                           Update Shipping Address
                         </PrimaryButton>
                       </div>
                     </AccordionRow>
                   </div>
 
+                  <div ref={tourRefs?.orderRow}>
                   <AccordionRow icon={Pencil} label="Update your order" isOpen={open === "order"} onClick={() => toggle("order")}>
                     <div className="flex flex-col divide-y divide-border">
-                      {items.map((item) => (
-                        <div key={item.uid} className="flex items-center gap-3 py-2.5">
+                      {items.map((item, i) => (
+                        <div
+                          key={item.uid}
+                          className={`flex items-center gap-3 rounded-lg px-1 py-2.5 transition-colors duration-300 ${orderEmphasis && i === 0 ? "bg-amber-50" : ""}`}
+                        >
                           <Thumb src={item.image} alt={item.title} />
                           <div className="min-w-0 flex-1">
                             <div className="truncate text-sm font-medium text-neutral-800">{item.title}</div>
                             <div className="text-xs text-neutral-500">{fmt(item.price)}</div>
                           </div>
                           <Stepper qty={item.qty} onDec={() => setQty(item.uid, -1)} onInc={() => setQty(item.uid, 1)} />
+                          <button
+                            onClick={() => removeItem(item.uid)}
+                            disabled={items.length <= 1}
+                            aria-label={`Remove ${item.title}`}
+                            className="flex size-7 shrink-0 items-center justify-center rounded-md border border-border text-neutral-400 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-border disabled:hover:bg-transparent disabled:hover:text-neutral-400"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
                         </div>
                       ))}
                     </div>
-                    <PrimaryButton brand={brand} onClick={() => { flash("Order updated"); setOpen(null); }}>
-                      Update your order
-                    </PrimaryButton>
+                    <div ref={tourRefs?.orderBtn}>
+                      <PrimaryButton brand={brand} onClick={() => { flash("Order updated"); onOrderUpdated?.(); }}>
+                        Update your order
+                      </PrimaryButton>
+                    </div>
                   </AccordionRow>
+                  </div>
 
                   <AccordionRow icon={Tag} label="Apply Discount Code" isOpen={open === "discount"} onClick={() => toggle("discount")}>
                     <div className="flex gap-2">
@@ -340,30 +397,17 @@ export function DemoMock({
               </div>
             )}
 
-            {/* In-page cross-sell row */}
-            {!cancelled && (
-              <div ref={upsellRowRef} className="mt-3 rounded-xl border border-border p-3">
-                <h4 className="mb-2 text-sm font-bold text-neutral-900">
-                  You may also like these products
-                </h4>
-                <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
-                  {upsellPool.map((p, i) => (
-                    <div key={i} className="w-28 shrink-0">
-                      <div className="aspect-square w-full overflow-hidden rounded-lg border border-border bg-neutral-50">
-                        <Thumb src={p.image} alt={p.title} full />
-                      </div>
-                      <div className="mt-1.5 line-clamp-2 text-xs font-medium text-neutral-800">{p.title}</div>
-                      <div className="text-xs text-neutral-500">{fmt(p.price)}</div>
-                      <button
-                        onClick={() => addUpsell(p)}
-                        className="mt-1.5 w-full rounded-md py-1.5 text-xs font-semibold text-white"
-                        style={{ background: brand }}
-                      >
-                        Add · {fmt(p.price)}
-                      </button>
-                    </div>
-                  ))}
-                </div>
+            {/* In-page cross-sell row (bottom, standard editing window) */}
+            {!upsellFirst && !cancelled && (
+              <div className="mt-3">
+                <ThankYouProducts store={store} brand={brand} products={upsellPool} onAdd={addUpsell} layout="row" gridRef={tourRefs?.upsellRow} addBtnRef={tourRefs?.upsellAddBtn} />
+              </div>
+            )}
+
+            {/* Too good to miss — featured deal at the bottom of the editing window */}
+            {!upsellFirst && !cancelled && upsellPool.length > 0 && (
+              <div className="mt-3">
+                <TooGoodToMiss store={store} brand={brand} product={upsellPool[upsellPool.length - 1]} onAdd={(p) => addUpsell(p, true)} />
               </div>
             )}
             </>
@@ -374,29 +418,73 @@ export function DemoMock({
           <aside className="bg-neutral-50 p-4">
             <div className="flex flex-col gap-3">
               {items.map((item) => (
-                <div key={item.uid} className="flex items-center gap-3">
+                <div key={item.uid} className="flex items-start gap-3">
                   <div className="relative">
                     <Thumb src={item.image} alt={item.title} />
                     <span className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-neutral-900 text-[10px] font-bold text-white">
                       {item.qty}
                     </span>
                   </div>
-                  <div className="min-w-0 flex-1 text-xs font-medium text-neutral-800">{item.title}</div>
-                  <div className="text-xs font-semibold text-neutral-900">{fmt(item.price * item.qty)}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-xs font-medium text-neutral-800">{item.title}</div>
+                    {item.postPurchase && item.dealPrice != null && (
+                      <div className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600">
+                        <Tag className="size-2.5" />
+                        POSTPURCHASE (-{fmt((item.price - item.dealPrice) * item.qty)})
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-right text-xs">
+                    {item.postPurchase && item.dealPrice != null ? (
+                      <>
+                        <span className="block text-neutral-400 line-through">{fmt(item.price * item.qty)}</span>
+                        <span className="font-semibold text-neutral-900">{fmt(item.dealPrice * item.qty)}</span>
+                      </>
+                    ) : (
+                      <span className="font-semibold text-neutral-900">{fmt(item.price * item.qty)}</span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
             <div className="mt-5 space-y-1.5 border-t border-border pt-4 text-sm">
-              <Row label="Subtotal" value={fmt(subtotal)} />
+              <Row label={`Subtotal · ${items.reduce((n, i) => n + i.qty, 0)} items`} value={fmt(subtotal)} />
               <Row label="Shipping" value="FREE" />
             </div>
             <div className="mt-3 flex items-baseline justify-between border-t border-border pt-3">
               <span className="font-bold text-neutral-900">Total</span>
               <span className="text-lg font-bold text-neutral-900">
-                <span className="mr-1 text-xs font-normal text-neutral-400">USD</span>
                 {fmt(cancelled ? 0 : subtotal)}
               </span>
             </div>
+            {savings > 0 && !cancelled && (
+              <div className="mt-2 flex items-center gap-1.5 text-[12px] font-bold text-emerald-600">
+                <Tag className="size-3" />
+                Total savings {fmt(savings)}
+              </div>
+            )}
+
+            {/* balance due — quantity bumps & in-page upsells are charged here
+                (one-tap upsell is charged to the card on file, so it never appears) */}
+            {due > 0 && (
+              <div ref={tourRefs?.payPanel} className="mt-3 rounded-xl bg-amber-50 p-3">
+                <div className="flex items-baseline justify-between text-[13px]">
+                  <span className="font-medium text-neutral-700">Balance due</span>
+                  <span className="font-bold text-neutral-900">{fmt(due)}</span>
+                </div>
+                <p className="mt-1 text-[11px] leading-snug text-neutral-500">
+                  You added to your order. Pay the difference to confirm the changes.
+                </p>
+                <button
+                  ref={tourRefs?.payBtn}
+                  onClick={() => { payBalance(); onPaid?.(); }}
+                  className="mt-2.5 w-full rounded-md py-2.5 text-[13px] font-semibold text-white transition-all hover:brightness-110 active:scale-[0.99]"
+                  style={{ background: brand }}
+                >
+                  Pay {fmt(due)}
+                </button>
+              </div>
+            )}
           </aside>
         </div>
       </div>
@@ -437,16 +525,6 @@ export function DemoMock({
           </motion.div>
         )}
       </AnimatePresence>
-
-      {tourActive && spotlightRect && (
-        <TourOverlay
-          step={tourStep}
-          total={TOUR_STEPS_DATA.length}
-          rect={spotlightRect}
-          onAdvance={advanceTour}
-          onClose={() => { setTourActive(false); onTourEnd?.(); }}
-        />
-      )}
     </div>
   );
 }
@@ -494,9 +572,13 @@ function AccordionRow({
   );
 }
 
-function Field({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function Field({ label, value, onChange, emphasize }: { label: string; value: string; onChange: (v: string) => void; emphasize?: boolean }) {
   return (
-    <label className="relative block rounded-md border border-border px-3 pt-5 pb-1.5 focus-within:border-neutral-400">
+    <label
+      className={`relative block rounded-md border px-3 pt-5 pb-1.5 transition-colors duration-300 ${
+        emphasize ? "border-amber-300 bg-amber-50" : "border-border focus-within:border-neutral-400"
+      }`}
+    >
       <span className="pointer-events-none absolute left-3 top-1.5 text-[10px] font-medium uppercase tracking-wide text-neutral-400">
         {label}
       </span>
@@ -509,9 +591,9 @@ function Field({ label, value, onChange }: { label: string; value: string; onCha
   );
 }
 
-function SelectField({ label, value }: { label: string; value: string }) {
+function SelectField({ label, value, emphasize }: { label: string; value: string; emphasize?: boolean }) {
   return (
-    <div className="relative rounded-md border border-border px-3 pt-5 pb-1.5">
+    <div className={`relative rounded-md border px-3 pt-5 pb-1.5 transition-colors duration-300 ${emphasize ? "border-amber-300 bg-amber-50" : "border-border"}`}>
       <span className="pointer-events-none absolute left-3 top-1.5 text-[10px] font-medium uppercase tracking-wide text-neutral-400">
         {label}
       </span>
@@ -663,163 +745,5 @@ function OneTapPanel({
         One tap to add — no card or re-checkout needed.
       </p>
     </div>
-  );
-}
-
-/* ----------------------------- product tour ----------------------------- */
-
-const TOUR_ACCENT = "#155FFF";
-
-const TOUR_STEPS_DATA = [
-  {
-    title: "Your edit window",
-    desc: "Customers can make changes for this long after checkout. You set the duration — every second here is a support ticket that never gets opened.",
-    cta: "Show me editing",
-  },
-  {
-    title: "Fix a wrong address",
-    desc: "Typed the wrong street? Tap this row and customers correct it themselves — no email, no agent, no ticket.",
-    cta: "Tap to open it",
-  },
-  {
-    title: "One tap to save",
-    desc: "The update syncs instantly to your store. The label prints with the right address — zero back-and-forth.",
-    cta: "Tap Save to continue",
-  },
-  {
-    title: "In-page cross-sell",
-    desc: "Product recommendations shown right on the editing page — customers add items to the same order with zero new checkout.",
-    cta: "Now see the upsell",
-  },
-  {
-    title: "One Tap Upsell",
-    desc: "A separate dedicated offer shown right after purchase, before any editing. One tap to add, charged to the card already on file — no re-checkout, no friction.",
-    cta: "Done — finish tour",
-  },
-];
-
-function TourOverlay({
-  step,
-  total,
-  rect,
-  onAdvance,
-  onClose,
-}: {
-  step: number;
-  total: number;
-  rect: { top: number; left: number; width: number; height: number };
-  onAdvance: () => void;
-  onClose: () => void;
-}) {
-  if (typeof window === "undefined") return null;
-  const PAD = 10;
-  const TOOLTIP_H = 300; // generous estimate so we never clip the button
-  const sl = { top: rect.top - PAD, left: rect.left - PAD, width: rect.width + PAD * 2, height: rect.height + PAD * 2 };
-  const stepData = TOUR_STEPS_DATA[step];
-  const spaceBelow = window.innerHeight - (sl.top + sl.height);
-  const spaceAbove = sl.top;
-  // prefer below unless it would clip; fall back to above; last resort: clamp
-  const tooltipBelow = spaceBelow >= TOOLTIP_H + 14 || spaceBelow >= spaceAbove;
-  const rawTop = tooltipBelow ? sl.top + sl.height + 14 : sl.top - TOOLTIP_H - 14;
-  const clampedTop = Math.min(Math.max(rawTop, 8), window.innerHeight - TOOLTIP_H - 8);
-  const tooltipLeft = Math.min(Math.max(sl.left, 12), window.innerWidth - 296);
-
-  return createPortal(
-    <div className="fixed inset-0 z-[500]">
-      {/* Dark overlay with spotlight cutout */}
-      <svg className="pointer-events-none absolute inset-0 h-full w-full" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <mask id={`tsp-${step}`}>
-            <rect width="100%" height="100%" fill="white" />
-            <rect x={sl.left} y={sl.top} width={sl.width} height={sl.height} rx="10" fill="black" />
-          </mask>
-        </defs>
-        <rect width="100%" height="100%" fill="rgba(4,9,30,0.72)" mask={`url(#tsp-${step})`} />
-      </svg>
-
-      {/* Pulsing ring */}
-      <div
-        className="pointer-events-none absolute animate-pulse rounded-[10px]"
-        style={{ top: sl.top, left: sl.left, width: sl.width, height: sl.height, boxShadow: "0 0 0 2px rgba(255,255,255,0.9), 0 0 0 6px rgba(255,255,255,0.18)" }}
-      />
-
-      {/* Clickable spotlight zone */}
-      <div
-        className="absolute cursor-pointer rounded-[10px]"
-        style={{ top: sl.top, left: sl.left, width: sl.width, height: sl.height }}
-        onClick={onAdvance}
-      />
-
-      {/* Bouncing tap indicator */}
-      <motion.div
-        key={`tap-${step}`}
-        initial={{ opacity: 0, scale: 0.7 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.25 }}
-        className="pointer-events-none absolute"
-        style={{ top: sl.top + sl.height / 2 - 14, left: sl.left + sl.width - 52 }}
-      >
-        <motion.span
-          animate={{ y: [0, -6, 0] }}
-          transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
-          className="text-[26px]"
-          role="img"
-          aria-label="tap here"
-        >
-          👆
-        </motion.span>
-      </motion.div>
-
-      {/* Tooltip card */}
-      <motion.div
-        key={`card-${step}`}
-        initial={{ opacity: 0, y: tooltipBelow ? 10 : -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-        className="absolute w-[280px] overflow-hidden rounded-2xl bg-white shadow-2xl"
-        style={{ top: clampedTop, left: tooltipLeft }}
-      >
-        <div className="h-[3px] w-full" style={{ background: `linear-gradient(90deg, ${TOUR_ACCENT}, #7c3aed)` }} />
-        <div className="p-4">
-          <div className="mb-2 flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">
-              Step {step + 1} of {total}
-            </span>
-            <div className="ml-auto flex gap-1.5">
-              {Array.from({ length: total }).map((_, i) => (
-                <div
-                  key={i}
-                  className="size-1.5 rounded-full transition-colors"
-                  style={{ background: i === step ? TOUR_ACCENT : "#e2e8f0" }}
-                />
-              ))}
-            </div>
-          </div>
-          <div className="text-[15px] font-bold leading-snug text-neutral-900">{stepData.title}</div>
-          <p className="mt-1.5 text-[12.5px] leading-relaxed text-neutral-500">{stepData.desc}</p>
-          <button
-            onClick={onAdvance}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-[13px] font-semibold text-white transition-all hover:brightness-110"
-            style={{ background: TOUR_ACCENT }}
-          >
-            {stepData.cta}
-            {step < total - 1 && (
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            )}
-          </button>
-        </div>
-      </motion.div>
-
-      {/* Skip */}
-      <button
-        onClick={onClose}
-        className="absolute right-5 top-5 rounded-full bg-white/10 px-4 py-2 text-[12px] font-medium text-white backdrop-blur-sm ring-1 ring-white/20 transition-colors hover:bg-white/20"
-      >
-        Skip tour
-      </button>
-    </div>,
-    document.body
   );
 }

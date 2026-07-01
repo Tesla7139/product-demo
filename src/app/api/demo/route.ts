@@ -133,7 +133,7 @@ function parseProducts(json: unknown): DemoProductOut[] {
       ? ((json as { products: ShopifyProduct[] }).products)
       : [];
   return arr
-    .slice(0, 3)
+    .slice(0, 8)
     .map((p) => {
       const v = p.variants?.[0];
       const variant = v?.title && v.title !== "Default Title" ? v.title : "";

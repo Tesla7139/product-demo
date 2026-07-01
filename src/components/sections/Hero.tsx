@@ -11,7 +11,7 @@ import { useDemoData } from "@/hooks/useDemoData";
 import { fadeUp, staggerContainer } from "@/lib/motion";
 
 export function Hero() {
-  const { status, store, generate, reset } = useDemoData();
+  const { status, store, submittedUrl, generate, reset } = useDemoData();
   const [url, setUrl] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -84,7 +84,7 @@ export function Hero() {
       <CustomerLogos embedded />
 
       {/* full-screen brand preview experience */}
-      <DemoExperience open={open} status={status} store={store} onClose={close} />
+      <DemoExperience open={open} status={status} store={store} submittedUrl={submittedUrl} onClose={close} />
     </section>
   );
 }

@@ -41,9 +41,10 @@ export function useDemoData() {
       branding = null;
     }
 
-    // keep the reveal feeling crafted (min ~1.2s even if the fetch is instant)
+    // keep the reveal feeling crafted (min ~4s even if the fetch is instant) so the
+    // "Building <brand>" loading screen + scrolling tickets are clearly seen first
     const elapsed = Date.now() - started;
-    if (elapsed < 1200) await new Promise((r) => setTimeout(r, 1200 - elapsed));
+    if (elapsed < 4000) await new Promise((r) => setTimeout(r, 4000 - elapsed));
 
     setStore({
       ...mockStore,

@@ -407,6 +407,9 @@ export const mockStore: DemoStore = {
     { id: "p1", title: "Merino Wool Crew", variant: "Charcoal / M", price: 89, qty: 1 },
     { id: "p2", title: "Everyday Tote", variant: "Sand", price: 64, qty: 1 },
     { id: "p3", title: "Trail Runner 2.0", variant: "Black / 10", price: 128, qty: 1 },
+    { id: "p4", title: "Linen Overshirt", variant: "Ivory / M", price: 72, qty: 1 },
+    { id: "p5", title: "Ribbed Wool Beanie", variant: "Heather Grey", price: 28, qty: 1 },
+    { id: "p6", title: "Canvas Low Sneaker", variant: "White / 9", price: 95, qty: 1 },
   ],
 };
 

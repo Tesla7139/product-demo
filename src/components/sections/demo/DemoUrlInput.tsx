@@ -22,7 +22,7 @@ export function DemoUrlInput({
         <label htmlFor="store-url" className="sr-only">
           Your store URL
         </label>
-        <div className="group relative flex w-full items-center rounded-full border bg-white/95 p-2 shadow-[0_10px_40px_-12px_rgba(15,15,25,0.18)] backdrop-blur-xl transition-all border-border/60 focus-within:border-primary/50 focus-within:shadow-[0_14px_50px_-12px_rgba(47,91,255,0.3)]">
+        <div className="group relative flex w-full items-center rounded-full border bg-white/95 p-2 shadow-[0_10px_40px_-12px_rgba(15,15,25,0.18)] backdrop-blur-xl transition-all border-border/60 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/20 focus-within:shadow-[0_14px_50px_-12px_rgba(47,91,255,0.3)]">
           <input
             id="store-url"
             type="text"
@@ -30,7 +30,8 @@ export function DemoUrlInput({
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="yourstore.com"
-            className="h-12 flex-1 bg-transparent pl-5 pr-2 text-[0.95rem] text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus-visible:outline-none"
+            className="h-12 flex-1 bg-transparent pl-5 pr-2 text-[0.95rem] text-foreground placeholder:text-muted-foreground/70 outline-none focus:outline-none focus-visible:outline-none [&:focus-visible]:outline-none"
+            style={{ outline: "none", boxShadow: "none" }}
           />
           <button
             type="submit"

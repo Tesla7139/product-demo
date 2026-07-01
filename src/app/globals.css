@@ -132,6 +132,22 @@ body {
   animation-play-state: paused;
 }
 
+/* Vertical marquee (scrolls upward) */
+@keyframes marquee-y {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+.animate-marquee-y {
+  animation: marquee-y var(--marquee-duration, 18s) linear infinite;
+}
+.marquee-group:hover .animate-marquee-y {
+  animation-play-state: paused;
+}
+
 /* Radix accordion expand/collapse */
 @keyframes accordion-down {
   from {
@@ -201,6 +217,55 @@ body {
 .masonry-item {
   break-inside: avoid;
   margin-bottom: 1.5rem;
+}
+
+/* ---- Pearl / Stardust button ---- */
+.pearl-button .wrap::before,
+.pearl-button .wrap::after {
+  content: "";
+  position: absolute;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+.pearl-button .wrap::before {
+  left: -15%;
+  right: -15%;
+  bottom: 25%;
+  top: -100%;
+  border-radius: 50%;
+  background-color: rgba(64, 180, 255, 0.15);
+}
+.pearl-button .wrap::after {
+  left: 6%;
+  right: 6%;
+  top: 12%;
+  bottom: 40%;
+  border-radius: 22px 22px 0 0;
+  box-shadow: inset 0 10px 8px -10px rgba(129, 216, 255, 0.6);
+  background: linear-gradient(180deg, rgba(64, 180, 255, 0.25) 0%, rgba(0, 0, 0, 0) 100%);
+}
+.pearl-button .wrap p .star-hover { display: none; }
+.pearl-button:hover .wrap p .star-idle  { display: none; }
+.pearl-button:hover .wrap p .star-hover { display: inline-block; }
+.pearl-button:hover {
+  box-shadow:
+    inset 0 0.3rem 0.5rem rgba(129, 216, 255, 0.4),
+    inset 0 -0.1rem 0.3rem rgba(0, 0, 0, 0.7),
+    inset 0 -0.4rem 0.9rem rgba(64, 180, 255, 0.6),
+    0 3rem 3rem rgba(0, 0, 0, 0.3),
+    0 1rem 1rem -0.6rem rgba(0, 0, 0, 0.8);
+  opacity: 1 !important;
+}
+.pearl-button:hover .wrap::before { transform: translateY(-5%); }
+.pearl-button:hover .wrap::after  { opacity: 0.4; transform: translateY(5%); }
+.pearl-button:hover .wrap p       { transform: translateY(-4%) !important; }
+.pearl-button:active {
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 0.3rem 0.5rem rgba(129, 216, 255, 0.5),
+    inset 0 -0.1rem 0.3rem rgba(0, 0, 0, 0.8),
+    inset 0 -0.4rem 0.9rem rgba(64, 180, 255, 0.4),
+    0 1rem 1rem rgba(0, 0, 0, 0.3);
 }
 
 /* hide scrollbar (used inside the hero phone mock) */

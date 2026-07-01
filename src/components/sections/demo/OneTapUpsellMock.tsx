@@ -8,10 +8,19 @@ import type { DemoStore } from "@/lib/site";
 const money = (n: number, currency = "USD") =>
   new Intl.NumberFormat("en", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
 
-export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: DemoStore; onComplete?: (wasAdded: boolean) => void; accentColor?: string }) {
+function Pic({ src }: { src?: string | null }) {
+  if (src) {
+    // eslint-disable-next-line @next/next/no-img-element -- remote product image
+    return <img src={src} alt="" className="size-10 shrink-0 rounded-lg border border-border object-cover" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />;
+  }
+  return <div className="size-10 shrink-0 rounded-lg bg-neutral-100" aria-hidden />;
+}
+
+export function OneTapUpsellMock({ store, onComplete, accentColor, addBtnRef, offerRef, onAdded }: { store: DemoStore; onComplete?: (wasAdded: boolean) => void; accentColor?: string; addBtnRef?: React.RefObject<HTMLButtonElement | null>; offerRef?: React.RefObject<HTMLDivElement | null>; onAdded?: () => void }) {
   const brand = store.brandColor || accentColor || "#155FFF";
   const currency = store.currency || "USD";
   const fmt = (n: number) => money(n, currency);
+  const purchased = store.products[0];
   const offer = store.products[1] ?? store.products[0];
 
   // variant picker
@@ -35,6 +44,7 @@ export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: De
 
   const handleAdd = () => {
     setAdded(true);
+    onAdded?.();
     setTimeout(() => onComplete?.(true), 1600);
   };
 
@@ -63,7 +73,7 @@ export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: De
       {/* page body */}
       <div className="max-h-[520px] overflow-y-auto no-scrollbar">
         {/* store header */}
-        <div className="border-b border-border px-8 py-5">
+        <div className="border-b border-border px-6 py-2.5">
           <div className="text-[13px] font-semibold text-neutral-800">{slug}</div>
           <div className="mt-1 flex items-start gap-2.5">
             <span
@@ -83,9 +93,9 @@ export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: De
         </div>
 
         {/* before-you-go header */}
-        <div className="border-b border-border px-8 py-5 text-center">
-          <div className="text-[18px] font-bold text-neutral-900">Tucker, before you go!</div>
-          <div className="mt-2 text-[13px] text-neutral-600">
+        <div className="border-b border-border px-6 py-2.5 text-center">
+          <div className="text-[16px] font-bold text-neutral-900">Tucker, before you go!</div>
+          <div className="mt-1 text-[12.5px] text-neutral-600">
             Your order is confirmed but you can still add the following for a limited time{" "}
             <span className="font-bold tabular-nums text-red-500">{timer}</span>
           </div>
@@ -96,48 +106,77 @@ export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: De
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center justify-center px-8 py-16 text-center"
+            className="px-8 py-8"
           >
-            <span
-              className="mb-4 flex size-14 items-center justify-center rounded-full border-4"
-              style={{ borderColor: brand, color: brand }}
-            >
-              <Check className="size-7" strokeWidth={2.5} />
-            </span>
-            <div className="text-[18px] font-bold text-neutral-900">Added to your order!</div>
-            <p className="mt-2 text-[13px] text-neutral-500">
-              {offer?.title} has been added. No re-checkout needed.
-            </p>
+            <div className="flex flex-col items-center text-center">
+              <span
+                className="mb-3 flex size-14 items-center justify-center rounded-full border-4"
+                style={{ borderColor: brand, color: brand }}
+              >
+                <Check className="size-7" strokeWidth={2.5} />
+              </span>
+              <div className="text-[18px] font-bold text-neutral-900">Added to your order!</div>
+              <p className="mt-1.5 text-[13px] text-neutral-500">
+                No re-checkout, charged to the card already on file.
+              </p>
+            </div>
+
+            {/* order summary with the added item */}
+            <div className="mx-auto mt-6 max-w-md rounded-xl border border-border p-4">
+              <div className="text-[11px] font-bold uppercase tracking-wide text-neutral-400">Your order</div>
+              {purchased && (
+                <div className="mt-3 flex items-center gap-3">
+                  <Pic src={purchased.image} />
+                  <div className="min-w-0 flex-1 truncate text-[13px] font-medium text-neutral-800">{purchased.title}</div>
+                  <div className="text-[13px] font-semibold text-neutral-900">{fmt(purchased.price)}</div>
+                </div>
+              )}
+              <div className="mt-2 flex items-center gap-3">
+                <Pic src={offer?.image} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[13px] font-medium text-neutral-800">{offer?.title}</div>
+                  <div className="text-[11px] font-semibold" style={{ color: brand }}>Just added · post-purchase</div>
+                </div>
+                <div className="text-right text-[13px]">
+                  <span className="block text-neutral-400 line-through">{fmt(full)}</span>
+                  <span className="font-semibold text-neutral-900">{fmt(deal)}</span>
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline justify-between border-t border-border pt-3">
+                <span className="text-[14px] font-bold text-neutral-900">Total</span>
+                <span className="text-[16px] font-bold text-neutral-900">{fmt((purchased?.price ?? 0) + deal)}</span>
+              </div>
+            </div>
           </motion.div>
         ) : (
-          <div className="grid md:grid-cols-2">
+          <div ref={offerRef} className="grid md:grid-cols-2">
             {/* product image */}
-            <div className="flex items-center justify-center bg-neutral-50 p-8">
+            <div className="flex items-center justify-center bg-neutral-50 p-3">
               {offer?.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={offer.image}
                   alt={offer.title}
-                  className="max-h-[280px] w-full object-contain"
+                  className="max-h-[150px] w-full object-contain"
                   onError={(e) => (e.currentTarget.style.display = "none")}
                 />
               ) : (
-                <div className="flex h-[240px] w-full items-center justify-center rounded-xl bg-neutral-200">
+                <div className="flex h-[140px] w-full items-center justify-center rounded-xl bg-neutral-200">
                   <span className="text-4xl">📦</span>
                 </div>
               )}
             </div>
 
             {/* offer details */}
-            <div className="flex flex-col justify-between p-8">
+            <div className="flex flex-col justify-between px-5 py-4">
               <div>
                 <div className="text-[12px] text-neutral-400">Offer 1 of 1</div>
-                <h3 className="mt-1 text-[22px] font-bold leading-tight text-neutral-900">
+                <h3 className="mt-1 text-[20px] font-bold leading-tight text-neutral-900">
                   {offer?.title ?? "Add-on product"}
                 </h3>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-[16px] text-neutral-400 line-through">{fmt(full)}</span>
-                  <span className="text-[22px] font-bold text-red-500">{fmt(deal)}</span>
+                <div className="mt-1.5 flex items-baseline gap-2">
+                  <span className="text-[15px] text-neutral-400 line-through">{fmt(full)}</span>
+                  <span className="text-[20px] font-bold text-red-500">{fmt(deal)}</span>
                 </div>
                 <p className="mt-1 text-[12px] text-neutral-500">
                   Don&apos;t miss out on this offer... it expires after you leave this page!
@@ -145,7 +184,7 @@ export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: De
 
                 {/* interactive variant selector */}
                 {variantList.length > 0 && (
-                  <div className="relative mt-4">
+                  <div className="relative mt-3">
                     <button
                       onClick={() => setShowSizes((v) => !v)}
                       className="flex w-full items-center justify-between rounded-lg border px-4 py-2.5 text-[13px] text-neutral-700 transition-colors"
@@ -175,7 +214,7 @@ export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: De
                   </div>
                 )}
 
-                <div className="mt-4 space-y-1.5 border-t border-border pt-4 text-[13px]">
+                <div className="mt-3 space-y-1 border-t border-border pt-3 text-[13px]">
                   <div className="flex justify-between text-neutral-600">
                     <span>Shipping</span>
                     <span className="font-semibold text-neutral-900">Free</span>
@@ -187,17 +226,18 @@ export function OneTapUpsellMock({ store, onComplete, accentColor }: { store: De
                 </div>
               </div>
 
-              <div className="mt-6 space-y-2">
+              <div className="mt-3 space-y-1.5">
                 <button
+                  ref={addBtnRef}
                   onClick={handleAdd}
-                  className="w-full rounded-lg py-3.5 text-[14px] font-semibold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
+                  className="w-full rounded-lg py-3 text-[14px] font-semibold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
                   style={{ background: brand }}
                 >
                   Add to order · {fmt(deal)}
                 </button>
                 <button
                   onClick={handleSkip}
-                  className="w-full rounded-lg py-2.5 text-[13px] font-semibold transition-colors hover:bg-neutral-50"
+                  className="w-full rounded-lg py-2 text-[13px] font-semibold transition-colors hover:bg-neutral-50"
                   style={{ color: brand }}
                 >
                   Skip Offer
