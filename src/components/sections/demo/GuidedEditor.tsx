@@ -493,10 +493,10 @@ function FeaturesRail({
 
       {/* install CTA */}
       <div className="relative mt-5 rounded-2xl border border-neutral-200/90 bg-white/70 p-5 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md">
-        {/* animated glowing arrow pointing at the heading */}
+        {/* animated glowing arrow coming from the editing window (right) into the CTA */}
         <svg
-          viewBox="0 0 120 80"
-          className="pointer-events-none absolute -top-8 right-0 h-[72px] w-[116px] overflow-visible"
+          viewBox="0 0 200 90"
+          className="pointer-events-none absolute -top-10 -right-16 h-[92px] w-[210px] overflow-visible"
           fill="none"
           aria-hidden
         >
@@ -509,21 +509,21 @@ function FeaturesRail({
               </feMerge>
             </filter>
           </defs>
-          {/* faint base line */}
-          <path d="M104 6 C 124 26, 112 58, 66 60" stroke={ACCENT} strokeWidth="3" strokeLinecap="round" opacity="0.2" />
-          {/* moving glow that travels toward the tip */}
+          {/* faint base line: from the editing window (top-right) sweeping down-left to the heading */}
+          <path d="M188 8 C 210 34, 176 74, 70 72" stroke={ACCENT} strokeWidth="3" strokeLinecap="round" opacity="0.2" />
+          {/* moving glow that travels FROM the editing window TOWARD the arrowhead */}
           <motion.path
-            d="M104 6 C 124 26, 112 58, 66 60"
+            d="M188 8 C 210 34, 176 74, 70 72"
             stroke={ACCENT}
             strokeWidth="3.2"
             strokeLinecap="round"
             filter="url(#cta-arrow-glow)"
-            strokeDasharray="22 240"
-            animate={{ strokeDashoffset: [262, 0] }}
-            transition={{ duration: 1.9, repeat: Infinity, ease: "easeInOut" }}
+            strokeDasharray="26 320"
+            animate={{ strokeDashoffset: [346, 0] }}
+            transition={{ duration: 2.1, repeat: Infinity, ease: "easeInOut" }}
           />
-          {/* arrowhead (glowing) */}
-          <path d="M66 60 L82 55 M66 60 L74 72" stroke={ACCENT} strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" filter="url(#cta-arrow-glow)" />
+          {/* arrowhead (glowing) pointing at the heading */}
+          <path d="M70 72 L87 68 M70 72 L77 85" stroke={ACCENT} strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" filter="url(#cta-arrow-glow)" />
         </svg>
 
         <h3 className="mx-auto max-w-[15rem] font-sans text-[22px] font-extrabold leading-[1.15] tracking-tight text-foreground">
