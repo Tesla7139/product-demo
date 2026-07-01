@@ -163,7 +163,7 @@ function LoadingView({ label }: { label: string }) {
 
           {/* heading + copy */}
           <h2 className="mt-7 font-serif text-4xl text-foreground md:text-5xl">
-            {done ? `${label} is ready` : `Building ${label}`}
+            {done ? `${label} is ready` : `Preparing your ${label} demo`}
           </h2>
           <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground md:text-base">
             {done
