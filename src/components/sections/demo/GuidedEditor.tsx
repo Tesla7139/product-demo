@@ -620,14 +620,14 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
   }
 
   function startEditingTour() {
-    resetDemo();
     setActivePill("tour");
     setActiveTour("editing");
     enterStep("editing", 0);
   }
 
-  // "Take a tour" from any window: switch to editing, then run the full tour
+  // "Take a tour" from any window: refresh the demo to its starting state, then run the full tour
   function launchTour() {
+    resetDemo(); // fresh 2-item order + fresh timer before we begin
     if (tab === "editing") {
       startEditingTour();
     } else {
