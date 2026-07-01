@@ -193,7 +193,7 @@ export function TourOverlay({
           onClick={onClose}
           className="pointer-events-auto absolute right-5 top-5 rounded-full bg-neutral-900/80 px-4 py-2 text-[12px] font-medium text-white ring-1 ring-white/20 transition-colors hover:bg-neutral-900"
         >
-          Skip tour
+          Exit tour
         </button>
       </div>,
       document.body
@@ -326,7 +326,7 @@ export function TourOverlay({
         onClick={onClose}
         className="pointer-events-auto absolute right-5 top-5 rounded-full bg-white/10 px-4 py-2 text-[12px] font-medium text-white backdrop-blur-sm ring-1 ring-white/20 transition-colors hover:bg-white/20"
       >
-        Skip tour
+        Exit tour
       </button>
     </div>,
     document.body
