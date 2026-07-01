@@ -525,21 +525,21 @@ function FeaturesRail({
       </div>
 
       {/* install CTA — bottom-aligned with the demo window */}
-      <div className="relative mt-5 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-5 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md lg:mt-auto">
+      <div className="relative mt-5 flex flex-col justify-center overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-7 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md lg:mt-auto">
         {/* rotating brand-result note (types out & interchanges) */}
-        <p className="mx-auto flex min-h-[3.4em] max-w-[17rem] items-center justify-center font-serif text-[13.5px] font-medium italic leading-snug text-neutral-700">
+        <p className="mx-auto flex min-h-[4em] max-w-[18rem] items-center justify-center font-serif text-[15px] font-medium italic leading-snug text-neutral-700">
           <RotatingNote notes={RESULT_NOTES} />
         </p>
 
         {/* app identity — Shopify rating sits beside the name */}
-        <div className="mt-2 flex items-center justify-center gap-2.5">
-          <ClickpostMark className="size-8 shrink-0 rounded-[8px] shadow-sm" />
+        <div className="mt-4 flex items-center justify-center gap-3">
+          <ClickpostMark className="size-11 shrink-0 rounded-[10px] shadow-sm" />
           <div className="text-left">
-            <div className="text-[13px] font-bold leading-tight text-neutral-900">CP Order Editing &amp; Upsell</div>
-            <div className="mt-0.5 flex items-center gap-1 text-[11px] text-neutral-500">
+            <div className="text-[17px] font-extrabold leading-tight tracking-tight text-neutral-900">CP Order Editing &amp; Upsell</div>
+            <div className="mt-1 flex items-center gap-1.5 text-[12px] text-neutral-500">
               {/* eslint-disable-next-line @next/next/no-img-element -- Shopify icon from /public */}
-              <img src="/shopify-icon.png" alt="Shopify" className="size-3.5 object-contain" />
-              <Star className="size-3 fill-amber-400 text-amber-400" />
+              <img src="/shopify-icon.png" alt="Shopify" className="size-4 object-contain" />
+              <Star className="size-3.5 fill-amber-400 text-amber-400" />
               <span className="font-bold text-neutral-900">5.0</span>
               <span>· 50+ reviews</span>
             </div>
@@ -547,19 +547,19 @@ function FeaturesRail({
         </div>
 
         {/* CTAs — side by side */}
-        <div className="mt-5 grid grid-cols-2 gap-2.5">
+        <div className="mt-6 grid grid-cols-2 gap-2.5">
           <a
             href={APP_URL}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center justify-center gap-1.5 rounded-xl px-3 py-3 text-[13px] font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
+            className="flex items-center justify-center gap-1.5 rounded-xl px-3 py-3.5 text-sm font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
             style={{ background: ACCENT }}
           >
             <ShoppingBag className="size-4 shrink-0" /> Install
           </a>
           <Link
             href="/#contact"
-            className="flex items-center justify-center gap-1.5 rounded-xl border border-neutral-300 bg-white px-3 py-3 text-[13px] font-semibold text-neutral-700 transition-colors hover:bg-neutral-50"
+            className="flex items-center justify-center gap-1.5 rounded-xl border border-neutral-300 bg-white px-3 py-3.5 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50"
           >
             <CalendarDays className="size-4 shrink-0" /> Book a demo
           </Link>
