@@ -25,8 +25,8 @@ function Thumb({ src, alt }: { src?: string | null; alt: string }) {
 function InfoBlock({ label, lines }: { label: string; lines: string[] }) {
   return (
     <div>
-      <div className="text-[13px] font-bold text-neutral-900">{label}</div>
-      <div className="mt-1 space-y-0.5 text-[12.5px] leading-snug text-neutral-500">
+      <div className="text-sm font-bold text-neutral-900">{label}</div>
+      <div className="mt-1 space-y-0.5 text-xs leading-relaxed text-neutral-500">
         {lines.map((l) => <div key={l}>{l}</div>)}
       </div>
     </div>
@@ -93,11 +93,11 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
           <div className="flex items-start gap-2">
             <ArrowLeft className="mt-1 size-4 text-neutral-500" />
             <div>
-              <div className="text-[19px] font-bold tracking-tight text-neutral-900">Order #133792</div>
-              <div className="text-[12.5px] text-neutral-500">Confirmed 18 Jun</div>
+              <div className="text-lg font-bold tracking-tight text-neutral-900">Order #133792</div>
+              <div className="text-xs text-neutral-500">Confirmed 18 Jun</div>
             </div>
           </div>
-          <button className="rounded-lg border border-border px-4 py-2 text-[13px] font-semibold text-emerald-600 transition-colors hover:bg-emerald-50">
+          <button className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-emerald-600 transition-colors hover:bg-emerald-50">
             Buy again
           </button>
         </div>
@@ -107,8 +107,8 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
           <div className="space-y-4">
             {/* EU Withdrawal Function card */}
             <div ref={tourRefs?.euCard} className="rounded-xl border border-border p-4">
-              <h3 className="text-[17px] font-bold text-neutral-900">EU Withdrawal Function</h3>
-              <p className="mt-1.5 text-[13px] leading-relaxed text-neutral-500">
+              <h3 className="text-base font-bold text-neutral-900">EU Withdrawal Function</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-neutral-500">
                 EU customers can edit eligible orders during the editing period or use the withdrawal function for
                 cancellation, refund, or return help.
               </p>
@@ -140,7 +140,7 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
                           <Field label="Phone" value={DEFAULT_PHONE} />
                           <label className="relative block rounded-md border border-border px-3 pt-5 pb-2">
                             <span className="pointer-events-none absolute left-3 top-1.5 text-[10px] font-medium uppercase tracking-wide text-neutral-400">Message (optional)</span>
-                            <span className="block text-[13.5px] leading-snug text-neutral-600">
+                            <span className="block text-sm leading-snug text-neutral-600">
                               I&apos;d like to withdraw from this purchase within the cooling-off period.
                             </span>
                           </label>
@@ -154,14 +154,14 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
                             >
                               {agreed && <Check className="size-3 text-white" strokeWidth={3} />}
                             </span>
-                            <span className="text-[12.5px] leading-snug text-neutral-600">
+                            <span className="text-sm leading-snug text-neutral-600">
                               I want to withdraw from this contract under my EU right of withdrawal.
                             </span>
                           </button>
                           <button
                             ref={tourRefs?.withdrawBtn}
                             onClick={submit}
-                            className="w-full rounded-lg py-3 text-[14px] font-semibold text-white shadow-md transition-all hover:brightness-125 active:scale-[0.99]"
+                            className="w-full rounded-lg py-3 text-sm font-semibold text-white shadow-md transition-all hover:brightness-125 active:scale-[0.99]"
                             style={{ background: "#111827" }}
                           >
                             Withdraw Contract
@@ -170,13 +170,13 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
                       ) : (
                         <div className="px-3.5 pb-4 pt-2">
                           <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3.5">
-                            <div className="flex items-center gap-2 text-[13px] font-bold text-emerald-700">
+                            <div className="flex items-center gap-2 text-sm font-bold text-emerald-700">
                               <span className="flex size-5 items-center justify-center rounded-full bg-emerald-500 text-white">
                                 <Check className="size-3" strokeWidth={3} />
                               </span>
                               Withdrawal request received
                             </div>
-                            <p className="mt-2 text-[12.5px] leading-relaxed text-emerald-800/80">
+                            <p className="mt-2 text-xs leading-relaxed text-emerald-800/80">
                               A confirmation email is on its way to <span className="font-semibold">{DEFAULT_EMAIL}</span>. Your order is
                               on hold before fulfillment while we process the request.
                             </p>
@@ -191,22 +191,22 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
 
             {/* tracking */}
             <div className="rounded-xl border border-border p-4">
-              <div className="text-[13px] text-neutral-700">
+              <div className="text-sm text-neutral-700">
                 FedEx FIC <span className="font-medium underline">{TRACKING}</span>
               </div>
               <div className="mt-3 space-y-3">
                 <div className="flex items-start gap-3">
                   <Truck className="mt-0.5 size-4 text-neutral-700" />
                   <div>
-                    <div className="text-[13px] font-bold text-neutral-900">On its way</div>
-                    <div className="text-[12px] text-neutral-400">18 Jun</div>
+                    <div className="text-sm font-bold text-neutral-900">On its way</div>
+                    <div className="text-xs text-neutral-400">18 Jun</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 pl-[3px]">
                   <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-neutral-400" />
                   <div className="pl-[7px]">
-                    <div className="text-[13px] font-bold text-neutral-900">Confirmed</div>
-                    <div className="text-[12px] text-neutral-400">18 Jun</div>
+                    <div className="text-sm font-bold text-neutral-900">Confirmed</div>
+                    <div className="text-xs text-neutral-400">18 Jun</div>
                   </div>
                 </div>
               </div>
@@ -226,26 +226,26 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
             <div className="flex items-start gap-3">
               <div className="relative">
                 <Thumb src={product?.image} alt={product?.title ?? "Product"} />
-                <span className="absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full bg-neutral-900 text-[11px] font-semibold text-white">1</span>
+                <span className="absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-white">1</span>
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-[13px] font-medium leading-snug text-neutral-800">{product?.title ?? "Casey Premium Linen Shirt"}</div>
-                <div className="text-[12px] text-neutral-500">{product?.variant ?? "Yellow / L"}</div>
+                <div className="text-sm font-medium leading-snug text-neutral-800">{product?.title ?? "Casey Premium Linen Shirt"}</div>
+                <div className="text-xs text-neutral-500">{product?.variant ?? "Yellow / L"}</div>
               </div>
-              <div className="text-[13px] font-semibold text-neutral-900">{fmt(price)}</div>
+              <div className="text-sm font-semibold text-neutral-900">{fmt(price)}</div>
             </div>
 
-            <div className="mt-4 space-y-1.5 border-t border-border pt-4 text-[13px]">
+            <div className="mt-4 space-y-1.5 border-t border-border pt-4 text-sm">
               <div className="flex justify-between text-neutral-600"><span>Subtotal</span><span className="font-medium text-neutral-900">{fmt(price)}</span></div>
               <div className="flex justify-between text-neutral-600"><span>Shipping</span><span className="font-medium text-neutral-900">{fmt(shipping)}</span></div>
             </div>
             <div className="mt-3 flex items-baseline justify-between border-t border-border pt-3">
-              <span className="text-[15px] font-bold text-neutral-900">Total</span>
-              <span className="text-[17px] font-bold text-neutral-900">
-                <span className="mr-1 text-[11px] font-medium text-neutral-400">{currency}</span>{fmt(total)}
+              <span className="text-base font-bold text-neutral-900">Total</span>
+              <span className="text-base font-bold text-neutral-900">
+                <span className="mr-1 text-xs font-medium text-neutral-400">{currency}</span>{fmt(total)}
               </span>
             </div>
-            <div className="mt-1 text-[11px] text-neutral-400">Including {fmt(0)} in taxes</div>
+            <div className="mt-1 text-xs text-neutral-400">Including {fmt(0)} in taxes</div>
           </div>
         </div>
       </div>
