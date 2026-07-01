@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowRight, Check, Sparkles, Star, ShoppingBag, CalendarDays,
+  ArrowRight, ArrowUpRight, Check, Sparkles, Star, CalendarDays,
 } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
 import type { Addr } from "./DemoMock";
@@ -536,10 +536,15 @@ function FeaturesRail({
           </p>
         </div>
 
-        {/* app identity — Shopify rating sits beside the name */}
-        <div className="flex items-center justify-center gap-2.5">
+        {/* app listing — the whole card links to the Shopify App Store */}
+        <a
+          href={APP_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="group flex items-center gap-3 rounded-xl border border-neutral-200 bg-white/80 p-3 text-left transition-all hover:border-[#155FFF]/50 hover:shadow-md"
+        >
           <ClickpostMark className="size-10 shrink-0 rounded-[9px] shadow-sm" />
-          <div className="text-left">
+          <div className="min-w-0 flex-1">
             <div className="text-[15px] font-extrabold leading-tight tracking-tight text-neutral-900">CP Order Editing &amp; Upsell</div>
             <div className="mt-1 flex items-center gap-1.5 text-[12px] text-neutral-500">
               {/* eslint-disable-next-line @next/next/no-img-element -- Shopify icon from /public */}
@@ -549,26 +554,17 @@ function FeaturesRail({
               <span>· 50+ reviews</span>
             </div>
           </div>
-        </div>
+          <ArrowUpRight className="size-4 shrink-0 text-neutral-400 transition-colors group-hover:text-[#155FFF]" />
+        </a>
 
-        {/* CTAs — side by side, single line each */}
-        <div className="grid grid-cols-2 gap-2.5">
-          <a
-            href={APP_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-2 py-3 text-[13px] font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
-            style={{ background: ACCENT }}
-          >
-            <ShoppingBag className="size-4 shrink-0" /> Install
-          </a>
-          <Link
-            href="/#contact"
-            className="flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-neutral-300 bg-white px-2 py-3 text-[13px] font-semibold text-neutral-700 transition-colors hover:bg-neutral-50"
-          >
-            <CalendarDays className="size-4 shrink-0" /> Book a demo
-          </Link>
-        </div>
+        {/* single CTA */}
+        <Link
+          href="/#contact"
+          className="flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
+          style={{ background: ACCENT }}
+        >
+          <CalendarDays className="size-4 shrink-0" /> Book a free demo
+        </Link>
       </div>
     </div>
   );
