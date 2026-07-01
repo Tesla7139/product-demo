@@ -48,10 +48,11 @@ const FEATURE_CARDS: {
   {
     key: "upsell",
     title: "Post-purchase upsell",
-    desc: "A one-tap offer right after checkout.",
+    desc: "Every edit is an upsell opportunity — lift your AOV.",
     capLabel: "What you can configure",
     points: [
-      "Offer on the thank-you page or post-checkout",
+      "Turn every edit & checkout into extra revenue",
+      "One-tap add-ons on the thank-you page or post-checkout",
       "You set the product, discount & timing",
     ],
     stats: [
@@ -236,9 +237,9 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
 const UPSELL_TOUR_STEPS: TourStepDef[] = [
   {
     id: "upsell-toggle",
-    title: "Two ways to upsell",
-    desc: "One tap right after the order is confirmed, or on the order status page.",
-    cta: "Next",
+    title: "Every edit is an upsell opportunity",
+    desc: "Turn every edit and checkout into extra revenue — lift your AOV with one-tap add-ons, right after the order or on the order status page.",
+    cta: "Show me",
     measureDelayMs: 280,
   },
   {
