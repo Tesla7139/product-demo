@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 
@@ -84,6 +84,13 @@ export function TourOverlay({
   onAdvance: () => void;
   onClose: () => void;
 }) {
+  // measure the tooltip's real height so positioning never overlaps the spotlight
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [cardH, setCardH] = useState(240);
+  useEffect(() => {
+    if (cardRef.current) setCardH(cardRef.current.offsetHeight);
+  }, [step, title, desc]);
+
   if (typeof window === "undefined") return null;
 
   // ---- Outcome overlay: blurred backdrop (next card stays crisp) + centered CTA ----
@@ -176,14 +183,17 @@ export function TourOverlay({
 
   if (!rect) return null;
   const PAD = 10;
-  const TOOLTIP_H = 300; // generous estimate so we never clip the button
+  const GAP = 14;
   const sl = { top: rect.top - PAD, left: rect.left - PAD, width: rect.width + PAD * 2, height: rect.height + PAD * 2 };
   const spaceBelow = window.innerHeight - (sl.top + sl.height);
   const spaceAbove = sl.top;
-  // prefer below unless it would clip; fall back to above; last resort: clamp
-  const tooltipBelow = spaceBelow >= TOOLTIP_H + 14 || spaceBelow >= spaceAbove;
-  const rawTop = tooltipBelow ? sl.top + sl.height + 14 : sl.top - TOOLTIP_H - 14;
-  const clampedTop = Math.min(Math.max(rawTop, 8), window.innerHeight - TOOLTIP_H - 8);
+  // place below if it fits; else above if that fits; measured height keeps the
+  // clamp from pulling the card up into the spotlight (which caused overlap).
+  const fitsBelow = spaceBelow >= cardH + GAP;
+  const fitsAbove = spaceAbove >= cardH + GAP;
+  const tooltipBelow = fitsBelow || !fitsAbove;
+  const rawTop = tooltipBelow ? sl.top + sl.height + GAP : sl.top - cardH - GAP;
+  const clampedTop = Math.min(Math.max(rawTop, 8), Math.max(8, window.innerHeight - cardH - 8));
   const tooltipLeft = Math.min(Math.max(sl.left, 12), window.innerWidth - 296);
 
   return createPortal(
@@ -234,6 +244,7 @@ export function TourOverlay({
       {!hideCard && (
       <motion.div
         key={`card-${step}`}
+        ref={cardRef}
         initial={{ opacity: 0, y: tooltipBelow ? 10 : -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
