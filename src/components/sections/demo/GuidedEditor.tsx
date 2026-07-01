@@ -525,7 +525,7 @@ function FeaturesRail({
       </div>
 
       {/* install CTA — bottom-aligned with the demo window */}
-      <div className="relative mt-5 flex flex-col justify-center overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-7 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md lg:mt-auto">
+      <div className="relative mt-5 flex flex-col justify-center overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-7 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md lg:flex-1">
         {/* rotating brand-result note (types out & interchanges) */}
         <p className="mx-auto flex min-h-[4em] max-w-[18rem] items-center justify-center font-serif text-[15px] font-medium italic leading-snug text-neutral-700">
           <RotatingNote notes={RESULT_NOTES} />
