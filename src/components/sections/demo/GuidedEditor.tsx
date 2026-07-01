@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight, Check, ExternalLink, Sparkles,
 } from "lucide-react";
-import type { DemoStore, DemoProduct } from "@/lib/site";
+import type { DemoStore } from "@/lib/site";
 import type { Addr } from "./DemoMock";
 import { DemoMock } from "./DemoMock";
 import { OneTapUpsellMock } from "./OneTapUpsellMock";
@@ -493,7 +493,6 @@ function TourButton({ onClick }: { onClick: () => void }) {
 export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?: () => void }) {
   const [tab, setTab] = useState<Tab>("editing");
   const [activePill, setActivePill] = useState<ActionPill["key"]>("tour");
-  const [upsellItem, setUpsellItem] = useState<DemoProduct | null>(null);
   const [upsellView, setUpsellView] = useState<"thankyou" | "onetap">("onetap");
 
   // lifted tour state
@@ -515,7 +514,6 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
   function resetDemo() {
     setAddrOverride(undefined);
     setQtyBump(0);
-    setUpsellItem(null); // don't carry the previous run's added item into a new tour
     setTourForcedOpen(null);
     setDemoResetKey((k) => k + 1);
   }
@@ -866,7 +864,6 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                     initialOpen={null}
                     forceOpen={editingForceOpen}
                     maxHeight={560}
-                    extraItem={upsellItem ?? undefined}
                     tourRefs={{ countdown: countdownRef, shippingRow: shippingRowRef, addressForm: addressFormRef, saveBtn: saveBtnRef, orderRow: orderRowRef, orderBtn: orderBtnRef, orderPlusBtn: orderPlusBtnRef, payPanel: payPanelRef, payBtn: payBtnRef, sections: sectionsRef }}
                     addressOverride={addrOverride}
                     onShippingSaved={() => { if (curStep?.id === "addr-save") advanceAfterPause(); }}
@@ -892,7 +889,6 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                       addBtnRef={upsellAddBtnRef}
                       offerRef={upsellOfferRef}
                       onAdded={() => { if (curStep?.id === "upsell-add") advanceAfterPause(); }}
-                      onComplete={(wasAdded) => { if (wasAdded) setUpsellItem(store.products[1] ?? store.products[0]); }}
                     />
                   )
                 )}
