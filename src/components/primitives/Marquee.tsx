@@ -12,11 +12,13 @@ export function Marquee({
   duration = 32,
   className,
   paused = false,
+  reverse = false,
 }: {
   items: React.ReactNode[];
   duration?: number;
   className?: string;
   paused?: boolean;
+  reverse?: boolean;
 }) {
   // Repeat the items enough to overflow wide viewports, then duplicate that
   // group so translateX(-50%) loops seamlessly with no visible end/gap.
@@ -42,6 +44,7 @@ export function Marquee({
           {
             "--marquee-duration": `${duration}s`,
             animationPlayState: paused ? "paused" : undefined,
+            animationDirection: reverse ? "reverse" : undefined,
           } as React.CSSProperties
         }
       >
