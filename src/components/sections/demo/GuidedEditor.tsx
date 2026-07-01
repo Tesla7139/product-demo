@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowRight, Check, Sparkles, Clock, Code2, ShieldCheck, Star, ShoppingBag, CalendarDays,
+  ArrowRight, Check, Sparkles, Star, ShoppingBag, CalendarDays,
 } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
 import type { Addr } from "./DemoMock";
@@ -488,41 +488,41 @@ function FeaturesRail({
           Ready to try it on your Shopify store?
         </h3>
 
-        {/* quick facts */}
-        <div className="mt-3 flex flex-wrap items-center gap-x-3.5 gap-y-1.5 text-[12px] font-medium text-neutral-500">
-          <span className="inline-flex items-center gap-1.5"><Clock className="size-3.5" /> 2-min setup</span>
-          <span className="inline-flex items-center gap-1.5"><Code2 className="size-3.5" /> No coding</span>
-          <span className="inline-flex items-center gap-1.5"><ShieldCheck className="size-3.5" /> Free trial</span>
-        </div>
-
-        {/* rating */}
-        <div className="mt-3 flex items-center gap-2">
-          <div className="flex">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star key={i} className="size-4 fill-amber-400 text-amber-400" />
-            ))}
-          </div>
-          <span className="text-[12px] text-neutral-500">
-            <span className="font-bold text-neutral-900">5.0 rating</span> from 47+ reviews
+        {/* trust row: our app logo · Shopify · 51 five-star reviews */}
+        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+          {/* eslint-disable-next-line @next/next/no-img-element -- brand logo from /public */}
+          <img src="/brand/logo.svg" alt="Clickpost" className="h-4 w-auto object-contain" />
+          <span className="h-4 w-px bg-neutral-200" />
+          {/* eslint-disable-next-line @next/next/no-img-element -- Shopify icon from /public */}
+          <img src="/shopify-icon.png" alt="Shopify" className="size-5 object-contain" />
+          <span className="ml-auto inline-flex items-center gap-1.5">
+            <span className="flex">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star key={i} className="size-3.5 fill-amber-400 text-amber-400" />
+              ))}
+            </span>
+            <span className="text-[12px] text-neutral-500"><span className="font-bold text-neutral-900">51</span> 5-star reviews</span>
           </span>
         </div>
 
-        {/* CTAs */}
-        <a
-          href={APP_URL}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
-          style={{ background: ACCENT }}
-        >
-          <ShoppingBag className="size-4" /> Install on Shopify
-        </a>
-        <Link
-          href="/#contact"
-          className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-300 bg-white py-3 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50"
-        >
-          <CalendarDays className="size-4" /> Book a 15-min demo
-        </Link>
+        {/* CTAs — side by side */}
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <a
+            href={APP_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-center gap-1.5 rounded-xl px-3 py-3 text-[13px] font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
+            style={{ background: ACCENT }}
+          >
+            <ShoppingBag className="size-4 shrink-0" /> Install
+          </a>
+          <Link
+            href="/#contact"
+            className="flex items-center justify-center gap-1.5 rounded-xl border border-neutral-300 bg-white px-3 py-3 text-[13px] font-semibold text-neutral-700 transition-colors hover:bg-neutral-50"
+          >
+            <CalendarDays className="size-4 shrink-0" /> Book a demo
+          </Link>
+        </div>
       </div>
     </div>
   );
