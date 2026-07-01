@@ -398,19 +398,18 @@ function ClickpostMark({ className }: { className?: string }) {
 }
 
 /** Brand-result notes that type out and interchange in the CTA's top line. */
-type BrandNote = { logo: string | null; name: string; stat: string };
-const RESULT_NOTES: BrandNote[] = [
-  { logo: null, name: "Mars by GHC", stat: "lifted AOV 23% and added $18K in upsell this month." },
-  { logo: "/customers/doonails.svg", name: "Doonails", stat: "deflected 58% of tickets and saved $12K this month." },
-  { logo: "/customers/hautesauce.png", name: "Haute Sauce", stat: "grew AOV by 15% and added $7K in upsell this month." },
+const RESULT_NOTES = [
+  "Mars by GHC lifted AOV 23% and added $18K in upsell this month.",
+  "Doonails deflected 58% of tickets and saved $12K this month.",
+  "Haute Sauce grew AOV by 15% and added $7K in upsell this month.",
 ];
 
-function RotatingNote({ notes }: { notes: BrandNote[] }) {
+function RotatingNote({ notes }: { notes: string[] }) {
   const [i, setI] = useState(0);
   const [text, setText] = useState("");
   const [phase, setPhase] = useState<"type" | "hold" | "delete">("type");
   useEffect(() => {
-    const full = notes[i].stat;
+    const full = notes[i];
     let t: ReturnType<typeof setTimeout>;
     if (phase === "type") {
       if (text.length < full.length) t = setTimeout(() => setText(full.slice(0, text.length + 1)), 30);
@@ -423,19 +422,10 @@ function RotatingNote({ notes }: { notes: BrandNote[] }) {
     }
     return () => clearTimeout(t);
   }, [text, phase, i, notes]);
-  const cur = notes[i];
   return (
-    <span className="inline-flex flex-wrap items-baseline justify-center gap-x-1.5 gap-y-0.5">
-      {cur.logo ? (
-        // eslint-disable-next-line @next/next/no-img-element -- brand logo from /public
-        <img src={cur.logo} alt={cur.name} className="inline-block h-[14px] w-auto -translate-y-[1px] object-contain" />
-      ) : (
-        <span className="font-bold not-italic text-neutral-800">{cur.name}</span>
-      )}
-      <span>
-        {text}
-        <span className="ml-px inline-block w-[2px] animate-pulse text-[#155FFF]">▍</span>
-      </span>
+    <span>
+      {text}
+      <span className="ml-px inline-block w-[2px] animate-pulse text-[#155FFF]">▍</span>
     </span>
   );
 }
