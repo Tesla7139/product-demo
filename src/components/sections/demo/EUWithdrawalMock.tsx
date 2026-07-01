@@ -177,8 +177,8 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
                               Withdrawal request received
                             </div>
                             <p className="mt-2 text-xs leading-relaxed text-emerald-800/80">
-                              A confirmation email is on its way to <span className="font-semibold">{DEFAULT_EMAIL}</span>. Your order is
-                              on hold before fulfillment while we process the request.
+                              A confirmation email is on its way to <span className="font-semibold">{DEFAULT_EMAIL}</span>. The order is
+                              held before it reaches your WMS / 3PL while we process the request.
                             </p>
                           </div>
                         </div>

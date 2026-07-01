@@ -83,7 +83,8 @@ const FEATURE_CARDS: {
     points: [
       "Clearly-labeled 'Withdraw Contract' on the order status page",
       "Available through the 14-day cooling-off period",
-      "Auto-acknowledged; order held before fulfillment",
+      "Holds the order & cancels before it hits your WMS / 3PL",
+      "Routes requests to your team via Shopify Flow & fulfillment stack",
     ],
     stats: [
       { value: "Jun 19, 2026", label: "EU rule — ready out of the box" },
