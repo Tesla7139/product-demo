@@ -11,11 +11,12 @@ import type { Addr } from "./DemoMock";
 import { DemoMock } from "./DemoMock";
 import { OneTapUpsellMock } from "./OneTapUpsellMock";
 import { AddressValidationMock } from "./AddressValidationMock";
+import { AnalyticsMock } from "./AnalyticsMock";
 import { TourOverlay, type TourRect } from "./TourOverlay";
 
 const ACCENT = "#155FFF";
 
-type Tab = "editing" | "upsell" | "address" | "cancel";
+type Tab = "editing" | "upsell" | "address" | "cancel" | "analytics";
 type Section = "contact" | "shipping" | "order" | "discount" | "cancel";
 
 /** Address the guided tour drops into the form to demonstrate an edit. */
@@ -69,6 +70,20 @@ const FEATURE_CARDS: {
     ],
     stats: [
       { value: "~30%", label: "fewer failed deliveries" },
+    ],
+  },
+  {
+    key: "analytics",
+    title: "Analytics",
+    desc: "See edits, savings & upsell revenue at a glance.",
+    capLabel: "What you can track",
+    points: [
+      "Total edits, support-cost savings & upsell revenue",
+      "Edit-type breakdown & cancellation reasons",
+      "Top upsell products over any date range",
+    ],
+    stats: [
+      { value: "Live", label: "dashboards, exportable" },
     ],
   },
 ];
@@ -843,6 +858,12 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                 Address Validation — live preview
               </span>
             )}
+
+            {tab === "analytics" && (
+              <span className="rounded-full bg-white/15 px-3.5 py-1.5 text-[12px] font-semibold text-white ring-1 ring-white/30 backdrop-blur">
+                Merchant analytics — live preview
+              </span>
+            )}
           </div>
 
           {/* body */}
@@ -892,6 +913,9 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                 )}
                 {tab === "address" && (
                   <AddressValidationMock store={store} />
+                )}
+                {tab === "analytics" && (
+                  <AnalyticsMock store={store} />
                 )}
                 {tab === "cancel" && (
                   <DemoMock store={store} initialOpen="cancel" forceOpen="cancel" maxHeight={560} />
