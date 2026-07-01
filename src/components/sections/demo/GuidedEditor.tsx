@@ -396,15 +396,10 @@ function FeaturesRail({
                   className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-2xl"
                   style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 100%)", opacity: active ? 0.5 : 0.7 }}
                 />
-                <span className="relative flex flex-col">
-                  <span className="font-sans text-[17px] font-bold tracking-tight">{f.title}</span>
-                  <span className={`text-[11.5px] font-semibold ${active ? "text-blue-100" : "text-[#155FFF]"}`}>
-                    {active ? "Running live" : "Run it live"}
-                  </span>
-                </span>
+                <span className="relative font-sans text-[17px] font-bold tracking-tight">{f.title}</span>
                 {/* clickable affordance */}
                 <span
-                  className={`relative -mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full transition-all ${
+                  className={`relative flex size-8 shrink-0 items-center justify-center rounded-full transition-all ${
                     active
                       ? "bg-white/20 text-white"
                       : "bg-[#155FFF]/10 text-[#155FFF] group-hover:bg-[#155FFF] group-hover:text-white"
