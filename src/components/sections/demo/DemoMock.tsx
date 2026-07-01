@@ -65,6 +65,7 @@ export function DemoMock({
     saveBtn?: React.RefObject<HTMLDivElement | null>;
     orderRow?: React.RefObject<HTMLDivElement | null>;
     orderBtn?: React.RefObject<HTMLDivElement | null>;
+    orderPlusBtn?: React.RefObject<HTMLButtonElement | null>;
     payPanel?: React.RefObject<HTMLDivElement | null>;
     payBtn?: React.RefObject<HTMLButtonElement | null>;
     upsellRow?: React.RefObject<HTMLDivElement | null>;
@@ -342,7 +343,7 @@ export function DemoMock({
                             <div className="truncate text-sm font-medium text-neutral-800">{item.title}</div>
                             <div className="text-xs text-neutral-500">{fmt(item.price)}</div>
                           </div>
-                          <Stepper qty={item.qty} onDec={() => setQty(item.uid, -1)} onInc={() => setQty(item.uid, 1)} />
+                          <Stepper qty={item.qty} onDec={() => setQty(item.uid, -1)} onInc={() => setQty(item.uid, 1)} incRef={i === 0 ? tourRefs?.orderPlusBtn : undefined} />
                           <button
                             onClick={() => removeItem(item.uid)}
                             disabled={items.length <= 1}
@@ -632,14 +633,14 @@ function PrimaryButton({ brand, onClick, children }: { brand: string; onClick: (
   );
 }
 
-function Stepper({ qty, onDec, onInc }: { qty: number; onDec: () => void; onInc: () => void }) {
+function Stepper({ qty, onDec, onInc, incRef }: { qty: number; onDec: () => void; onInc: () => void; incRef?: React.RefObject<HTMLButtonElement | null> }) {
   return (
     <div className="flex items-center gap-2">
       <button onClick={onDec} className="flex size-7 items-center justify-center rounded-md border border-border text-neutral-500 hover:text-neutral-900">
         −
       </button>
       <span className="w-5 text-center text-sm font-medium">{qty}</span>
-      <button onClick={onInc} className="flex size-7 items-center justify-center rounded-md border border-border text-neutral-500 hover:text-neutral-900">
+      <button ref={incRef} onClick={onInc} className="flex size-7 items-center justify-center rounded-md border border-border text-neutral-500 hover:text-neutral-900">
         +
       </button>
     </div>

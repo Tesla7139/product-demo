@@ -180,6 +180,7 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
     measureDelayMs: 420,
     tapTarget: true,
     hideCta: true, // tap the order to add one more
+    dotId: "order-plus", // point the dot at the + button, not delete
   },
   {
     id: "order-save",
@@ -510,10 +511,11 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
   const [qtyBump, setQtyBump] = useState(0); // tour: add one more of the first item
   const [demoResetKey, setDemoResetKey] = useState(0); // bump to remount the demo fresh
 
-  // start the editing tour from a clean demo (original address, nothing highlighted)
+  // start the editing tour from a clean demo (original 2-item order, fresh timer, nothing highlighted)
   function resetDemo() {
     setAddrOverride(undefined);
     setQtyBump(0);
+    setUpsellItem(null); // don't carry the previous run's added item into a new tour
     setTourForcedOpen(null);
     setDemoResetKey((k) => k + 1);
   }
@@ -527,6 +529,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
   const saveBtnRef = useRef<HTMLDivElement>(null);
   const orderRowRef = useRef<HTMLDivElement>(null);
   const orderBtnRef = useRef<HTMLDivElement>(null);
+  const orderPlusBtnRef = useRef<HTMLButtonElement>(null);
   const payPanelRef = useRef<HTMLDivElement>(null);
   const payBtnRef = useRef<HTMLButtonElement>(null);
   const sectionsRef = useRef<HTMLDivElement>(null);
@@ -552,6 +555,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
       case "shipping-box": return shippingRowRef.current;
       case "order-row": return orderRowRef.current;
       case "order-btn": return orderBtnRef.current;
+      case "order-plus": return orderPlusBtnRef.current;
       case "pay-panel": return payPanelRef.current;
       case "pay-btn": return payBtnRef.current;
       case "others": return sectionsRef.current;
@@ -852,7 +856,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                     forceOpen={editingForceOpen}
                     maxHeight={560}
                     extraItem={upsellItem ?? undefined}
-                    tourRefs={{ countdown: countdownRef, shippingRow: shippingRowRef, addressForm: addressFormRef, saveBtn: saveBtnRef, orderRow: orderRowRef, orderBtn: orderBtnRef, payPanel: payPanelRef, payBtn: payBtnRef, sections: sectionsRef }}
+                    tourRefs={{ countdown: countdownRef, shippingRow: shippingRowRef, addressForm: addressFormRef, saveBtn: saveBtnRef, orderRow: orderRowRef, orderBtn: orderBtnRef, orderPlusBtn: orderPlusBtnRef, payPanel: payPanelRef, payBtn: payBtnRef, sections: sectionsRef }}
                     addressOverride={addrOverride}
                     onShippingSaved={() => { if (curStep?.id === "addr-save") advanceAfterPause(); }}
                     qtyBump={qtyBump}
