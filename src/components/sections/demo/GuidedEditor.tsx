@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowRight, Check, Sparkles,
+  ArrowRight, Check, Sparkles, Clock, Code2, ShieldCheck, Star, ShoppingBag, CalendarDays, Lock, Gem,
 } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
 import type { Addr } from "./DemoMock";
@@ -474,6 +475,68 @@ function FeaturesRail({
         })}
       </div>
 
+      {/* install CTA — pinned to the bottom of the rail */}
+      <div className="relative mt-6 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-5 shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md lg:mt-auto">
+        {/* hand-drawn arrow doodle */}
+        <svg viewBox="0 0 80 80" className="pointer-events-none absolute right-2 top-1 h-14 w-14 text-[#155FFF]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M58 12 C 70 28, 64 48, 42 54" />
+          <path d="M42 54 l 12 1" />
+          <path d="M42 54 l 5 -11" />
+        </svg>
+
+        <h3 className="max-w-[13rem] font-sans text-[22px] font-extrabold leading-[1.1] tracking-tight text-foreground">
+          Ready to try it on your Shopify store?
+        </h3>
+        <p className="mt-2 text-[13px] leading-snug text-neutral-500">
+          Install in under 2 minutes. No code required.
+        </p>
+
+        {/* quick facts */}
+        <div className="mt-3 flex flex-wrap items-center gap-x-3.5 gap-y-1.5 text-[12px] font-medium text-neutral-500">
+          <span className="inline-flex items-center gap-1.5"><Clock className="size-3.5" /> 2-min setup</span>
+          <span className="inline-flex items-center gap-1.5"><Code2 className="size-3.5" /> No coding</span>
+          <span className="inline-flex items-center gap-1.5"><ShieldCheck className="size-3.5" /> Free trial</span>
+        </div>
+
+        {/* rating */}
+        <div className="mt-3 flex items-center gap-2">
+          <div className="flex">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star key={i} className="size-4 fill-amber-400 text-amber-400" />
+            ))}
+          </div>
+          <span className="text-[12px] text-neutral-500">
+            <span className="font-bold text-neutral-900">5.0 rating</span> from 47+ reviews
+          </span>
+        </div>
+
+        {/* CTAs */}
+        <a
+          href={APP_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
+          style={{ background: ACCENT }}
+        >
+          <ShoppingBag className="size-4" /> Install on Shopify
+        </a>
+        <Link
+          href="/#contact"
+          className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-300 bg-white py-3 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50"
+        >
+          <CalendarDays className="size-4" /> Book a 15-min demo
+        </Link>
+
+        {/* trust row */}
+        <div className="mt-4 flex items-center justify-between text-[11px] font-medium text-neutral-500">
+          <span className="inline-flex items-center gap-1.5 rounded-md bg-neutral-100 px-2 py-1">
+            <Gem className="size-3 text-[#155FFF]" /> Built for Shopify
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Lock className="size-3" /> GDPR Compliant
+          </span>
+        </div>
+      </div>
     </div>
   );
 }
