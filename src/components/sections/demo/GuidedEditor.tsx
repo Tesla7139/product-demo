@@ -492,7 +492,40 @@ function FeaturesRail({
       </div>
 
       {/* install CTA */}
-      <div className="relative mt-5 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-5 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md">
+      <div className="relative mt-5 rounded-2xl border border-neutral-200/90 bg-white/70 p-5 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md">
+        {/* animated glowing arrow pointing at the heading */}
+        <svg
+          viewBox="0 0 120 80"
+          className="pointer-events-none absolute -top-8 right-0 h-[72px] w-[116px] overflow-visible"
+          fill="none"
+          aria-hidden
+        >
+          <defs>
+            <filter id="cta-arrow-glow" x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur stdDeviation="2.6" result="b" />
+              <feMerge>
+                <feMergeNode in="b" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          {/* faint base line */}
+          <path d="M104 6 C 124 26, 112 58, 66 60" stroke={ACCENT} strokeWidth="3" strokeLinecap="round" opacity="0.2" />
+          {/* moving glow that travels toward the tip */}
+          <motion.path
+            d="M104 6 C 124 26, 112 58, 66 60"
+            stroke={ACCENT}
+            strokeWidth="3.2"
+            strokeLinecap="round"
+            filter="url(#cta-arrow-glow)"
+            strokeDasharray="22 240"
+            animate={{ strokeDashoffset: [262, 0] }}
+            transition={{ duration: 1.9, repeat: Infinity, ease: "easeInOut" }}
+          />
+          {/* arrowhead (glowing) */}
+          <path d="M66 60 L82 55 M66 60 L74 72" stroke={ACCENT} strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" filter="url(#cta-arrow-glow)" />
+        </svg>
+
         <h3 className="mx-auto max-w-[15rem] font-sans text-[22px] font-extrabold leading-[1.15] tracking-tight text-foreground">
           Ready to try it on your Shopify store?
         </h3>
