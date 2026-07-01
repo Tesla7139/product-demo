@@ -443,12 +443,12 @@ function FeaturesRail({
   return (
     <div className="flex h-full w-full flex-col lg:max-w-[340px]">
       {/* heading */}
-      <h3 className="font-sans text-[1.25rem] font-extrabold leading-tight tracking-tight text-foreground lg:whitespace-nowrap">
+      <h3 className="font-serif text-[1.3rem] font-bold italic leading-tight tracking-tight text-foreground lg:whitespace-nowrap">
         Click a feature to run it live.
       </h3>
 
       {/* feature cards — single-select toggle, glass + hover tooltip */}
-      <div className="mt-4 flex flex-col gap-3">
+      <div className="mt-3 flex flex-col gap-2">
         {FEATURE_CARDS.map((f) => {
           const active = tab === f.key;
           return (
@@ -457,7 +457,7 @@ function FeaturesRail({
                 ref={cardRefs[f.key]}
                 aria-pressed={active}
                 onClick={() => onSelect(f.key)}
-                className={`relative flex w-full cursor-pointer items-center justify-between gap-3 overflow-hidden rounded-2xl border-2 px-5 py-4 text-left backdrop-blur-md transition-all duration-200 ${
+                className={`relative flex w-full cursor-pointer items-center justify-between gap-3 overflow-hidden rounded-2xl border-2 px-5 py-3 text-left backdrop-blur-md transition-all duration-200 ${
                   active
                     ? "text-white shadow-[0_8px_24px_-6px_rgba(21,95,255,0.55)]"
                     : "border-neutral-200/90 bg-white/55 text-neutral-800 shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] hover:-translate-y-0.5 hover:border-[#155FFF]/60 hover:bg-white hover:shadow-[0_12px_30px_-10px_rgba(21,95,255,0.4)]"
@@ -525,7 +525,7 @@ function FeaturesRail({
       </div>
 
       {/* install CTA — bottom-aligned with the demo window */}
-      <div className="relative mt-5 flex flex-col justify-center gap-5 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-6 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md lg:flex-1">
+      <div className="relative mt-4 flex flex-col justify-center gap-4 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-5 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md lg:flex-1">
         {/* headline + rotating brand-result note */}
         <div>
           <h3 className="mx-auto max-w-[15rem] font-sans text-[19px] font-extrabold leading-[1.15] tracking-tight text-foreground">
