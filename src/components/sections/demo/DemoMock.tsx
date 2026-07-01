@@ -386,14 +386,22 @@ export function DemoMock({
 
                   <AccordionRow icon={X} label="Cancel Your Order" isOpen={open === "cancel"} onClick={() => toggle("cancel")}>
                     <p className="text-sm text-neutral-600">
-                      Cancelling will refund {fmt(subtotal)} to your original payment method.
+                      Cancel your order for {fmt(subtotal)} and choose how you&apos;d like to be refunded.
                     </p>
-                    <button
-                      onClick={() => { setCancelled(true); setOpen(null); flash("Order cancelled"); }}
-                      className="mt-3 w-full rounded-md border border-red-200 py-2.5 text-sm font-semibold text-red-500 transition-colors hover:bg-red-50"
-                    >
-                      Cancel my order
-                    </button>
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => { setCancelled(true); setOpen(null); flash(`Refund of ${fmt(subtotal)} to original payment`); }}
+                        className="rounded-md border border-red-200 py-2.5 text-[13px] font-semibold text-red-500 transition-colors hover:bg-red-50"
+                      >
+                        Refund to original payment
+                      </button>
+                      <button
+                        onClick={() => { setCancelled(true); setOpen(null); flash(`${fmt(subtotal)} store credit issued`); }}
+                        className="rounded-md border border-border py-2.5 text-[13px] font-semibold text-neutral-700 transition-colors hover:bg-neutral-50"
+                      >
+                        Store credit
+                      </button>
+                    </div>
                   </AccordionRow>
                 </div>
               </div>
