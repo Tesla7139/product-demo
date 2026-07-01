@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowRight, Check, ExternalLink, Sparkles,
+  ArrowRight, Check, Sparkles,
 } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
 import type { Addr } from "./DemoMock";
@@ -91,42 +90,6 @@ const FEATURE_CARDS: {
     ],
   },
 ];
-
-/** Contextual social proof, keyed to the selected feature. Real customers from site.ts. */
-type ProofKey = "editing" | "upsell";
-const PROOF: Record<ProofKey, {
-  brand: string;
-  badge: string;
-  logoSrc: string | null;
-  stats: { value: string; label: string }[];
-  sub: string;
-  reviewHref: string;
-}> = {
-  editing: {
-    brand: "Doonails",
-    badge: "7-figure brand",
-    logoSrc: "/customers/doonails.svg",
-    stats: [
-      { value: "58%", label: "fewer tickets" },
-      { value: "18%", label: "higher AOV" },
-      { value: "$12K", label: "in upsell" },
-    ],
-    sub: "with self-serve order editing",
-    reviewHref: "/reviews",
-  },
-  upsell: {
-    brand: "Mars by GHC",
-    badge: "7-figure brand",
-    logoSrc: null,
-    stats: [
-      { value: "+23%", label: "higher AOV" },
-      { value: "$18K", label: "in upsell" },
-      { value: "2.4x", label: "offer ROI" },
-    ],
-    sub: "with one-tap post-purchase offers",
-    reviewHref: "/reviews",
-  },
-};
 
 type ActionPill = {
   key: "tour" | Section;
@@ -422,9 +385,6 @@ function FeaturesRail({
   onSelect: (t: Tab) => void;
   cardRefs: Partial<Record<Tab, React.RefObject<HTMLButtonElement | null>>>;
 }) {
-  const proofKey: ProofKey = tab === "upsell" ? "upsell" : "editing";
-  const proof = PROOF[proofKey];
-
   return (
     <div className="flex h-full w-full flex-col lg:max-w-[340px]">
       {/* heading */}
@@ -514,77 +474,6 @@ function FeaturesRail({
         })}
       </div>
 
-      {/* proof card — contextual, colorful; pinned to the bottom */}
-      <div className="relative mt-6 overflow-hidden rounded-2xl bg-[#0d1b3e] p-5 shadow-lg lg:mt-auto">
-        <div className="pointer-events-none absolute -right-12 -top-12 size-32 rounded-full bg-[#155FFF]/30 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-12 -left-10 size-28 rounded-full bg-emerald-500/20 blur-3xl" />
-
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={proofKey}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="relative"
-          >
-            {/* logo chip (or wordmark) + brand */}
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-8 items-center justify-center rounded-lg bg-white px-2.5 shadow-sm">
-                {proof.logoSrc ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- brand logo from /public
-                  <img
-                    src={proof.logoSrc}
-                    alt={proof.brand}
-                    className="h-4 w-auto max-w-[84px] object-contain"
-                    onError={(e) => (e.currentTarget.style.display = "none")}
-                  />
-                ) : (
-                  <span className="text-[12px] font-extrabold tracking-tight text-neutral-900">{proof.brand}</span>
-                )}
-              </span>
-              {proof.logoSrc && <span className="text-[14px] font-semibold text-white">{proof.brand}</span>}
-              <span className="ml-auto shrink-0 rounded-full bg-amber-400/20 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
-                {proof.badge}
-              </span>
-            </div>
-
-            {/* three-stat outcome row */}
-            <div className="mt-4 flex items-stretch">
-              {proof.stats.map((s, i) => (
-                <div key={s.label} className={`flex-1 ${i === 0 ? "pr-3" : "border-l border-white/10 px-3"}`}>
-                  <div className="text-[24px] font-extrabold leading-none tracking-tight text-emerald-400">{s.value}</div>
-                  <div className="mt-1.5 text-[11px] leading-tight text-white/55">{s.label}</div>
-                </div>
-              ))}
-            </div>
-            <p className="mt-3 text-[12.5px] leading-snug text-white/55">
-              {proof.sub}
-            </p>
-
-            {/* two CTAs */}
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <Link
-                href={proof.reviewHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 rounded-xl bg-white/10 px-3 py-2.5 text-[12.5px] font-semibold text-white ring-1 ring-white/15 transition-colors hover:bg-white/15"
-              >
-                Read review
-                <ExternalLink className="size-3.5" />
-              </Link>
-              <Link
-                href="/#contact"
-                className="flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-[12.5px] font-semibold text-white shadow-md transition-all hover:brightness-110"
-                style={{ background: ACCENT }}
-              >
-                Book a demo
-                <ArrowRight className="size-3.5" />
-              </Link>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
     </div>
   );
 }
