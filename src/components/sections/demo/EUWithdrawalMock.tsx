@@ -74,11 +74,6 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
   const [step, setStep] = useState<"form" | "done">("form");
   const [agreed, setAgreed] = useState(false);
 
-  // Contact Support form (order-editing style, sits above the address details)
-  const [supportOpen, setSupportOpen] = useState(true);
-  const [supportAgreed, setSupportAgreed] = useState(true);
-  const [supportSent, setSupportSent] = useState(false);
-
   const toggle = () => {
     const next = !open;
     setOpen(next);
@@ -139,14 +134,10 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
                       className="overflow-hidden"
                     >
                       {step === "form" ? (
-                        <div className="flex flex-col gap-3 px-3.5 pb-4 pt-1">
-                          <label className="relative block rounded-md border border-border px-3 pt-5 pb-1.5">
-                            <span className="pointer-events-none absolute left-3 top-1.5 text-[10px] font-medium uppercase tracking-wide text-neutral-400">Reason for withdrawal</span>
-                            <span className="flex items-center justify-between text-[14px] text-neutral-800">
-                              I changed my mind
-                              <ChevronDown className="size-4 text-neutral-400" />
-                            </span>
-                          </label>
+                        <div className="flex flex-col gap-2.5 px-3.5 pb-4 pt-1">
+                          <SelectField label="Reason for withdrawal" value="I changed my mind" />
+                          <Field label="Email" value={DEFAULT_EMAIL} />
+                          <Field label="Phone" value={DEFAULT_PHONE} />
                           <label className="relative block rounded-md border border-border px-3 pt-5 pb-2">
                             <span className="pointer-events-none absolute left-3 top-1.5 text-[10px] font-medium uppercase tracking-wide text-neutral-400">Message (optional)</span>
                             <span className="block text-[13.5px] leading-snug text-neutral-600">
@@ -219,74 +210,6 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* contact support — order-editing style form, above the address details */}
-            <div className="rounded-xl border border-border p-4">
-              <button
-                onClick={() => setSupportOpen((v) => !v)}
-                className="flex w-full items-center gap-3 text-left"
-                aria-expanded={supportOpen}
-              >
-                <HelpCircle className="size-4 shrink-0 text-neutral-600" />
-                <span className="flex-1 text-sm font-semibold text-neutral-900">Contact Support</span>
-                <ChevronDown className={`size-4 text-neutral-400 transition-transform ${supportOpen ? "rotate-180" : ""}`} />
-              </button>
-              <AnimatePresence initial={false}>
-                {supportOpen && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                    className="overflow-hidden"
-                  >
-                    {supportSent ? (
-                      <div className="pt-3">
-                        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3.5">
-                          <div className="flex items-center gap-2 text-[13px] font-bold text-emerald-700">
-                            <span className="flex size-5 items-center justify-center rounded-full bg-emerald-500 text-white">
-                              <Check className="size-3" strokeWidth={3} />
-                            </span>
-                            Message sent to support
-                          </div>
-                          <p className="mt-2 text-[12.5px] leading-relaxed text-emerald-800/80">
-                            We&apos;ll reply to <span className="font-semibold">{DEFAULT_EMAIL}</span>. Your request has been logged against this order.
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col gap-2.5 pt-3">
-                        <SelectField label="Support topics" value="I want to cancel my order" />
-                        <Field label="Email" value={DEFAULT_EMAIL} />
-                        <Field label="Phone" value={DEFAULT_PHONE} />
-                        <div className="relative rounded-md border border-border px-3 pt-5 pb-2">
-                          <span className="pointer-events-none absolute left-3 top-1.5 text-[10px] font-medium uppercase tracking-wide text-neutral-400">Your message to customer support</span>
-                          <div className="text-[13.5px] leading-snug text-neutral-600">
-                            Hi, I&apos;d like to formally request a refund/return for this order. Thank you.
-                          </div>
-                        </div>
-                        <button onClick={() => setSupportAgreed((v) => !v)} className="flex items-center gap-2 text-left text-sm text-neutral-700">
-                          <span
-                            className="flex size-5 shrink-0 items-center justify-center rounded border transition-colors"
-                            style={supportAgreed ? { background: "#111827", borderColor: "#111827" } : { borderColor: "#cbd0d8" }}
-                          >
-                            {supportAgreed && <Check className="size-3.5 text-white" strokeWidth={3} />}
-                          </span>
-                          I&apos;m writing in to request refund or return
-                        </button>
-                        <button
-                          onClick={() => setSupportSent(true)}
-                          className="mt-1 w-full rounded-md py-3 text-sm font-semibold text-white transition-all hover:brightness-125 active:scale-[0.99]"
-                          style={{ background: "#111827" }}
-                        >
-                          Send message
-                        </button>
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
 
             {/* info grid */}
