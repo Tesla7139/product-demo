@@ -9,6 +9,19 @@ const GOOGLE_BLUE = "#1a73e8";
 const ENTERED = "Main Street, Flushing, New York 10444, United States";
 const RECOMMENDED = "10444 Main St, Flushing, NY 11367, USA";
 
+type AddrFields = { name: string; line1: string; line2: string; city: string; state: string; zip: string; country: string };
+const ENTERED_ADDR: AddrFields = { name: "Tucker Albright", line1: "Main Street", line2: "Apt 4B", city: "Flushing", state: "New York", zip: "10444", country: "United States" };
+const RECOMMENDED_ADDR: AddrFields = { name: "Tucker Albright", line1: "10444 Main St", line2: "Apt 4B", city: "Flushing", state: "NY", zip: "11367", country: "USA" };
+
+function Field({ label, value, changed }: { label: string; value: string; changed?: boolean }) {
+  return (
+    <div>
+      <div className="text-[10px] font-medium uppercase tracking-wide text-neutral-400">{label}</div>
+      <div className={`mt-0.5 text-[13.5px] leading-snug ${changed ? "font-semibold text-neutral-900" : "text-neutral-800"}`}>{value}</div>
+    </div>
+  );
+}
+
 /** The four-colour Google "G". */
 function GoogleG({ className }: { className?: string }) {
   return (
@@ -76,7 +89,8 @@ export function AddressValidationMock({ store, tourRefs, onConfirmed }: { store:
   const [step, setStep] = useState<"review" | "done">("review");
   const [choice, setChoice] = useState<"entered" | "recommended">("recommended");
   const verified = step === "done" && choice === "recommended";
-  const applied = choice === "recommended" ? RECOMMENDED : ENTERED;
+  // left panel: what they entered while reviewing; the chosen address once done
+  const fields = step === "done" && choice === "recommended" ? RECOMMENDED_ADDR : ENTERED_ADDR;
   const name = store.brandName || "Checkout";
 
   return (
@@ -88,18 +102,26 @@ export function AddressValidationMock({ store, tourRefs, onConfirmed }: { store:
       </div>
 
       <div className="grid gap-5 p-6 md:grid-cols-2">
-        {/* left: the address field */}
+        {/* left: the full address, broken into blocks */}
         <div>
           <div className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">Delivery address</div>
           <div
             ref={tourRefs?.flaggedAddr}
-            className="mt-1.5 rounded-lg border-2 px-4 py-3 text-[14px] leading-snug text-neutral-800 transition-colors"
+            className="mt-1.5 space-y-3 rounded-xl border-2 p-4 transition-colors"
             style={{
               borderColor: step === "done" ? (verified ? "#6ee7b7" : "#fcd34d") : "#fca5a5",
               background: step === "done" ? (verified ? "#ecfdf5" : "#fffbeb") : "#fef2f2",
             }}
           >
-            {step === "done" ? applied : ENTERED}
+            <Field label="Full name" value={fields.name} />
+            <Field label="Address" value={fields.line1} changed={verified} />
+            <Field label="Apartment, suite, etc." value={fields.line2} />
+            <div className="grid grid-cols-3 gap-3">
+              <Field label="City" value={fields.city} />
+              <Field label="State" value={fields.state} changed={verified} />
+              <Field label="ZIP code" value={fields.zip} changed={verified} />
+            </div>
+            <Field label="Country" value={fields.country} />
           </div>
           {step === "review" ? (
             <p className="mt-2 flex items-center gap-1.5 text-[12px] font-medium text-red-500">
