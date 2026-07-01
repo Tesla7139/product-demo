@@ -504,16 +504,22 @@ function FeaturesRail({
           Ready to try it on your Shopify store?
         </h3>
 
-        {/* trust row — app icon · Shopify · rating, all on one line */}
-        <div className="mt-4 flex items-center gap-2.5">
-          <ClickpostMark className="size-6 rounded-[7px]" />
-          {/* eslint-disable-next-line @next/next/no-img-element -- Shopify icon from /public */}
-          <img src="/shopify-icon.png" alt="Shopify" className="size-6 object-contain" />
-          <span className="ml-auto inline-flex items-center gap-1">
-            <Star className="size-4 fill-amber-400 text-amber-400" />
-            <span className="text-[13px] font-bold text-neutral-900">5.0</span>
-            <span className="text-[12px] text-neutral-500">· 51 reviews</span>
-          </span>
+        {/* app identity + Shopify rating */}
+        <div className="mt-4">
+          <div className="flex items-center gap-2.5">
+            <ClickpostMark className="size-8 shrink-0 rounded-[8px] shadow-sm" />
+            <span className="text-sm font-bold leading-tight text-neutral-900">CP Order Editing &amp; Upsell</span>
+          </div>
+          <div className="mt-2.5 flex items-center justify-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element -- Shopify icon from /public */}
+            <img src="/shopify-icon.png" alt="Shopify App Store" className="size-5 object-contain" />
+            <span className="flex">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star key={i} className="size-3.5 fill-amber-400 text-amber-400" />
+              ))}
+            </span>
+            <span className="text-[12px] text-neutral-500"><span className="font-bold text-neutral-900">5.0</span> · 51 reviews</span>
+          </div>
         </div>
 
         {/* CTAs — side by side */}
