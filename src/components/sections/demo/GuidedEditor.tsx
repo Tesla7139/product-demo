@@ -11,14 +11,13 @@ import type { Addr } from "./DemoMock";
 import { DemoMock } from "./DemoMock";
 import { OneTapUpsellMock } from "./OneTapUpsellMock";
 import { AddressValidationMock } from "./AddressValidationMock";
-import { AnalyticsMock } from "./AnalyticsMock";
 import { TourOverlay, type TourRect } from "./TourOverlay";
 
 const ACCENT = "#155FFF";
 const APP_URL = "https://apps.shopify.com/clickpost-order-edit-cancel";
 
-type Tab = "editing" | "upsell" | "address" | "cancel" | "analytics";
-type Tour = "editing" | "upsell" | "address" | "analytics";
+type Tab = "editing" | "upsell" | "address" | "cancel";
+type Tour = "editing" | "upsell" | "address";
 type Section = "contact" | "shipping" | "order" | "discount" | "cancel";
 
 /** Address the guided tour drops into the form to demonstrate an edit. */
@@ -73,20 +72,6 @@ const FEATURE_CARDS: {
     ],
     stats: [
       { value: "~30%", label: "fewer failed deliveries" },
-    ],
-  },
-  {
-    key: "analytics",
-    title: "Analytics",
-    desc: "See edits, savings & upsell revenue at a glance.",
-    capLabel: "What you can track",
-    points: [
-      "Total edits, support-cost savings & upsell revenue",
-      "Edit-type breakdown & cancellation reasons",
-      "Top upsell products over any date range",
-    ],
-    stats: [
-      { value: "Live", label: "dashboards, exportable" },
     ],
   },
 ];
@@ -341,53 +326,14 @@ const ADDRESS_TOUR_STEPS: TourStepDef[] = [
     dotId: "addr-confirm",
   },
   {
-    id: "to-analytics",
+    id: "addr-finish",
     title: "No more wrong-address returns",
     desc: "Every address is validated up front, so fewer parcels come back.",
-    cta: "Next",
+    cta: "Finish",
     measureDelayMs: 360,
     outcome: true,
     outcomeHeadline: "Zero wrong-address orders",
     outcomeButton: "Prevent wrong-address orders for my store now",
-    nextTour: "analytics",
-    nextLabel: "Analytics",
-  },
-];
-
-const ANALYTICS_TOUR_STEPS: TourStepDef[] = [
-  {
-    id: "an-overview",
-    title: "Your impact at a glance",
-    desc: "Total edits, support-cost savings and upsell revenue in one place.",
-    cta: "Next",
-    measureDelayMs: 320,
-    spotlightId: "an-overview",
-  },
-  {
-    id: "an-edits",
-    title: "See what customers change",
-    desc: "A full breakdown of edit types and cancellation reasons.",
-    cta: "Next",
-    measureDelayMs: 360,
-    spotlightId: "an-edits",
-  },
-  {
-    id: "an-upsell",
-    title: "Track upsell revenue",
-    desc: "Conversion, revenue per upsell and your top-performing add-ons.",
-    cta: "Next",
-    measureDelayMs: 360,
-    spotlightId: "an-upsell",
-  },
-  {
-    id: "to-finish",
-    title: "Everything, measured",
-    desc: "Edits, savings and upsell revenue — all exportable, all live.",
-    cta: "Finish",
-    measureDelayMs: 320,
-    outcome: true,
-    outcomeHeadline: "One app, every outcome",
-    outcomeButton: "Get CP Order Editing for my store now",
     nextTour: null,
     finalStep: true,
   },
@@ -397,7 +343,6 @@ const TOUR_STEPS: Record<Tour, TourStepDef[]> = {
   editing: EDITING_TOUR_STEPS,
   upsell: UPSELL_TOUR_STEPS,
   address: ADDRESS_TOUR_STEPS,
-  analytics: ANALYTICS_TOUR_STEPS,
 };
 
 /* ----------------------------- features rail ----------------------------- */
@@ -627,7 +572,6 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
   const [tab, setTab] = useState<Tab>("editing");
   const [activePill, setActivePill] = useState<ActionPill["key"]>("tour");
   const [upsellView, setUpsellView] = useState<"thankyou" | "onetap">("onetap");
-  const [analyticsView, setAnalyticsView] = useState<"overview" | "edits" | "upsell">("overview");
 
   // lifted tour state
   const [activeTour, setActiveTour] = useState<Tour | null>(null);
@@ -673,17 +617,12 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
   const addrFlaggedRef = useRef<HTMLDivElement>(null);
   const addrRecommendedRef = useRef<HTMLButtonElement>(null);
   const addrConfirmRef = useRef<HTMLButtonElement>(null);
-  // analytics tour targets
-  const anOverviewRef = useRef<HTMLDivElement>(null);
-  const anEditsRef = useRef<HTMLDivElement>(null);
-  const anUpsellRef = useRef<HTMLDivElement>(null);
   // rail feature-card refs (for highlighting the "next" feature on outcome steps)
   const editingCardRef = useRef<HTMLButtonElement>(null);
   const upsellCardRef = useRef<HTMLButtonElement>(null);
   const addressCardRef = useRef<HTMLButtonElement>(null);
-  const analyticsCardRef = useRef<HTMLButtonElement>(null);
   const cardRefs: Partial<Record<Tab, React.RefObject<HTMLButtonElement | null>>> = {
-    editing: editingCardRef, upsell: upsellCardRef, address: addressCardRef, analytics: analyticsCardRef,
+    editing: editingCardRef, upsell: upsellCardRef, address: addressCardRef,
   };
   const pauseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -707,8 +646,6 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
       case "others": return sectionsRef.current;
       case "to-upsell": return upsellCardRef.current;
       case "to-address": return addressCardRef.current;
-      case "to-analytics": return analyticsCardRef.current;
-      case "to-finish": return editingCardRef.current;
       case "upsell-toggle": return upsellToggleRef.current;
       case "upsell-offer": return upsellOfferRef.current;
       case "upsell-add": return upsellAddBtnRef.current;
@@ -717,9 +654,6 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
       case "addr-flagged": return addrFlaggedRef.current;
       case "addr-recommended": return addrRecommendedRef.current;
       case "addr-confirm": return addrConfirmRef.current;
-      case "an-overview": return anOverviewRef.current;
-      case "an-edits": return anEditsRef.current;
-      case "an-upsell": return anUpsellRef.current;
       default: return null;
     }
   }
@@ -769,16 +703,6 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
       case "to-address":
         setUpsellView("thankyou");
         break;
-      case "an-overview":
-        setAnalyticsView("overview");
-        break;
-      case "an-edits":
-        setAnalyticsView("edits");
-        break;
-      case "an-upsell":
-      case "to-finish":
-        setAnalyticsView("upsell");
-        break;
       default:
         // address steps + outcome steps: nothing to pre-open
         break;
@@ -810,7 +734,6 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     setActiveTour(null);
     setSpotlightRect(null);
     if (next === "upsell") setUpsellView("onetap");
-    if (next === "analytics") setAnalyticsView("overview");
     setTab(next);
     setPendingTour(next);
   }
@@ -922,6 +845,8 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
       const dotEl = getStepTarget(s.dotId ?? s.spotlightId ?? s.id);
       // wait until both the spotlight and (if any) the dot target have mounted
       if (!el || (s.dotId && !dotEl)) {
+        // an outcome step with no card to highlight → full-screen blurred CTA
+        if (s.outcome) { setSpotlightRect(null); setMeasuredStep(tourStep); return; }
         if (attempt < 10) timers.push(setTimeout(() => run(attempt + 1), 120));
         return;
       }
@@ -1013,12 +938,6 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                 Address Validation — live preview
               </span>
             )}
-
-            {tab === "analytics" && (
-              <span className="rounded-full bg-white/15 px-3.5 py-1.5 text-[12px] font-semibold text-white ring-1 ring-white/30 backdrop-blur">
-                Merchant analytics — live preview
-              </span>
-            )}
           </div>
 
           {/* body */}
@@ -1071,13 +990,6 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                     store={store}
                     tourRefs={{ flaggedAddr: addrFlaggedRef, recommended: addrRecommendedRef, confirmBtn: addrConfirmRef }}
                     onConfirmed={() => { if (curStep?.id === "addr-confirm") advanceAfterPause(); }}
-                  />
-                )}
-                {tab === "analytics" && (
-                  <AnalyticsMock
-                    store={store}
-                    viewTab={activeTour === "analytics" ? analyticsView : undefined}
-                    tourRefs={{ overview: anOverviewRef, edits: anEditsRef, upsell: anUpsellRef }}
                   />
                 )}
                 {tab === "cancel" && (
