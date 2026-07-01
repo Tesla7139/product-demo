@@ -376,6 +376,27 @@ const TOUR_STEPS: Record<Tour, TourStepDef[]> = {
   "eu-withdrawal": EU_WITHDRAWAL_TOUR_STEPS,
 };
 
+/** Clickpost "Order Edit & Cancel" app icon — vector recreation (crisp at any size). */
+function ClickpostMark({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 100" className={className} role="img" aria-label="Clickpost" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" rx="22" fill="#1668FF" />
+      <g fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+        {/* package cube */}
+        <path d="M42 33 L20 45 L20 71 L42 83 L64 71 L64 45 Z" />
+        <path d="M20 45 L42 57 L64 45" />
+        <path d="M42 57 L42 83" />
+        {/* pencil (edit) */}
+        <path d="M48 86 L77 57" strokeWidth="6" />
+        {/* magnifier + X (cancel) */}
+        <circle cx="71" cy="30" r="13" fill="#1668FF" />
+        <path d="M80 39 L88 47" />
+        <path d="M66 25 L76 35 M76 25 L66 35" strokeWidth="3" />
+      </g>
+    </svg>
+  );
+}
+
 /* ----------------------------- features rail ----------------------------- */
 function FeaturesRail({
   tab,
@@ -483,20 +504,15 @@ function FeaturesRail({
           Ready to try it on your Shopify store?
         </h3>
 
-        {/* trust row: our app logo · Shopify · 51 five-star reviews */}
-        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
-          {/* eslint-disable-next-line @next/next/no-img-element -- brand logo from /public */}
-          <img src="/brand/logo.svg" alt="Clickpost" className="h-4 w-auto object-contain" />
-          <span className="h-4 w-px bg-neutral-200" />
+        {/* trust row — app icon · Shopify · rating, all on one line */}
+        <div className="mt-4 flex items-center gap-2.5">
+          <ClickpostMark className="size-6 rounded-[7px]" />
           {/* eslint-disable-next-line @next/next/no-img-element -- Shopify icon from /public */}
-          <img src="/shopify-icon.png" alt="Shopify" className="size-5 object-contain" />
-          <span className="ml-auto inline-flex items-center gap-1.5">
-            <span className="flex">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className="size-3.5 fill-amber-400 text-amber-400" />
-              ))}
-            </span>
-            <span className="text-[12px] text-neutral-500"><span className="font-bold text-neutral-900">51</span> 5-star reviews</span>
+          <img src="/shopify-icon.png" alt="Shopify" className="size-6 object-contain" />
+          <span className="ml-auto inline-flex items-center gap-1">
+            <Star className="size-4 fill-amber-400 text-amber-400" />
+            <span className="text-[13px] font-bold text-neutral-900">5.0</span>
+            <span className="text-[12px] text-neutral-500">· 51 reviews</span>
           </span>
         </div>
 
