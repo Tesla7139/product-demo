@@ -170,8 +170,8 @@ export function DemoMock({
     return () => clearTimeout(t);
   }, [qtyBump]);
 
-  // live editing-window countdown (default 15 minutes), ticking every second
-  const [secondsLeft, setSecondsLeft] = useState(15 * 60 - 1);
+  // live editing-window countdown (default 1 hour), ticking every second
+  const [secondsLeft, setSecondsLeft] = useState(60 * 60 - 1);
   useEffect(() => {
     const id = setInterval(() => setSecondsLeft((s) => (s > 0 ? s - 1 : 0)), 1000);
     return () => clearInterval(id);
