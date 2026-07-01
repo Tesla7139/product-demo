@@ -7,7 +7,6 @@ import type { DemoStore } from "@/lib/site";
 import { GuidedEditor } from "./GuidedEditor";
 import { OneTapUpsell } from "./OneTapUpsell";
 import { CustomerLogos } from "@/components/sections/CustomerLogos";
-import { ReviewNamesMarquee } from "@/components/sections/ReviewNamesMarquee";
 import { WallOfLoveTeaser } from "@/components/sections/WallOfLoveTeaser";
 import { Footer } from "@/components/layout/Footer";
 
@@ -274,9 +273,8 @@ function EditingView({ store, onUpsell }: { store: DemoStore; onUpsell: () => vo
         <GuidedEditor store={store} onUpsell={onUpsell} />
       </div>
 
-      {/* below the demo: two moving brand strips (opposite directions) + Wall of Love + footer */}
+      {/* below the demo: moving brand marquee + Wall of Love reviews + footer */}
       <CustomerLogos />
-      <ReviewNamesMarquee />
       <WallOfLoveTeaser />
       <Footer />
     </motion.div>
