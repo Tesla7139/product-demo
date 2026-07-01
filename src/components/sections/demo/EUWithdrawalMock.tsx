@@ -50,11 +50,9 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
   const [agreed, setAgreed] = useState(false);
 
   const toggle = () => {
-    setOpen((v) => {
-      const next = !v;
-      if (next) onWithdrawOpened?.();
-      return next;
-    });
+    const next = !open;
+    setOpen(next);
+    if (next) onWithdrawOpened?.();
   };
 
   const submit = () => {
