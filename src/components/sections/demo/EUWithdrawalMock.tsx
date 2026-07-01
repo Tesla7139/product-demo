@@ -4,11 +4,14 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Check, ChevronDown, HelpCircle, Truck } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
+import { DEFAULT_ADDR, DEFAULT_EMAIL, DEFAULT_PHONE, DEFAULT_COUNTRY } from "./DemoMock";
 
 const money = (n: number, currency = "USD") =>
   new Intl.NumberFormat("en", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
 
-const EMAIL = "danidepreter@gmail.com";
+// same customer/order details as the main order-editing window
+const CUSTOMER = `${DEFAULT_ADDR.first} ${DEFAULT_ADDR.last}`;
+const ADDR_LINES = [CUSTOMER, DEFAULT_ADDR.line1, `${DEFAULT_ADDR.city}, ${DEFAULT_ADDR.state} ${DEFAULT_ADDR.zip}`, DEFAULT_COUNTRY];
 const TRACKING = "JAM8470GB72670273201";
 
 function Thumb({ src, alt }: { src?: string | null; alt: string }) {
@@ -156,7 +159,7 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
                               Withdrawal request received
                             </div>
                             <p className="mt-2 text-[12.5px] leading-relaxed text-emerald-800/80">
-                              A confirmation email is on its way to <span className="font-semibold">{EMAIL}</span>. Your order is
+                              A confirmation email is on its way to <span className="font-semibold">{DEFAULT_EMAIL}</span>. Your order is
                               on hold before fulfillment while we process the request.
                             </p>
                           </div>
@@ -193,10 +196,10 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
 
             {/* info grid */}
             <div className="grid grid-cols-2 gap-x-5 gap-y-4 rounded-xl border border-border p-4">
-              <InfoBlock label="Contact information" lines={[EMAIL]} />
-              <InfoBlock label="Payment" lines={["Shop Pay · iDEAL", `${fmt(total)} · 18 Jun`]} />
-              <InfoBlock label="Shipping address" lines={["Dani de Preter", "Broekerheide 39", "7609 WL Almelo", "Netherlands"]} />
-              <InfoBlock label="Billing address" lines={["Dani de Preter", "Broekerheide 39", "7609 WL Almelo", "Netherlands"]} />
+              <InfoBlock label="Contact information" lines={[DEFAULT_EMAIL, DEFAULT_PHONE]} />
+              <InfoBlock label="Payment" lines={["Shop Pay · Visa", `${fmt(total)} · 18 Jun`]} />
+              <InfoBlock label="Shipping address" lines={ADDR_LINES} />
+              <InfoBlock label="Billing address" lines={ADDR_LINES} />
             </div>
           </div>
 

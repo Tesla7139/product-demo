@@ -27,6 +27,13 @@ const priceOf = (i: LineItem) => (i.postPurchase && i.dealPrice != null ? i.deal
 type Section = "contact" | "shipping" | "order" | "discount" | "cancel";
 export type Addr = { first: string; last: string; line1: string; city: string; state: string; zip: string };
 
+// Single source of truth for the demo customer, so every surface (editing window,
+// EU withdrawal order-status page, etc.) shows the same order details.
+export const DEFAULT_EMAIL = "your_email@gmail.com";
+export const DEFAULT_PHONE = "+1 760-637-2644";
+export const DEFAULT_COUNTRY = "United States";
+export const DEFAULT_ADDR: Addr = { first: "Tucker", last: "Briggs", line1: "4563 Coronado Dr", city: "Oceanside", state: "California", zip: "92057" };
+
 const money = (n: number, currency = "USD") =>
   new Intl.NumberFormat("en", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
 
@@ -128,9 +135,9 @@ export function DemoMock({
   }, [forceOneTap]);
 
   // editable field state (sample-prefilled — this is a UI demo)
-  const [email, setEmail] = useState("your_email@gmail.com");
-  const [phone, setPhone] = useState("+1 760-637-2644");
-  const [addr, setAddr] = useState<Addr>({ first: "Tucker", last: "Briggs", line1: "4563 Coronado Dr", city: "Oceanside", state: "California", zip: "92057" });
+  const [email, setEmail] = useState(DEFAULT_EMAIL);
+  const [phone, setPhone] = useState(DEFAULT_PHONE);
+  const [addr, setAddr] = useState<Addr>(DEFAULT_ADDR);
   const [discount, setDiscount] = useState("");
 
   // report which section is open (so an outer panel can explain it)
