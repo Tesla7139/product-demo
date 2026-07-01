@@ -63,8 +63,17 @@ function Stat({ label, value, sub }: { label: string; value: string; sub: string
   );
 }
 
-export function AnalyticsMock({ store }: { store: DemoStore }) {
-  const [tab, setTab] = useState<"overview" | "edits" | "upsell">("overview");
+type AnalyticsView = "overview" | "edits" | "upsell";
+type AnalyticsTourRefs = {
+  overview?: React.RefObject<HTMLDivElement | null>;
+  edits?: React.RefObject<HTMLDivElement | null>;
+  upsell?: React.RefObject<HTMLDivElement | null>;
+};
+
+export function AnalyticsMock({ store, viewTab, tourRefs }: { store: DemoStore; viewTab?: AnalyticsView; tourRefs?: AnalyticsTourRefs }) {
+  const [innerTab, setInnerTab] = useState<AnalyticsView>("overview");
+  const tab = viewTab ?? innerTab;
+  const setTab = setInnerTab;
   const currency = store.currency || "USD";
   const products: DemoProduct[] = store.products.filter((p) => (p.price ?? 0) > 0);
 
@@ -144,7 +153,7 @@ export function AnalyticsMock({ store }: { store: DemoStore }) {
 
         {/* ---- OVERVIEW ---- */}
         {tab === "overview" && (
-          <div className="mt-4">
+          <div ref={tourRefs?.overview} className="mt-4">
             <div className="grid gap-3 sm:grid-cols-3">
               <Stat label="Total Edits" value={String(totalEdits)} sub={`${editPct}% of total orders`} />
               <Stat label="Support Cost Savings" value={amount(supportSavings, currency)} sub={`${currency} ${avgSaved} avg saved per edit`} />
@@ -162,7 +171,7 @@ export function AnalyticsMock({ store }: { store: DemoStore }) {
 
         {/* ---- EDIT ACTIVITY ---- */}
         {tab === "edits" && (
-          <div className="mt-4">
+          <div ref={tourRefs?.edits} className="mt-4">
             <div className="rounded-xl border border-border px-4 py-3 text-[14px] text-neutral-700">
               Total <span className="font-bold text-neutral-900">{totalEdits} edits</span> out of <span className="font-bold text-neutral-900">{totalOrders} orders</span>
             </div>
@@ -216,7 +225,7 @@ export function AnalyticsMock({ store }: { store: DemoStore }) {
 
         {/* ---- UPSELL ---- */}
         {tab === "upsell" && (
-          <div className="mt-4">
+          <div ref={tourRefs?.upsell} className="mt-4">
             <div className="grid gap-3 sm:grid-cols-3">
               <Stat label="Upsell Revenue" value={amount(upsellRevenue, currency)} sub={`From ${upsellCount} completed upsells`} />
               <Stat label="Upsell Conversion" value={`${upsellConversion}%`} sub="of eligible orders" />

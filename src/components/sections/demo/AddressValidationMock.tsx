@@ -9,9 +9,10 @@ const GOOGLE_BLUE = "#1a73e8";
 const ENTERED = "Main Street, Flushing, New York 10444, United States";
 const RECOMMENDED = "10444 Main St, Flushing, NY 11367, USA";
 
-function RadioCard({ label, value, selected, onClick }: { label: string; value: string; selected: boolean; onClick: () => void }) {
+function RadioCard({ label, value, selected, onClick, innerRef }: { label: string; value: string; selected: boolean; onClick: () => void; innerRef?: React.RefObject<HTMLButtonElement | null> }) {
   return (
     <button
+      ref={innerRef}
       onClick={onClick}
       className="flex w-full items-start gap-2.5 rounded-xl border-2 bg-white p-3 text-left transition-colors"
       style={{ borderColor: selected ? GOOGLE_BLUE : "#e5e7eb" }}
@@ -30,8 +31,14 @@ function RadioCard({ label, value, selected, onClick }: { label: string; value: 
   );
 }
 
+type AddrTourRefs = {
+  flaggedAddr?: React.RefObject<HTMLDivElement | null>;
+  recommended?: React.RefObject<HTMLButtonElement | null>;
+  confirmBtn?: React.RefObject<HTMLButtonElement | null>;
+};
+
 /** Address validation: an unverified address + a Google-style confirm popup. */
-export function AddressValidationMock({ store }: { store: DemoStore }) {
+export function AddressValidationMock({ store, tourRefs, onConfirmed }: { store: DemoStore; tourRefs?: AddrTourRefs; onConfirmed?: () => void }) {
   const [step, setStep] = useState<"review" | "done">("review");
   const [choice, setChoice] = useState<"entered" | "recommended">("recommended");
   const verified = step === "done" && choice === "recommended";
@@ -51,6 +58,7 @@ export function AddressValidationMock({ store }: { store: DemoStore }) {
         <div>
           <div className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">Delivery address</div>
           <div
+            ref={tourRefs?.flaggedAddr}
             className="mt-1.5 rounded-lg border-2 px-4 py-3 text-[14px] leading-snug text-neutral-800 transition-colors"
             style={{
               borderColor: step === "done" ? (verified ? "#6ee7b7" : "#fcd34d") : "#fca5a5",
@@ -102,7 +110,7 @@ export function AddressValidationMock({ store }: { store: DemoStore }) {
               <p className="mt-0.5 text-[12px] text-neutral-500">Review the recommended changes</p>
               <div className="mt-3 space-y-2">
                 <RadioCard label="What you entered" value={ENTERED} selected={choice === "entered"} onClick={() => setChoice("entered")} />
-                <RadioCard label="Recommended" value={RECOMMENDED} selected={choice === "recommended"} onClick={() => setChoice("recommended")} />
+                <RadioCard innerRef={tourRefs?.recommended} label="Recommended" value={RECOMMENDED} selected={choice === "recommended"} onClick={() => setChoice("recommended")} />
               </div>
               <div className="mt-4 flex gap-2">
                 <button
@@ -112,7 +120,8 @@ export function AddressValidationMock({ store }: { store: DemoStore }) {
                   Back
                 </button>
                 <button
-                  onClick={() => setStep("done")}
+                  ref={tourRefs?.confirmBtn}
+                  onClick={() => { setStep("done"); onConfirmed?.(); }}
                   className="flex-1 rounded-full py-2.5 text-[13px] font-semibold text-white transition-all hover:brightness-110"
                   style={{ background: GOOGLE_BLUE }}
                 >

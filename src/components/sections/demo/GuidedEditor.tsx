@@ -15,8 +15,10 @@ import { AnalyticsMock } from "./AnalyticsMock";
 import { TourOverlay, type TourRect } from "./TourOverlay";
 
 const ACCENT = "#155FFF";
+const APP_URL = "https://apps.shopify.com/clickpost-order-edit-cancel";
 
 type Tab = "editing" | "upsell" | "address" | "cancel" | "analytics";
+type Tour = "editing" | "upsell" | "address" | "analytics";
 type Section = "contact" | "shipping" | "order" | "discount" | "cancel";
 
 /** Address the guided tour drops into the form to demonstrate an edit. */
@@ -159,6 +161,16 @@ type TourStepDef = {
   hideCard?: boolean;
   /** hide the Next button (the user advances by tapping the highlighted element) */
   hideCta?: boolean;
+  /** end-of-feature conversion step: blurred backdrop + centered CTA linking to the app */
+  outcome?: boolean;
+  outcomeHeadline?: string;
+  outcomeButton?: string;
+  /** rail card highlighted on this outcome step + tour to start on advance ("null" = finish) */
+  nextTour?: Tour | null;
+  /** label shown after "up next:" on the outcome card */
+  nextLabel?: string;
+  /** final step of the whole chain */
+  finalStep?: boolean;
 };
 
 const EDITING_TOUR_STEPS: TourStepDef[] = [
@@ -225,12 +237,15 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
   },
   {
     id: "to-upsell",
-    title: "Now the upsell",
-    desc: "Same moment, extra revenue.",
+    title: "Fewer support tickets, automatically",
+    desc: "Every self-serve edit is a ticket your team never has to touch.",
     cta: "Next",
     measureDelayMs: 360, // let the editing sections finish collapsing first
-    tapTarget: true,
-    hideCard: true, // just the highlighted card + dot, no tooltip
+    outcome: true,
+    outcomeHeadline: "Fewer support tickets",
+    outcomeButton: "Reduce my store's support tickets now",
+    nextTour: "upsell",
+    nextLabel: "Post-purchase upsell",
   },
 ];
 
@@ -274,7 +289,7 @@ const UPSELL_TOUR_STEPS: TourStepDef[] = [
     id: "ty-add",
     title: "One tap to add",
     desc: "Charged to the card on file. No re-checkout.",
-    cta: "Finish",
+    cta: "Next",
     measureDelayMs: 320,
     clickThrough: true,
     tapTarget: true,
@@ -282,17 +297,118 @@ const UPSELL_TOUR_STEPS: TourStepDef[] = [
     spotlightId: "ty-grid",
     dotId: "ty-add",
   },
+  {
+    id: "to-address",
+    title: "More revenue per order",
+    desc: "One-tap add-ons at the perfect moment lift your average order value.",
+    cta: "Next",
+    measureDelayMs: 360,
+    outcome: true,
+    outcomeHeadline: "Higher average order value",
+    outcomeButton: "Increase my store's AOV now",
+    nextTour: "address",
+    nextLabel: "Address validation",
+  },
 ];
+
+const ADDRESS_TOUR_STEPS: TourStepDef[] = [
+  {
+    id: "addr-flagged",
+    title: "We catch bad addresses",
+    desc: "Undeliverable or incomplete addresses are flagged before the order ships.",
+    cta: "Next",
+    measureDelayMs: 320,
+    spotlightId: "addr-flagged",
+  },
+  {
+    id: "addr-recommended",
+    title: "A verified suggestion",
+    desc: "We propose the corrected, deliverable address from the postal database.",
+    cta: "Next",
+    measureDelayMs: 300,
+    spotlightId: "addr-recommended",
+  },
+  {
+    id: "addr-confirm",
+    title: "Confirm in one tap",
+    desc: "The customer accepts the fix and the order is safe to ship.",
+    cta: "Next",
+    measureDelayMs: 300,
+    clickThrough: true,
+    tapTarget: true,
+    hideCard: true,
+    spotlightId: "addr-confirm",
+    dotId: "addr-confirm",
+  },
+  {
+    id: "to-analytics",
+    title: "No more wrong-address returns",
+    desc: "Every address is validated up front, so fewer parcels come back.",
+    cta: "Next",
+    measureDelayMs: 360,
+    outcome: true,
+    outcomeHeadline: "Zero wrong-address orders",
+    outcomeButton: "Prevent wrong-address orders for my store now",
+    nextTour: "analytics",
+    nextLabel: "Analytics",
+  },
+];
+
+const ANALYTICS_TOUR_STEPS: TourStepDef[] = [
+  {
+    id: "an-overview",
+    title: "Your impact at a glance",
+    desc: "Total edits, support-cost savings and upsell revenue in one place.",
+    cta: "Next",
+    measureDelayMs: 320,
+    spotlightId: "an-overview",
+  },
+  {
+    id: "an-edits",
+    title: "See what customers change",
+    desc: "A full breakdown of edit types and cancellation reasons.",
+    cta: "Next",
+    measureDelayMs: 360,
+    spotlightId: "an-edits",
+  },
+  {
+    id: "an-upsell",
+    title: "Track upsell revenue",
+    desc: "Conversion, revenue per upsell and your top-performing add-ons.",
+    cta: "Next",
+    measureDelayMs: 360,
+    spotlightId: "an-upsell",
+  },
+  {
+    id: "to-finish",
+    title: "Everything, measured",
+    desc: "Edits, savings and upsell revenue — all exportable, all live.",
+    cta: "Finish",
+    measureDelayMs: 320,
+    outcome: true,
+    outcomeHeadline: "One app, every outcome",
+    outcomeButton: "Get CP Order Editing for my store now",
+    nextTour: null,
+    finalStep: true,
+  },
+];
+
+const TOUR_STEPS: Record<Tour, TourStepDef[]> = {
+  editing: EDITING_TOUR_STEPS,
+  upsell: UPSELL_TOUR_STEPS,
+  address: ADDRESS_TOUR_STEPS,
+  analytics: ANALYTICS_TOUR_STEPS,
+};
 
 /* ----------------------------- features rail ----------------------------- */
 function FeaturesRail({
   tab,
   onSelect,
-  upsellCardRef,
+  cardRefs,
 }: {
   tab: Tab;
   onSelect: (t: Tab) => void;
-  upsellCardRef: React.RefObject<HTMLButtonElement | null>;
+  cardRefs: Partial<Record<Tab, React.RefObject<HTMLButtonElement | null>>>;
 }) {
   const proofKey: ProofKey = tab === "upsell" ? "upsell" : "editing";
   const proof = PROOF[proofKey];
@@ -316,7 +432,7 @@ function FeaturesRail({
           return (
             <div key={f.key} className="group relative">
               <button
-                ref={f.key === "upsell" ? upsellCardRef : undefined}
+                ref={cardRefs[f.key]}
                 aria-pressed={active}
                 onClick={() => onSelect(f.key)}
                 className={`relative flex w-full cursor-pointer items-center justify-between gap-3 overflow-hidden rounded-2xl border-2 px-5 py-4 text-left backdrop-blur-md transition-all duration-200 ${
@@ -511,15 +627,15 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
   const [tab, setTab] = useState<Tab>("editing");
   const [activePill, setActivePill] = useState<ActionPill["key"]>("tour");
   const [upsellView, setUpsellView] = useState<"thankyou" | "onetap">("onetap");
+  const [analyticsView, setAnalyticsView] = useState<"overview" | "edits" | "upsell">("overview");
 
   // lifted tour state
-  const [activeTour, setActiveTour] = useState<"editing" | "upsell" | null>(null);
+  const [activeTour, setActiveTour] = useState<Tour | null>(null);
   const [tourStep, setTourStep] = useState(0);
   const [spotlightRect, setSpotlightRect] = useState<TourRect | null>(null);
   const [dotRect, setDotRect] = useState<TourRect | null>(null); // where the red dot points (may differ from spotlight)
   const [measuredStep, setMeasuredStep] = useState(-1); // which step the current rect belongs to
-  const [pendingUpsellTour, setPendingUpsellTour] = useState(false);
-  const [pendingEditingTour, setPendingEditingTour] = useState(false);
+  const [pendingTour, setPendingTour] = useState<Tour | null>(null); // start this tour once its tab mounts
 
   // controlled bits during the tour
   const [tourForcedOpen, setTourForcedOpen] = useState<Section | null>(null);
@@ -548,17 +664,32 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
   const payPanelRef = useRef<HTMLDivElement>(null);
   const payBtnRef = useRef<HTMLButtonElement>(null);
   const sectionsRef = useRef<HTMLDivElement>(null);
-  const upsellCardRef = useRef<HTMLButtonElement>(null);
   const upsellToggleRef = useRef<HTMLDivElement>(null);
   const upsellOfferRef = useRef<HTMLDivElement>(null);
   const upsellAddBtnRef = useRef<HTMLButtonElement>(null);
   const tyGridRef = useRef<HTMLDivElement>(null);
   const tyAddBtnRef = useRef<HTMLButtonElement>(null);
+  // address-validation tour targets
+  const addrFlaggedRef = useRef<HTMLDivElement>(null);
+  const addrRecommendedRef = useRef<HTMLButtonElement>(null);
+  const addrConfirmRef = useRef<HTMLButtonElement>(null);
+  // analytics tour targets
+  const anOverviewRef = useRef<HTMLDivElement>(null);
+  const anEditsRef = useRef<HTMLDivElement>(null);
+  const anUpsellRef = useRef<HTMLDivElement>(null);
+  // rail feature-card refs (for highlighting the "next" feature on outcome steps)
+  const editingCardRef = useRef<HTMLButtonElement>(null);
+  const upsellCardRef = useRef<HTMLButtonElement>(null);
+  const addressCardRef = useRef<HTMLButtonElement>(null);
+  const analyticsCardRef = useRef<HTMLButtonElement>(null);
+  const cardRefs: Partial<Record<Tab, React.RefObject<HTMLButtonElement | null>>> = {
+    editing: editingCardRef, upsell: upsellCardRef, address: addressCardRef, analytics: analyticsCardRef,
+  };
   const pauseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const currentPill = EDITING_PILLS.find((p) => p.key === activePill) ?? EDITING_PILLS[0];
 
-  const steps = activeTour === "editing" ? EDITING_TOUR_STEPS : activeTour === "upsell" ? UPSELL_TOUR_STEPS : [];
+  const steps = activeTour ? TOUR_STEPS[activeTour] : [];
   const curStep = activeTour ? steps[tourStep] : null;
 
   // resolve a step's spotlight target — called only from effects/handlers, never render
@@ -575,18 +706,27 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
       case "pay-btn": return payBtnRef.current;
       case "others": return sectionsRef.current;
       case "to-upsell": return upsellCardRef.current;
+      case "to-address": return addressCardRef.current;
+      case "to-analytics": return analyticsCardRef.current;
+      case "to-finish": return editingCardRef.current;
       case "upsell-toggle": return upsellToggleRef.current;
       case "upsell-offer": return upsellOfferRef.current;
       case "upsell-add": return upsellAddBtnRef.current;
       case "ty-grid": return tyGridRef.current;
       case "ty-add": return tyAddBtnRef.current;
+      case "addr-flagged": return addrFlaggedRef.current;
+      case "addr-recommended": return addrRecommendedRef.current;
+      case "addr-confirm": return addrConfirmRef.current;
+      case "an-overview": return anOverviewRef.current;
+      case "an-edits": return anEditsRef.current;
+      case "an-upsell": return anUpsellRef.current;
       default: return null;
     }
   }
 
   // perform a step's side effects, then move to it
-  function enterStep(tourId: "editing" | "upsell", idx: number) {
-    const list = tourId === "editing" ? EDITING_TOUR_STEPS : UPSELL_TOUR_STEPS;
+  function enterStep(tourId: Tour, idx: number) {
+    const list = TOUR_STEPS[tourId];
     const s = list[idx];
     if (!s) return;
     switch (s.id) {
@@ -626,10 +766,22 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
         break;
       case "ty-show":
       case "ty-add":
+      case "to-address":
         setUpsellView("thankyou");
         break;
+      case "an-overview":
+        setAnalyticsView("overview");
+        break;
+      case "an-edits":
+        setAnalyticsView("edits");
+        break;
+      case "an-upsell":
+      case "to-finish":
+        setAnalyticsView("upsell");
+        break;
       default:
-        setTourForcedOpen(null);
+        // address steps + outcome steps: nothing to pre-open
+        break;
     }
     setTourStep(idx);
   }
@@ -649,16 +801,18 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
       setActiveTour(null);
       setSpotlightRect(null);
       setTab("editing");
-      setPendingEditingTour(true);
+      setPendingTour("editing");
     }
   }
 
-  function finishEditingTour() {
+  // hand off from one feature's tour to the next: switch tabs, then start once mounted
+  function goToTour(next: Tour) {
     setActiveTour(null);
     setSpotlightRect(null);
-    setTab("upsell");
-    setUpsellView("onetap");
-    setPendingUpsellTour(true);
+    if (next === "upsell") setUpsellView("onetap");
+    if (next === "analytics") setAnalyticsView("overview");
+    setTab(next);
+    setPendingTour(next);
   }
 
   // Bring a target into view by scrolling ONLY its nearest inner scroll container
@@ -695,10 +849,16 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
 
   function advanceTour() {
     if (!activeTour) return;
-    const list = activeTour === "editing" ? EDITING_TOUR_STEPS : UPSELL_TOUR_STEPS;
+    const list = TOUR_STEPS[activeTour];
+    const cur = list[tourStep];
+    // an outcome step is the end of a feature's tour: hand off to the next feature or finish
+    if (cur?.outcome) {
+      if (cur.nextTour) goToTour(cur.nextTour);
+      else closeTour();
+      return;
+    }
     if (tourStep >= list.length - 1) {
-      if (activeTour === "editing") finishEditingTour();
-      else { setActiveTour(null); setSpotlightRect(null); scrollDemoTop(); }
+      setActiveTour(null); setSpotlightRect(null); scrollDemoTop();
     } else {
       enterStep(activeTour, tourStep + 1);
     }
@@ -715,49 +875,43 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     if (pauseTimer.current) clearTimeout(pauseTimer.current);
     setActiveTour(null);
     setSpotlightRect(null);
-    setPendingUpsellTour(false);
+    setPendingTour(null);
     scrollDemoTop();
   }
 
   function selectFeature(k: Tab) {
-    // during the editing tour, the upsell card is the handoff
-    if (activeTour === "editing" && k === "upsell") {
-      finishEditingTour();
+    // on an outcome step, clicking the highlighted "next" card advances the chain
+    if (activeTour && curStep?.outcome && curStep.nextTour === k) {
+      goToTour(k as Tour);
       return;
     }
     setActiveTour(null);
     setSpotlightRect(null);
+    setPendingTour(null);
     setActivePill("tour");
     setTourForcedOpen(null);
     setTab(k);
   }
 
-  // start the upsell tour once the tab swap has mounted its targets
+  // start a pending tour once its tab swap has mounted the targets
   useEffect(() => {
-    if (!(tab === "upsell" && pendingUpsellTour)) return;
+    if (!pendingTour || tab !== pendingTour) return;
+    const next = pendingTour;
     const t = setTimeout(() => {
-      setPendingUpsellTour(false);
-      setActiveTour("upsell");
-      enterStep("upsell", 0);
-    }, 320);
-    return () => clearTimeout(t);
-  }, [tab, pendingUpsellTour]);
-
-  // start the editing tour once the editing tab has mounted (after a "Take a tour" from another window)
-  useEffect(() => {
-    if (!(tab === "editing" && pendingEditingTour)) return;
-    const t = setTimeout(() => {
-      setPendingEditingTour(false);
-      startEditingTour();
-    }, 360);
+      setPendingTour(null);
+      if (next === "editing") { startEditingTour(); return; }
+      setActivePill("tour");
+      setActiveTour(next);
+      enterStep(next, 0);
+    }, 340);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, pendingEditingTour]);
+  }, [tab, pendingTour]);
 
   // measure the spotlight for the active step — retries until the target(s) mount
   useEffect(() => {
     if (!activeTour) return;
-    const list = activeTour === "editing" ? EDITING_TOUR_STEPS : UPSELL_TOUR_STEPS;
+    const list = TOUR_STEPS[activeTour];
     const s = list[tourStep];
     if (!s) return;
     let cancelled = false;
@@ -797,7 +951,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
       {/* two-column */}
       <div className="grid items-stretch gap-8 lg:grid-cols-[0.52fr_1.48fr] lg:gap-10">
         {/* ---- LEFT: features rail ---- */}
-        <FeaturesRail tab={tab} onSelect={selectFeature} upsellCardRef={upsellCardRef} />
+        <FeaturesRail tab={tab} onSelect={selectFeature} cardRefs={cardRefs} />
 
         {/* ---- RIGHT: aurora frame ---- */}
         <div className="relative flex w-full flex-col gap-3 overflow-hidden rounded-[1.75rem] p-4 shadow-soft-xl sm:p-5">
@@ -913,10 +1067,18 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                   )
                 )}
                 {tab === "address" && (
-                  <AddressValidationMock store={store} />
+                  <AddressValidationMock
+                    store={store}
+                    tourRefs={{ flaggedAddr: addrFlaggedRef, recommended: addrRecommendedRef, confirmBtn: addrConfirmRef }}
+                    onConfirmed={() => { if (curStep?.id === "addr-confirm") advanceAfterPause(); }}
+                  />
                 )}
                 {tab === "analytics" && (
-                  <AnalyticsMock store={store} />
+                  <AnalyticsMock
+                    store={store}
+                    viewTab={activeTour === "analytics" ? analyticsView : undefined}
+                    tourRefs={{ overview: anOverviewRef, edits: anEditsRef, upsell: anUpsellRef }}
+                  />
                 )}
                 {tab === "cancel" && (
                   <DemoMock store={store} initialOpen="cancel" forceOpen="cancel" maxHeight={560} />
@@ -928,7 +1090,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
       </div>
 
       {/* lifted guided-tour overlay (portals to body; can target any element) */}
-      {activeTour && curStep && spotlightRect && (
+      {activeTour && curStep && (curStep.outcome || spotlightRect) && (
         <TourOverlay
           step={tourStep}
           total={steps.length}
@@ -941,6 +1103,12 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
           dotRect={dotRect}
           hideCard={curStep.hideCard}
           hideCta={curStep.hideCta}
+          outcome={curStep.outcome}
+          outcomeHeadline={curStep.outcomeHeadline}
+          outcomeButton={curStep.outcomeButton}
+          outcomeHref={APP_URL}
+          nextLabel={curStep.nextLabel}
+          finalStep={curStep.finalStep}
           onAdvance={advanceTour}
           onClose={closeTour}
         />
