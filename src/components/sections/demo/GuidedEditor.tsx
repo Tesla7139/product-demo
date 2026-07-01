@@ -510,15 +510,11 @@ function FeaturesRail({
             <ClickpostMark className="size-8 shrink-0 rounded-[8px] shadow-sm" />
             <span className="text-sm font-bold leading-tight text-neutral-900">CP Order Editing &amp; Upsell</span>
           </div>
-          <div className="mt-2.5 flex items-center justify-center gap-2">
+          <div className="mt-2.5 flex items-center justify-center gap-1.5">
             {/* eslint-disable-next-line @next/next/no-img-element -- Shopify icon from /public */}
             <img src="/shopify-icon.png" alt="Shopify App Store" className="size-5 object-contain" />
-            <span className="flex">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className="size-3.5 fill-amber-400 text-amber-400" />
-              ))}
-            </span>
-            <span className="text-[12px] text-neutral-500"><span className="font-bold text-neutral-900">5.0</span> · 51 reviews</span>
+            <Star className="size-4 fill-amber-400 text-amber-400" />
+            <span className="text-[13px] font-bold text-neutral-900">5.0</span>
           </div>
         </div>
 
