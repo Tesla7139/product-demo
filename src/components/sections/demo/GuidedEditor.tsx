@@ -589,7 +589,7 @@ function FeaturesRail({
 }
 
 /* the glowing "Take a tour" CTA, shown on every feature window */
-function TourButton({ onClick }: { onClick: () => void }) {
+function TourButton({ onClick, label = "Take a tour" }: { onClick: () => void; label?: string }) {
   return (
     <motion.button
       onClick={onClick}
@@ -622,7 +622,7 @@ function TourButton({ onClick }: { onClick: () => void }) {
       >
         <Sparkles className="size-4" />
       </motion.span>
-      <span className="relative">Take a tour</span>
+      <span className="relative">{label}</span>
       <ArrowRight className="relative size-3.5 transition-transform group-hover:translate-x-0.5" />
     </motion.button>
   );
@@ -647,6 +647,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
   const [addrOverride, setAddrOverride] = useState<Partial<Addr> | undefined>(undefined);
   const [qtyBump, setQtyBump] = useState(0); // tour: add one more of the first item
   const [demoResetKey, setDemoResetKey] = useState(0); // bump to remount the demo fresh
+  const [euResetKey, setEuResetKey] = useState(0); // bump to remount the EU withdrawal page fresh
 
   // start the editing tour from a clean demo (original 2-item order, fresh timer, nothing highlighted)
   function resetDemo() {
@@ -798,6 +799,16 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
       setTab("editing");
       setPendingTour("editing");
     }
+  }
+
+  // (re)start the EU withdrawal mini-tour from a fresh order-status page
+  function startEuTour() {
+    setActiveTour(null);
+    setSpotlightRect(null);
+    setActivePill("tour");
+    setEuResetKey((k) => k + 1);
+    setTab("eu-withdrawal");
+    setPendingTour("eu-withdrawal");
   }
 
   // hand off from one feature's tour to the next: switch tabs, then start once mounted
@@ -968,7 +979,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
 
           {/* top bar — "Take a tour" on every window, plus tab-specific controls */}
           <div className="relative z-10 flex flex-wrap items-center justify-between gap-3">
-            <TourButton onClick={launchTour} />
+            {tab === "eu-withdrawal" ? <span /> : <TourButton onClick={launchTour} />}
 
             {tab === "editing" && onUpsell && (
               <div className="relative">
@@ -1021,9 +1032,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
             )}
 
             {tab === "eu-withdrawal" && (
-              <span className="rounded-full bg-white/15 px-3.5 py-1.5 text-[12px] font-semibold text-white ring-1 ring-white/30 backdrop-blur">
-                EU Withdrawal — live preview
-              </span>
+              <TourButton onClick={startEuTour} label="See the withdrawal flow" />
             )}
           </div>
 
@@ -1081,6 +1090,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                 )}
                 {tab === "eu-withdrawal" && (
                   <EUWithdrawalMock
+                    key={`eu-${euResetKey}`}
                     store={store}
                     tourRefs={{ euCard: euCardRef, withdrawRow: euWithdrawRowRef, withdrawBtn: euWithdrawBtnRef }}
                     onWithdrawOpened={() => { if (curStep?.id === "eu-open") advanceAfterPause(); }}
