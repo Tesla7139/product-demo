@@ -66,7 +66,7 @@ function Stat({ label, value, sub }: { label: string; value: string; sub: string
 export function AnalyticsMock({ store }: { store: DemoStore }) {
   const [tab, setTab] = useState<"overview" | "edits" | "upsell">("overview");
   const currency = store.currency || "USD";
-  const products: DemoProduct[] = store.products.length ? store.products : [];
+  const products: DemoProduct[] = store.products.filter((p) => (p.price ?? 0) > 0);
 
   // --- edits ---
   const editsSeries = series(14, 6, 0);

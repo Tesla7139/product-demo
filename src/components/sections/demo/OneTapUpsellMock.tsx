@@ -21,8 +21,10 @@ export function OneTapUpsellMock({ store, onComplete, accentColor, addBtnRef, of
   const brand = readableBrand(store.brandColor || accentColor);
   const currency = store.currency || "USD";
   const fmt = (n: number) => money(n, currency);
-  const purchased = store.products[0];
-  const offer = store.products[1] ?? store.products[0];
+  const priced = store.products.filter((p) => (p.price ?? 0) > 0);
+  const pool = priced.length ? priced : store.products;
+  const purchased = pool[0];
+  const offer = pool[1] ?? pool[0];
 
   // variant picker
   const variantList = offer?.variants && offer.variants.length > 0

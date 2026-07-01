@@ -93,10 +93,13 @@ export function DemoMock({
 
   // The order starts with two distinct items (so a quantity edit can also remove one);
   // remaining products become the in-page cross-sell suggestions.
-  const cartProducts = store.products.slice(0, 2).length ? store.products.slice(0, 2) : store.products;
+  // Only real, priced products — skip €0 / SKU-placeholder entries in the store feed.
+  const priced = store.products.filter((p) => (p.price ?? 0) > 0);
+  const usable = priced.length ? priced : store.products;
+  const cartProducts = usable.slice(0, 2);
   const cartIds = new Set(cartProducts.map((p) => p.id));
-  const rest = store.products.filter((p) => !cartIds.has(p.id));
-  const upsellPool = rest.length ? rest : store.products.slice(1).length ? store.products.slice(1) : store.products;
+  const rest = usable.filter((p) => !cartIds.has(p.id));
+  const upsellPool = rest.length ? rest : usable.slice(1).length ? usable.slice(1) : usable;
 
   const [items, setItems] = useState<LineItem[]>(() => {
     const all = extraItem ? [...cartProducts, extraItem] : cartProducts;
@@ -685,7 +688,9 @@ function OneTapPanel({
   brand: string;
   addBtnRef: React.RefObject<HTMLButtonElement | null>;
 }) {
-  const offer = store.products[1] ?? store.products[0];
+  const priced = store.products.filter((p) => (p.price ?? 0) > 0);
+  const pool = priced.length ? priced : store.products;
+  const offer = pool[1] ?? pool[0];
   const full = offer?.price ?? 12;
   const deal = Math.max(1, Math.round(full * 0.5 * 100) / 100);
   const [secs, setSecs] = useState(9 * 60 + 54);
