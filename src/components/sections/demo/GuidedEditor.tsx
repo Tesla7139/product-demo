@@ -443,7 +443,7 @@ function FeaturesRail({
   return (
     <div className="flex h-full w-full flex-col lg:max-w-[340px]">
       {/* heading */}
-      <h3 className="font-sans text-[1.65rem] font-extrabold leading-tight tracking-tight text-foreground">
+      <h3 className="font-sans text-[1.25rem] font-extrabold leading-tight tracking-tight text-foreground lg:whitespace-nowrap">
         Click a feature to run it live.
       </h3>
 
