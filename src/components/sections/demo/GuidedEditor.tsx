@@ -748,20 +748,17 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     const run = (attempt: number) => {
       if (cancelled) return;
       const el = getStepTarget(s.spotlightId ?? s.id);
-      if (!el) {
-        if (attempt < 8) timers.push(setTimeout(() => run(attempt + 1), 120));
+      const dotEl = getStepTarget(s.dotId ?? s.spotlightId ?? s.id);
+      // wait until both the spotlight and (if any) the dot target have mounted
+      if (!el || (s.dotId && !dotEl)) {
+        if (attempt < 10) timers.push(setTimeout(() => run(attempt + 1), 120));
         return;
       }
-      scrollInnerIntoView(el); // scroll the inner screen only, never the outer modal
+      // scroll the inner screen to the ACTIONABLE element (the + / Save / Update button),
+      // so it's always in view — never the outer modal
+      scrollInnerIntoView(dotEl ?? el);
       const r = el.getBoundingClientRect();
       setSpotlightRect({ top: r.top, left: r.left, width: r.width, height: r.height });
-      // the dot may point at a different element than the spotlight (e.g. the + or Save inside the box)
-      const dotEl = getStepTarget(s.dotId ?? s.spotlightId ?? s.id);
-      if (!dotEl && s.dotId && attempt < 8) {
-        // dot target not mounted yet — keep the spotlight, retry until it appears
-        timers.push(setTimeout(() => run(attempt + 1), 120));
-        return;
-      }
       const dr = (dotEl ?? el).getBoundingClientRect();
       setDotRect({ top: dr.top, left: dr.left, width: dr.width, height: dr.height });
       setMeasuredStep(tourStep);
