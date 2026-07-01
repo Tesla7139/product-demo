@@ -400,9 +400,9 @@ function ClickpostMark({ className }: { className?: string }) {
 /** Brand-result notes that type out and interchange in the CTA's top line. */
 type BrandNote = { name: string; stat: string };
 const RESULT_NOTES: BrandNote[] = [
-  { name: "Mars by GHC", stat: "lifted AOV 23% and added $18K in upsell this month." },
-  { name: "Doonails", stat: "deflected 58% of tickets and saved $12K this month." },
-  { name: "Haute Sauce", stat: "grew AOV by 15% and added $7K in upsell this month." },
+  { name: "Mars by GHC", stat: "lifted AOV 23% and added $18K in upsell this month using CP Order Editing." },
+  { name: "Doonails", stat: "deflected 58% of tickets and saved $12K this month using CP Order Editing." },
+  { name: "Haute Sauce", stat: "grew AOV by 15% and added $7K in upsell this month using CP Order Editing." },
 ];
 
 function RotatingNote({ notes }: { notes: BrandNote[] }) {
