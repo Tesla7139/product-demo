@@ -6,6 +6,8 @@ import { ArrowRight, Check, X } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
 import { GuidedEditor } from "./GuidedEditor";
 import { OneTapUpsell } from "./OneTapUpsell";
+import { CustomerLogos } from "@/components/sections/CustomerLogos";
+import { WallOfLoveTeaser } from "@/components/sections/WallOfLoveTeaser";
 
 type Status = "idle" | "loading" | "ready";
 type Step = "welcome" | "editing" | "upsell";
@@ -269,6 +271,10 @@ function EditingView({ store, onUpsell }: { store: DemoStore; onUpsell: () => vo
       <div className="mx-auto max-w-7xl px-5 py-8">
         <GuidedEditor store={store} onUpsell={onUpsell} />
       </div>
+
+      {/* below the demo: moving brand marquee + Wall of Love reviews */}
+      <CustomerLogos />
+      <WallOfLoveTeaser />
     </motion.div>
   );
 }
