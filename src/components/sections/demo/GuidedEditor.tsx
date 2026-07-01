@@ -194,7 +194,7 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
     title: "Add or change items",
     desc: "Add one more, swap, or remove — the total updates live.",
     cta: "Next",
-    measureDelayMs: 300,
+    measureDelayMs: 600, // let the shipping section collapse + order section expand fully first
     tapTarget: true,
     hideCta: true, // tap the order to add one more
     dotId: "order-plus", // point the dot at the + button, not delete
@@ -844,6 +844,19 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     if (!s) return;
     let cancelled = false;
     const timers: ReturnType<typeof setTimeout>[] = [];
+    // capture the spotlight + dot rects from the (now-settled) DOM
+    const capture = (doScroll: boolean) => {
+      if (cancelled) return;
+      const el = getStepTarget(s.spotlightId ?? s.id);
+      const dotEl = getStepTarget(s.dotId ?? s.spotlightId ?? s.id);
+      if (!el || (s.dotId && !dotEl)) return;
+      if (doScroll && !s.noScroll) scrollInnerIntoView(dotEl ?? el);
+      const r = el.getBoundingClientRect();
+      setSpotlightRect({ top: r.top, left: r.left, width: r.width, height: r.height });
+      const dr = (dotEl ?? el).getBoundingClientRect();
+      setDotRect({ top: dr.top, left: dr.left, width: dr.width, height: dr.height });
+      setMeasuredStep(tourStep);
+    };
     const run = (attempt: number) => {
       if (cancelled) return;
       const el = getStepTarget(s.spotlightId ?? s.id);
@@ -855,14 +868,10 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
         if (attempt < 10) timers.push(setTimeout(() => run(attempt + 1), 120));
         return;
       }
-      // scroll the inner screen to the ACTIONABLE element (the + / Save / Update button),
-      // so it's always in view — never the outer modal. Some steps stay put (noScroll).
-      if (!s.noScroll) scrollInnerIntoView(dotEl ?? el);
-      const r = el.getBoundingClientRect();
-      setSpotlightRect({ top: r.top, left: r.left, width: r.width, height: r.height });
-      const dr = (dotEl ?? el).getBoundingClientRect();
-      setDotRect({ top: dr.top, left: dr.left, width: dr.width, height: dr.height });
-      setMeasuredStep(tourStep);
+      capture(true);
+      // accordions open/close over ~250ms; re-measure after they settle so the
+      // spotlight + dot lock onto the target's FINAL position (no re-scroll jump).
+      timers.push(setTimeout(() => capture(false), 300));
     };
     timers.push(setTimeout(() => run(0), s.measureDelayMs ?? 80));
     return () => { cancelled = true; timers.forEach(clearTimeout); };
