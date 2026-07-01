@@ -248,7 +248,7 @@ export function DemoMock({
             {/* cross-sell at the TOP (thank-you page style) */}
             {upsellFirst && !cancelled && (
               <div className="mb-4">
-                <ThankYouUpsell store={store} brand={brand} products={upsellPool} onAdd={(p, discounted) => addUpsell(p, discounted)} gridRef={tourRefs?.upsellRow} addBtnRef={tourRefs?.upsellAddBtn} />
+                <ThankYouUpsell store={store} brand="#111827" products={upsellPool} onAdd={(p, discounted) => addUpsell(p, discounted)} gridRef={tourRefs?.upsellRow} addBtnRef={tourRefs?.upsellAddBtn} />
               </div>
             )}
             {/* confirmation header */}
@@ -302,7 +302,7 @@ export function DemoMock({
                     <Field label="Email" value={email} onChange={setEmail} />
                     <Field label="Phone" value={phone} onChange={setPhone} />
                     <CheckboxRow brand={brand} label="Update Profile" />
-                    <PrimaryButton brand={brand} onClick={() => { flash("Contact information updated"); setOpen(null); }}>
+                    <PrimaryButton onClick={() => { flash("Contact information updated"); setOpen(null); }}>
                       Change Contact Information
                     </PrimaryButton>
                   </AccordionRow>
@@ -324,7 +324,7 @@ export function DemoMock({
                         </div>
                       </div>
                       <div ref={tourRefs?.saveBtn}>
-                        <PrimaryButton brand={brand} onClick={() => { flash("Shipping address updated"); onShippingSaved?.(); }}>
+                        <PrimaryButton onClick={() => { flash("Shipping address updated"); onShippingSaved?.(); }}>
                           Update Shipping Address
                         </PrimaryButton>
                       </div>
@@ -357,7 +357,7 @@ export function DemoMock({
                       ))}
                     </div>
                     <div ref={tourRefs?.orderBtn}>
-                      <PrimaryButton brand={brand} onClick={() => { flash("Order updated"); onOrderUpdated?.(); }}>
+                      <PrimaryButton onClick={() => { flash("Order updated"); onOrderUpdated?.(); }}>
                         Update your order
                       </PrimaryButton>
                     </div>
@@ -402,14 +402,14 @@ export function DemoMock({
             {/* In-page cross-sell row (bottom, standard editing window) */}
             {!upsellFirst && !cancelled && (
               <div className="mt-3">
-                <ThankYouProducts store={store} brand={brand} products={upsellPool} onAdd={addUpsell} layout="row" gridRef={tourRefs?.upsellRow} addBtnRef={tourRefs?.upsellAddBtn} />
+                <ThankYouProducts store={store} brand="#111827" products={upsellPool} onAdd={addUpsell} layout="row" gridRef={tourRefs?.upsellRow} addBtnRef={tourRefs?.upsellAddBtn} />
               </div>
             )}
 
             {/* Too good to miss — featured deal at the bottom of the editing window */}
             {!upsellFirst && !cancelled && upsellPool.length > 0 && (
               <div className="mt-3">
-                <TooGoodToMiss store={store} brand={brand} product={upsellPool[upsellPool.length - 1]} onAdd={(p) => addUpsell(p, true)} />
+                <TooGoodToMiss store={store} brand="#111827" product={upsellPool[upsellPool.length - 1]} onAdd={(p) => addUpsell(p, true)} />
               </div>
             )}
             </>
@@ -480,8 +480,8 @@ export function DemoMock({
                 <button
                   ref={tourRefs?.payBtn}
                   onClick={() => { payBalance(); onPaid?.(); }}
-                  className="mt-2.5 w-full rounded-md py-2.5 text-[13px] font-semibold text-white transition-all hover:brightness-110 active:scale-[0.99]"
-                  style={{ background: brand }}
+                  className="mt-2.5 w-full rounded-md py-2.5 text-[13px] font-semibold text-white transition-all hover:brightness-125 active:scale-[0.99]"
+                  style={{ background: "#111827" }}
                 >
                   Pay {fmt(due)}
                 </button>
@@ -622,12 +622,12 @@ function CheckboxRow({ label, brand }: { label: string; brand: string }) {
   );
 }
 
-function PrimaryButton({ brand, onClick, children }: { brand: string; onClick: () => void; children: React.ReactNode }) {
+function PrimaryButton({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       onClick={onClick}
-      className="mt-1 w-full rounded-md py-3 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.99]"
-      style={{ background: brand }}
+      className="mt-1 w-full rounded-md py-3 text-sm font-semibold text-white transition-all hover:brightness-125 active:scale-[0.99]"
+      style={{ background: "#111827" }}
     >
       {children}
     </button>

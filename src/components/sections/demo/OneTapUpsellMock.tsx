@@ -231,8 +231,8 @@ export function OneTapUpsellMock({ store, onComplete, accentColor, addBtnRef, of
                 <button
                   ref={addBtnRef}
                   onClick={handleAdd}
-                  className="w-full rounded-lg py-3 text-[14px] font-semibold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
-                  style={{ background: brand }}
+                  className="w-full rounded-lg py-3 text-[14px] font-semibold text-white shadow-md transition-all hover:brightness-125 active:scale-[0.99]"
+                  style={{ background: "#111827" }}
                 >
                   Add to order · {fmt(deal)}
                 </button>
