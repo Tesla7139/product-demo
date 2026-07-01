@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Check, ChevronDown } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
+import { readableBrand } from "@/lib/utils";
 
 const money = (n: number, currency = "USD") =>
   new Intl.NumberFormat("en", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
@@ -17,7 +18,7 @@ function Pic({ src }: { src?: string | null }) {
 }
 
 export function OneTapUpsellMock({ store, onComplete, accentColor, addBtnRef, offerRef, onAdded }: { store: DemoStore; onComplete?: (wasAdded: boolean) => void; accentColor?: string; addBtnRef?: React.RefObject<HTMLButtonElement | null>; offerRef?: React.RefObject<HTMLDivElement | null>; onAdded?: () => void }) {
-  const brand = store.brandColor || accentColor || "#155FFF";
+  const brand = readableBrand(store.brandColor || accentColor);
   const currency = store.currency || "USD";
   const fmt = (n: number) => money(n, currency);
   const purchased = store.products[0];

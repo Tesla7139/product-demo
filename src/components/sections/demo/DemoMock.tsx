@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import type { DemoStore, DemoProduct } from "@/lib/site";
+import { readableBrand } from "@/lib/utils";
 import { ThankYouProducts } from "./ThankYouProducts";
 import { ThankYouUpsell } from "./ThankYouUpsell";
 import { TooGoodToMiss } from "./TooGoodToMiss";
@@ -87,7 +88,7 @@ export function DemoMock({
   /** Fired when the Pay balance button is pressed (so the tour can advance). */
   onPaid?: () => void;
 }) {
-  const brand = store.brandColor || "#1652f0";
+  const brand = readableBrand(store.brandColor);
   const fmt = (n: number) => money(n, store.currency || "USD");
 
   // The order starts with two distinct items (so a quantity edit can also remove one);
