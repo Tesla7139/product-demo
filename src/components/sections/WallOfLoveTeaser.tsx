@@ -5,13 +5,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export function WallOfLoveTeaser() {
-  // Three featured reviews, each given a distinct color (the raw data color is
-  // uniform, so we assign them here to mirror the varied Love Gallery look).
-  const featured = [
-    { ...reviews[0], color: "orange" as const },
-    { ...reviews[1], color: "green" as const },
-    { ...reviews[2], color: "blue" as const },
-  ];
+  // Six featured reviews (two rows), each given a distinct color (the raw data
+  // color is uniform, so we assign them here to mirror the varied Love Gallery look).
+  const palette = ["orange", "green", "blue", "green", "blue", "orange"] as const;
+  const featured = reviews.slice(0, 6).map((r, i) => ({ ...r, color: palette[i] }));
 
   return (
     <section className="py-20 md:py-28 border-t border-black/5 bg-[#FAF9F6]">

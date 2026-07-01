@@ -979,7 +979,9 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
 
           {/* top bar — "Take a tour" on every window, plus tab-specific controls */}
           <div className="relative z-10 flex flex-wrap items-center justify-between gap-3">
-            {tab === "eu-withdrawal" ? <span /> : <TourButton onClick={launchTour} />}
+            {tab === "eu-withdrawal"
+              ? <TourButton onClick={startEuTour} label="See the withdrawal flow" />
+              : <TourButton onClick={launchTour} />}
 
             {tab === "editing" && onUpsell && (
               <div className="relative">
@@ -1031,9 +1033,6 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
               </span>
             )}
 
-            {tab === "eu-withdrawal" && (
-              <TourButton onClick={startEuTour} label="See the withdrawal flow" />
-            )}
           </div>
 
           {/* body */}
