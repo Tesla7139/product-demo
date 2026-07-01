@@ -340,7 +340,7 @@ function FeaturesRail({
                 </span>
                 {/* clickable affordance */}
                 <span
-                  className={`relative flex size-8 shrink-0 items-center justify-center rounded-full transition-all ${
+                  className={`relative -mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full transition-all ${
                     active
                       ? "bg-white/20 text-white"
                       : "bg-[#155FFF]/10 text-[#155FFF] group-hover:bg-[#155FFF] group-hover:text-white"
