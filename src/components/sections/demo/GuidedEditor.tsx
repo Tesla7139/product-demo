@@ -384,11 +384,11 @@ const EU_WITHDRAWAL_TOUR_STEPS: TourStepDef[] = [
     title: "Two-step submission",
     desc: "Complete the request, then confirm with one clearly-labeled button — acknowledged instantly by email.",
     cta: "Next",
-    measureDelayMs: 360,
+    measureDelayMs: 420,
     clickThrough: true,
     tapTarget: true,
     hideCard: true,
-    spotlightId: "eu-withdraw-row",
+    spotlightId: "eu-withdraw-btn",
     dotId: "eu-withdraw-btn",
   },
   {
