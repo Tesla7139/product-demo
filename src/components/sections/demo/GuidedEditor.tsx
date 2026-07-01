@@ -524,8 +524,8 @@ function FeaturesRail({
         })}
       </div>
 
-      {/* install CTA */}
-      <div className="relative mt-5 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-5 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md">
+      {/* install CTA — bottom-aligned with the demo window */}
+      <div className="relative mt-5 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-5 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md lg:mt-auto">
         {/* rotating brand-result note (types out & interchanges) */}
         <p className="mx-auto flex min-h-[3.4em] max-w-[17rem] items-center justify-center font-serif text-[13.5px] font-medium italic leading-snug text-neutral-700">
           <RotatingNote notes={RESULT_NOTES} />
