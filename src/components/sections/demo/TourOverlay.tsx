@@ -87,12 +87,18 @@ export function TourOverlay({
   onAdvance: () => void;
   onClose: () => void;
 }) {
-  // measure the tooltip's real height so positioning never overlaps the spotlight
+  // measure the tooltip's real height so positioning never overlaps/overflows —
+  // a ResizeObserver keeps it accurate as the typewriter grows the card.
   const cardRef = useRef<HTMLDivElement>(null);
   const [cardH, setCardH] = useState(240);
   useEffect(() => {
-    if (cardRef.current) setCardH(cardRef.current.offsetHeight);
-  }, [step, title, desc]);
+    const el = cardRef.current;
+    if (!el) return;
+    setCardH(el.offsetHeight);
+    const ro = new ResizeObserver(() => setCardH(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [step]);
 
   if (typeof window === "undefined") return null;
 
@@ -284,7 +290,7 @@ export function TourOverlay({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
         className="pointer-events-auto absolute w-[280px] overflow-hidden rounded-2xl bg-white shadow-2xl"
-        style={{ top: clampedTop, left: tooltipLeft }}
+        style={{ top: clampedTop, left: tooltipLeft, transition: "top 0.15s ease-out" }}
       >
         <div className="h-[3px] w-full" style={{ background: `linear-gradient(90deg, ${TOUR_ACCENT}, #7c3aed)` }} />
         <div className="p-5">
