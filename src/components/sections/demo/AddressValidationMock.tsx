@@ -77,48 +77,47 @@ export function AddressValidationMock({ store, tourRefs, onConfirmed }: { store:
           <div className="text-[12px] text-neutral-500">Every address is checked before the order ships.</div>
         </div>
 
-        <div className="space-y-4 p-6">
-          {/* top status banner */}
-          {verified ? (
-            <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-[13px] font-semibold text-emerald-700">
-              <span className="flex size-5 items-center justify-center rounded-full bg-emerald-500 text-white"><Check className="size-3" strokeWidth={3} /></span>
-              Address verified &amp; deliverable
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-[13px] font-semibold text-red-600">
-              <TriangleAlert className="size-4 shrink-0" />
-              We couldn&apos;t validate this address
-            </div>
-          )}
-
-          {/* contact information — collapsed accordion */}
-          <div className="overflow-hidden rounded-lg border border-border">
-            <button
-              onClick={() => setContactOpen((v) => !v)}
-              className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left transition-colors hover:bg-neutral-50"
-              aria-expanded={contactOpen}
-            >
-              <UserRound className="size-4 shrink-0 text-neutral-600" />
-              <span className="flex-1 text-sm font-semibold text-neutral-900">Contact information</span>
-              <ChevronDown className={`size-4 text-neutral-400 transition-transform ${contactOpen ? "rotate-180" : ""}`} />
-            </button>
-            <AnimatePresence initial={false}>
-              {contactOpen && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }} className="overflow-hidden">
-                  <div className="grid gap-2.5 px-3.5 pb-4 pt-1 sm:grid-cols-2">
-                    <Field label="Email" value={DEFAULT_EMAIL} />
-                    <Field label="Phone" value={DEFAULT_PHONE} />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* delivery address + confirm */}
+        <div className="p-6">
           <div className="grid gap-5 md:grid-cols-2">
-            {/* left: the flagged address, boxed fields */}
-            <div>
-              <div className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-neutral-400">Delivery address</div>
+            {/* left column: contact + status banner + flagged address */}
+            <div className="space-y-3">
+              {/* contact information — collapsed accordion (matches address width) */}
+              <div className="overflow-hidden rounded-lg border border-border">
+                <button
+                  onClick={() => setContactOpen((v) => !v)}
+                  className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left transition-colors hover:bg-neutral-50"
+                  aria-expanded={contactOpen}
+                >
+                  <UserRound className="size-4 shrink-0 text-neutral-600" />
+                  <span className="flex-1 text-sm font-semibold text-neutral-900">Contact information</span>
+                  <ChevronDown className={`size-4 text-neutral-400 transition-transform ${contactOpen ? "rotate-180" : ""}`} />
+                </button>
+                <AnimatePresence initial={false}>
+                  {contactOpen && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }} className="overflow-hidden">
+                      <div className="space-y-2.5 px-3.5 pb-4 pt-1">
+                        <Field label="Email" value={DEFAULT_EMAIL} />
+                        <Field label="Phone" value={DEFAULT_PHONE} />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* status banner — directly above the address box */}
+              {verified ? (
+                <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-[13px] font-semibold text-emerald-700">
+                  <span className="flex size-5 items-center justify-center rounded-full bg-emerald-500 text-white"><Check className="size-3" strokeWidth={3} /></span>
+                  Address verified &amp; deliverable
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-[13px] font-semibold text-red-600">
+                  <TriangleAlert className="size-4 shrink-0" />
+                  We couldn&apos;t validate this address
+                </div>
+              )}
+
+              {/* flagged address, boxed fields */}
               <div
                 ref={tourRefs?.flaggedAddr}
                 className="space-y-2.5 rounded-xl border-2 p-3 transition-colors"
@@ -166,7 +165,7 @@ export function AddressValidationMock({ store, tourRefs, onConfirmed }: { store:
                       <span className="size-2 rounded-full" style={{ background: GOOGLE_BLUE }} />
                     </span>
                     <span className="min-w-0">
-                      <span className="block text-[13px] font-semibold text-neutral-900">Recommended</span>
+                      <span className="block text-[16px] font-bold text-neutral-900">Recommended</span>
                       <span className="mt-0.5 block text-[12px] leading-snug text-neutral-500">{RECOMMENDED}</span>
                     </span>
                   </button>
