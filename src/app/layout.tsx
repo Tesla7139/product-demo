@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Figtree, Bricolage_Grotesque } from "next/font/google";
+import { Figtree, Bricolage_Grotesque, Fraunces } from "next/font/google";
 import "./globals.css";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { Navbar } from "@/components/layout/Navbar";
@@ -15,6 +15,12 @@ const figtree = Figtree({
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
   variable: "--font-bricolage",
+  display: "swap",
+});
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-fraunces",
   display: "swap",
 });
 
@@ -54,7 +60,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${figtree.variable} ${bricolage.variable}`}>
+    <html lang="en" className={`${figtree.variable} ${bricolage.variable} ${fraunces.variable}`}>
       <body className="relative min-h-screen antialiased">
         <a
           href="#main"

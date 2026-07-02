@@ -94,7 +94,7 @@ export function CustomerLogos({ embedded = false }: { embedded?: boolean }) {
   return (
     <Wrapper
       aria-label="Brands working with us"
-      className={embedded ? "w-full border-t border-border/60 pt-2 pb-2" : "py-12"}
+      className={embedded ? "w-full border-t border-border/60 pt-10 pb-2" : "py-12"}
     >
       <div onMouseEnter={onStripEnter} onMouseLeave={onStripLeave}>
         <Marquee items={items} duration={40} paused={!!popover} />

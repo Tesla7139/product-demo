@@ -50,8 +50,8 @@ export function Hero() {
         >
           <motion.h1
             variants={fadeUp}
-            className="text-balance font-serif font-bold tracking-tight text-foreground"
-            style={{ fontSize: "clamp(2.25rem, 4.4vw, 3.75rem)", lineHeight: 1.04, letterSpacing: "-0.025em" }}
+            className="text-balance font-bold tracking-tight text-foreground"
+            style={{ fontFamily: "var(--font-fraunces), serif", fontSize: "clamp(2.4rem, 4.7vw, 4rem)", lineHeight: 1.03, letterSpacing: "-0.02em" }}
           >
             Reduce Support Tickets and Add Thousands in Upsell Revenue
           </motion.h1>
