@@ -56,14 +56,18 @@ type AddrTourRefs = {
   flaggedAddr?: React.RefObject<HTMLDivElement | null>;
   recommended?: React.RefObject<HTMLButtonElement | null>;
   confirmBtn?: React.RefObject<HTMLButtonElement | null>;
+  saveBtn?: React.RefObject<HTMLButtonElement | null>;
 };
 
-/** Address validation: a flagged address + a Google-style "use the recommended address" confirm. */
-export function AddressValidationMock({ store, tourRefs, onConfirmed }: { store: DemoStore; tourRefs?: AddrTourRefs; onConfirmed?: () => void }) {
-  const [step, setStep] = useState<"review" | "done">("review");
+/** Address validation: save an address → it's flagged → accept the recommended fix → verified. */
+export function AddressValidationMock({ store, tourRefs, onValidated, onConfirmed }: { store: DemoStore; tourRefs?: AddrTourRefs; onValidated?: () => void; onConfirmed?: () => void }) {
+  const [step, setStep] = useState<"edit" | "review" | "done">("edit");
+  const flagged = step === "review";
   const verified = step === "done";
   const fields = verified ? RECOMMENDED_ADDR : ENTERED_ADDR;
   const name = store.brandName || "Checkout";
+  const boxBorder = verified ? "#6ee7b7" : flagged ? "#fca5a5" : "#e5e7eb";
+  const boxBg = verified ? "#ecfdf5" : flagged ? "#fef2f2" : "#ffffff";
 
   return (
     <div className="mx-auto w-full max-w-3xl overflow-hidden rounded-2xl border border-border bg-white shadow-soft-xl">
@@ -78,24 +82,26 @@ export function AddressValidationMock({ store, tourRefs, onConfirmed }: { store:
           <div className="grid gap-5 md:grid-cols-2">
             {/* left column: status banner + flagged address */}
             <div className="space-y-3">
-              {/* status banner — directly above the address box */}
-              {verified ? (
+              {/* status banner — only after saving (red flagged / green verified) */}
+              {verified && (
                 <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-[13px] font-semibold text-emerald-700">
                   <span className="flex size-5 items-center justify-center rounded-full bg-emerald-500 text-white"><Check className="size-3" strokeWidth={3} /></span>
                   Address verified &amp; deliverable
                 </div>
-              ) : (
+              )}
+              {flagged && (
                 <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-[13px] font-semibold text-red-600">
                   <TriangleAlert className="size-4 shrink-0" />
                   We couldn&apos;t validate this address
                 </div>
               )}
 
-              {/* flagged address, boxed fields */}
+              {/* address, boxed fields */}
+              <div className="mb-0 text-[11px] font-medium uppercase tracking-wide text-neutral-400">Delivery address</div>
               <div
                 ref={tourRefs?.flaggedAddr}
                 className="space-y-2.5 rounded-xl border-2 p-3 transition-colors"
-                style={{ borderColor: verified ? "#6ee7b7" : "#fca5a5", background: verified ? "#ecfdf5" : "#fef2f2" }}
+                style={{ borderColor: boxBorder, background: boxBg }}
               >
                 <Field label="Full name" value={fields.name} />
                 <Field label="Address" value={fields.line1} changed={verified} />
@@ -107,11 +113,23 @@ export function AddressValidationMock({ store, tourRefs, onConfirmed }: { store:
                 </div>
                 <Field label="Country" value={fields.country} changed={verified} />
               </div>
+
+              {/* Save address — only before validation */}
+              {step === "edit" && (
+                <button
+                  ref={tourRefs?.saveBtn}
+                  onClick={() => { setStep("review"); onValidated?.(); }}
+                  className="w-full rounded-lg py-3 text-[14px] font-semibold text-white shadow-md transition-all hover:brightness-125 active:scale-[0.99]"
+                  style={{ background: "#111827" }}
+                >
+                  Save address
+                </button>
+              )}
             </div>
 
-            {/* right: recommended address confirm */}
+            {/* right: recommended address confirm (only after saving) */}
             <AnimatePresence mode="wait">
-              {!verified && (
+              {flagged && (
                 <motion.div
                   key="popup"
                   initial={{ opacity: 0, y: 10 }}

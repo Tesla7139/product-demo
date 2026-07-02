@@ -281,11 +281,23 @@ const UPSELL_TOUR_STEPS: TourStepDef[] = [
 
 const ADDRESS_TOUR_STEPS: TourStepDef[] = [
   {
+    id: "addr-save",
+    title: "Customer saves an address",
+    desc: "Every address is checked the moment it's saved — before the order ships.",
+    cta: "Next",
+    measureDelayMs: 320,
+    clickThrough: true,
+    tapTarget: true,
+    hideCta: true,
+    spotlightId: "addr-save",
+    dotId: "addr-save",
+  },
+  {
     id: "addr-flagged",
     title: "We catch bad addresses",
     desc: "Undeliverable or incomplete addresses are flagged before the order ships.",
     cta: "Next",
-    measureDelayMs: 320,
+    measureDelayMs: 420,
     spotlightId: "addr-flagged",
   },
   {
@@ -663,6 +675,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
   const tyGridRef = useRef<HTMLDivElement>(null);
   const tyAddBtnRef = useRef<HTMLButtonElement>(null);
   // address-validation tour targets
+  const addrSaveBtnRef = useRef<HTMLButtonElement>(null);
   const addrFlaggedRef = useRef<HTMLDivElement>(null);
   const addrRecommendedRef = useRef<HTMLButtonElement>(null);
   const addrConfirmRef = useRef<HTMLButtonElement>(null);
@@ -706,6 +719,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
       case "upsell-add": return upsellAddBtnRef.current;
       case "ty-grid": return tyGridRef.current;
       case "ty-add": return tyAddBtnRef.current;
+      case "addr-save": return addrSaveBtnRef.current;
       case "addr-flagged": return addrFlaggedRef.current;
       case "addr-recommended": return addrRecommendedRef.current;
       case "addr-confirm": return addrConfirmRef.current;
@@ -1074,7 +1088,8 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                 {tab === "address" && (
                   <AddressValidationMock
                     store={store}
-                    tourRefs={{ flaggedAddr: addrFlaggedRef, recommended: addrRecommendedRef, confirmBtn: addrConfirmRef }}
+                    tourRefs={{ saveBtn: addrSaveBtnRef, flaggedAddr: addrFlaggedRef, recommended: addrRecommendedRef, confirmBtn: addrConfirmRef }}
+                    onValidated={() => { if (curStep?.id === "addr-save") advanceAfterPause(); }}
                     onConfirmed={() => { if (curStep?.id === "addr-confirm") advanceAfterPause(); }}
                   />
                 )}
