@@ -4,11 +4,28 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Marquee } from "@/components/primitives/Marquee";
 
 const TOUR_ACCENT = "#155FFF";
 
-// brands shown in the moving strip inside the final window
+/** Clickpost app icon (vector). */
+function ClickpostMark({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 100" className={className} role="img" aria-label="Clickpost" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" rx="22" fill="#1668FF" />
+      <g fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M42 33 L20 45 L20 71 L42 83 L64 71 L64 45 Z" />
+        <path d="M20 45 L42 57 L64 45" />
+        <path d="M42 57 L42 83" />
+        <path d="M48 86 L77 57" strokeWidth="6" />
+        <circle cx="71" cy="30" r="13" fill="#1668FF" />
+        <path d="M80 39 L88 47" />
+        <path d="M66 25 L76 35 M76 25 L66 35" strokeWidth="3" />
+      </g>
+    </svg>
+  );
+}
+
+// brands shown as a static collage at the bottom of the final window
 const FINAL_BRAND_LOGOS = [
   "/customers/doonails.svg",
   "/customers/hautesauce.png",
@@ -16,6 +33,12 @@ const FINAL_BRAND_LOGOS = [
   "/customers/modomu.png",
   "/customers/mateina.png",
   "/customers/renuebyscience.svg",
+  "/customers/alkalinegoddess.png",
+  "/customers/bluntcases.png",
+  "/customers/onebone.png",
+  "/customers/rareform.png",
+  "/customers/vegogarden.png",
+  "/customers/eternalperfumeoils.png",
 ];
 
 /** Types `text` out character by character; restarts whenever `text` changes. */
@@ -121,7 +144,7 @@ export function TourOverlay({
     const dim = blurRect
       ? { top: blurRect.top, left: blurRect.left, width: blurRect.width, height: blurRect.height }
       : null;
-    const dimClass = "pointer-events-auto absolute bg-[rgba(15,23,42,0.14)] backdrop-blur-[3px]";
+    const dimClass = "pointer-events-auto absolute bg-[rgba(15,23,42,0.16)] backdrop-blur-[3px]";
 
     // small callout anchored beside the highlighted next-feature card
     const calloutTop = rect ? Math.max(12, Math.min(rect.top, window.innerHeight - 130)) : 0;
@@ -137,72 +160,104 @@ export function TourOverlay({
         )}
 
         {finalStep ? (
-          /* ---- final centered conversion window ---- */
+          /* ---- final conversion card — floats over the blurred demo window; rail stays visible ---- */
           <motion.div
             key={`outcome-${step}`}
-            initial={{ opacity: 0, scale: 0.94, y: 8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="pointer-events-auto absolute left-1/2 top-1/2 w-[min(94vw,440px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-black/5"
+            className="pointer-events-none absolute flex items-center justify-center p-7"
+            style={dim ? { top: dim.top, left: dim.left, width: dim.width, height: dim.height } : { inset: 0 }}
           >
-            {/* bright gradient header */}
-            <div className="relative overflow-hidden px-7 pb-6 pt-7 text-center text-white" style={{ background: "linear-gradient(135deg, #3b7cff 0%, #155FFF 48%, #7c3aed 100%)" }}>
-              <div className="pointer-events-none absolute -right-10 -top-10 size-32 rounded-full bg-white/20 blur-2xl" />
-              <div className="pointer-events-none absolute -bottom-12 -left-8 size-28 rounded-full bg-white/15 blur-2xl" />
-              <div className="relative flex items-center justify-center gap-2.5">
-                <span className="flex size-9 items-center justify-center rounded-xl bg-white shadow-md">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- Shopify badge from /public */}
-                  <img src="/shopify-icon.png" alt="Shopify" className="size-6 object-contain" />
-                </span>
-                <span className="text-[27px] font-extrabold leading-none tracking-tight">CP Order Editing</span>
+           {/* thick blue→purple frame (~1cm) + pulsing side glow — compact, squarish card */}
+           <motion.div
+             className="pointer-events-auto flex max-h-full w-full max-w-md rounded-[28px] bg-gradient-to-br from-[#4c86ff] via-[#155FFF] to-[#7c3aed] p-4"
+             animate={{ boxShadow: [
+               "0 0 44px -6px rgba(21,95,255,0.45), 0 0 100px -12px rgba(124,58,237,0.30)",
+               "0 0 78px -4px rgba(21,95,255,0.68), 0 0 150px -8px rgba(124,58,237,0.48)",
+               "0 0 44px -6px rgba(21,95,255,0.45), 0 0 100px -12px rgba(124,58,237,0.30)",
+             ] }}
+             transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+           >
+            <div className="relative flex max-h-full w-full flex-col overflow-hidden rounded-[14px] bg-[#faf8f4]">
+             {/* close cross */}
+             <button
+               onClick={onClose}
+               aria-label="Close"
+               className="absolute right-3 top-3 z-10 flex size-7 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-200/70 hover:text-neutral-700"
+             >
+               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+             </button>
+             <div className="flex flex-col items-center overflow-y-auto px-6 py-7 text-center">
+              {/* top text — eyebrow */}
+              <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-[#155FFF]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#155FFF]">
+                <span className="size-1.5 rounded-full bg-[#155FFF]" />
+                You&apos;ve seen it in action
               </div>
-              <p className="relative mx-auto mt-3 max-w-[21rem] text-[13.5px] font-medium leading-relaxed text-white/90">
-                Cut support tickets, lift your AOV and stop wrong-address orders — for your store, using Order Editing.
-              </p>
-            </div>
+              {/* app logo + name */}
+              <div className="flex flex-col items-center gap-2">
+                <ClickpostMark className="size-11 rounded-[10px] shadow-sm" />
+                <span className="text-[22px] font-extrabold leading-none tracking-tight text-neutral-900">CP Order Editing</span>
+              </div>
+              <div className="mt-1.5 flex items-center gap-1.5 text-[12px] text-neutral-500">
+                {/* eslint-disable-next-line @next/next/no-img-element -- Shopify icon from /public */}
+                <img src="/shopify-icon.png" alt="Shopify" className="size-3.5 object-contain" />
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24"><path d="M12 2l3 6.5 7 .6-5.3 4.6 1.6 6.8L12 17.3 5.7 20.5l1.6-6.8L2 9.1l7-.6z" /></svg>
+                <span className="font-bold text-neutral-900">5.0</span>
+                <span>· 50+ reviews</span>
+              </div>
 
-            {/* moving brand strip (inside the box) */}
-            <div className="border-b border-neutral-100 bg-neutral-50/60 py-3">
-              <Marquee
-                duration={20}
-                items={FINAL_BRAND_LOGOS.map((src) => (
-                  // eslint-disable-next-line @next/next/no-img-element -- brand logo from /public
-                  <img key={src} src={src} alt="" className="h-5 w-auto max-w-[92px] object-contain opacity-60 brightness-0" />
-                ))}
-              />
-            </div>
+              {/* headline */}
+              <h2 className="mt-4 max-w-xs font-sans text-[17px] font-extrabold leading-[1.15] tracking-tight text-neutral-900">
+                Ready to reduce support tickets and boost AOV using CP Order Editing?
+              </h2>
 
-            {/* CTAs */}
-            <div className="px-7 py-6">
-              <a
-                href={outcomeHref}
-                target="_blank"
-                rel="noreferrer"
-                className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl py-3.5 text-[15px] font-bold text-white transition-all hover:brightness-110 active:scale-[0.99]"
-                style={{ background: "linear-gradient(135deg, #3b7cff, #155FFF 55%, #7c3aed)", boxShadow: "0 10px 30px -8px rgba(21,95,255,0.65)" }}
-              >
-                <motion.span
-                  aria-hidden
-                  className="pointer-events-none absolute inset-y-0 w-1/3 -skew-x-12 bg-white/25"
-                  initial={{ x: "-180%" }}
-                  animate={{ x: "420%" }}
-                  transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 1.4, ease: "easeInOut" }}
-                />
-                <span className="relative">Install app</span>
-                <svg className="relative" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M7 17 17 7M9 7h8v8" />
-                </svg>
-              </a>
-              <Link
-                href="/#contact"
-                className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-300 bg-white py-3 text-[14px] font-semibold text-neutral-700 transition-colors hover:bg-neutral-50"
-              >
-                Book a demo
+              {/* two CTAs side by side */}
+              <div className="mt-5 flex w-full flex-col gap-2.5 sm:flex-row">
+                <a
+                  href={outcomeHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group relative flex flex-1 items-center justify-center gap-1.5 overflow-hidden rounded-lg py-2.5 text-[13px] font-bold text-white transition-all hover:brightness-110 active:scale-[0.99]"
+                  style={{ background: "linear-gradient(135deg, #3b7cff, #155FFF 55%, #7c3aed)", boxShadow: "0 10px 26px -8px rgba(21,95,255,0.7)" }}
+                >
+                  <motion.span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-y-0 w-1/3 -skew-x-12 bg-white/25"
+                    initial={{ x: "-180%" }}
+                    animate={{ x: "460%" }}
+                    transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 1.4, ease: "easeInOut" }}
+                  />
+                  <span className="relative">Start 14-day free trial</span>
+                  <svg className="relative" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M7 17 17 7M9 7h8v8" /></svg>
+                </a>
+                <Link
+                  href="/#contact"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white py-2.5 text-[13px] font-semibold text-neutral-800 transition-colors hover:bg-neutral-50"
+                >
+                  Book a demo
+                </Link>
+              </div>
+
+              {/* review button → wall of love */}
+              <Link href="/reviews" className="group mt-3.5 inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#155FFF] transition-colors hover:text-[#0d47cc]">
+                Read our wall of love — 50+ five-star reviews
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="transition-transform group-hover:translate-x-0.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
               </Link>
-              <button onClick={onAdvance} className="mt-3 w-full text-[13px] font-semibold text-neutral-400 transition-colors hover:text-neutral-700">
-                Finish tour
-              </button>
+
+              {/* static brand collage */}
+              <div className="mt-6 w-full border-t border-neutral-200/80 pt-4">
+                <p className="mb-3 text-[9.5px] font-semibold uppercase tracking-[0.14em] text-neutral-400">Trusted by fast-growing brands</p>
+                <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
+                  {FINAL_BRAND_LOGOS.map((src) => (
+                    // eslint-disable-next-line @next/next/no-img-element -- brand logo from /public
+                    <img key={src} src={src} alt="" className="h-5 w-auto max-w-[74px] object-contain opacity-55 brightness-0" />
+                  ))}
+                </div>
+              </div>
             </div>
+            </div>
+           </motion.div>
           </motion.div>
         ) : rect ? (
           /* ---- in-between hop: highlight next card + small explore callout ---- */
@@ -235,13 +290,15 @@ export function TourOverlay({
           </>
         ) : null}
 
-        {/* Skip — always available */}
-        <button
-          onClick={onClose}
-          className="pointer-events-auto absolute right-5 top-5 rounded-full bg-neutral-900/80 px-4 py-2 text-[12px] font-medium text-white ring-1 ring-white/20 transition-colors hover:bg-neutral-900"
-        >
-          Exit tour
-        </button>
+        {/* Skip — for the in-between hop; the final card has its own close cross */}
+        {!finalStep && (
+          <button
+            onClick={onClose}
+            className="pointer-events-auto absolute right-5 top-5 rounded-full bg-neutral-900/80 px-4 py-2 text-[12px] font-medium text-white ring-1 ring-white/20 transition-colors hover:bg-neutral-900"
+          >
+            Exit tour
+          </button>
+        )}
       </div>,
       document.body
     );

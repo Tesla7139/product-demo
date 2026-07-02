@@ -98,10 +98,12 @@ export function AddressValidationMock({ store, tourRefs, onValidated, onConfirme
 
               {/* address, boxed fields */}
               <div className="mb-0 text-[11px] font-medium uppercase tracking-wide text-neutral-400">Delivery address</div>
-              <div
+              <motion.div
                 ref={tourRefs?.flaggedAddr}
                 className="space-y-2.5 rounded-xl border-2 p-3 transition-colors"
                 style={{ borderColor: boxBorder, background: boxBg }}
+                animate={flagged ? { x: [0, -9, 9, -7, 7, -4, 4, 0] } : { x: 0 }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
               >
                 <Field label="Full name" value={fields.name} />
                 <Field label="Address" value={fields.line1} changed={verified} />
@@ -112,7 +114,7 @@ export function AddressValidationMock({ store, tourRefs, onValidated, onConfirme
                   <Field label="ZIP code" value={fields.zip} changed={verified} />
                 </div>
                 <Field label="Country" value={fields.country} changed={verified} />
-              </div>
+              </motion.div>
 
               {/* Save address — only before validation */}
               {step === "edit" && (

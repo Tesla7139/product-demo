@@ -281,7 +281,7 @@ const UPSELL_TOUR_STEPS: TourStepDef[] = [
 
 const ADDRESS_TOUR_STEPS: TourStepDef[] = [
   {
-    id: "addr-save",
+    id: "addr-validate",
     title: "Customer saves an address",
     desc: "Every address is checked the moment it's saved — before the order ships.",
     cta: "Next",
@@ -289,8 +289,8 @@ const ADDRESS_TOUR_STEPS: TourStepDef[] = [
     clickThrough: true,
     tapTarget: true,
     hideCta: true,
-    spotlightId: "addr-save",
-    dotId: "addr-save",
+    spotlightId: "addr-validate",
+    dotId: "addr-validate",
   },
   {
     id: "addr-flagged",
@@ -638,6 +638,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
   const [measuredStep, setMeasuredStep] = useState(-1); // which step the current rect belongs to
   const [demoRect, setDemoRect] = useState<TourRect | null>(null); // editing-window bounds (blurred on outcome steps)
   const [pendingTour, setPendingTour] = useState<Tour | null>(null); // start this tour once its tab mounts
+  const [singleTourMode, setSingleTourMode] = useState(false); // true = don't chain to the next feature's tour
 
   // controlled bits during the tour
   const [tourForcedOpen, setTourForcedOpen] = useState<Section | null>(null);
@@ -645,6 +646,8 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
   const [qtyBump, setQtyBump] = useState(0); // tour: add one more of the first item
   const [demoResetKey, setDemoResetKey] = useState(0); // bump to remount the demo fresh
   const [euResetKey, setEuResetKey] = useState(0); // bump to remount the EU withdrawal page fresh
+  const [addrResetKey, setAddrResetKey] = useState(0); // bump to remount the address-validation window fresh
+  const [upsellResetKey, setUpsellResetKey] = useState(0); // bump to remount the upsell windows fresh
 
   // start the editing tour from a clean demo (original 2-item order, fresh timer, nothing highlighted)
   function resetDemo() {
@@ -719,7 +722,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
       case "upsell-add": return upsellAddBtnRef.current;
       case "ty-grid": return tyGridRef.current;
       case "ty-add": return tyAddBtnRef.current;
-      case "addr-save": return addrSaveBtnRef.current;
+      case "addr-validate": return addrSaveBtnRef.current;
       case "addr-flagged": return addrFlaggedRef.current;
       case "addr-recommended": return addrRecommendedRef.current;
       case "addr-confirm": return addrConfirmRef.current;
@@ -788,8 +791,9 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     enterStep("editing", 0);
   }
 
-  // "Take a tour" from any window: refresh the demo to its starting state, then run the full tour
+  // "Complete tour" — chains all features: editing → upsell → address → EU withdrawal
   function launchTour() {
+    setSingleTourMode(false);
     resetDemo(); // fresh 2-item order + fresh timer before we begin
     if (tab === "editing") {
       startEditingTour();
@@ -801,8 +805,32 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     }
   }
 
+  // Individual tour for just the current feature (no chaining to next)
+  function launchSingleTour(tour: Tour) {
+    setSingleTourMode(true);
+    setActiveTour(null);
+    setSpotlightRect(null);
+    setActivePill("tour");
+    if (tour === "editing") {
+      resetDemo();
+      if (tab === "editing") { startEditingTour(); return; }
+      setTab("editing");
+      setPendingTour("editing");
+    } else if (tour === "eu-withdrawal") {
+      setEuResetKey((k) => k + 1);
+      setTab("eu-withdrawal");
+      setPendingTour("eu-withdrawal");
+    } else {
+      if (tour === "upsell") setUpsellView("onetap");
+      if (tour === "address") setAddrResetKey((k) => k + 1); // fresh address window each run
+      setTab(tour);
+      setPendingTour(tour);
+    }
+  }
+
   // (re)start the EU withdrawal mini-tour from a fresh order-status page
   function startEuTour() {
+    setSingleTourMode(true);
     setActiveTour(null);
     setSpotlightRect(null);
     setActivePill("tour");
@@ -816,6 +844,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     setActiveTour(null);
     setSpotlightRect(null);
     if (next === "upsell") setUpsellView("onetap");
+    if (next === "address") setAddrResetKey((k) => k + 1); // fresh address window on handoff
     setTab(next);
     setPendingTour(next);
   }
@@ -852,16 +881,31 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     if (window.scrollY > 0) window.scrollTo(0, 0);
   }
 
+  // reset the currently-shown feature window back to its fresh, pre-tour state
+  function resetActiveFeature() {
+    if (tab === "editing") resetDemo();
+    else if (tab === "address") setAddrResetKey((k) => k + 1);
+    else if (tab === "eu-withdrawal") setEuResetKey((k) => k + 1);
+    else if (tab === "upsell") { setUpsellView("onetap"); setUpsellResetKey((k) => k + 1); }
+  }
+
   function advanceTour() {
     if (!activeTour) return;
     const list = TOUR_STEPS[activeTour];
     const cur = list[tourStep];
-    // an outcome step is the end of a feature's tour: hand off to the next feature or finish
+    // an outcome step is the end of a feature's tour
     if (cur?.outcome) {
-      if (cur.nextTour) goToTour(cur.nextTour);
-      else closeTour();
+      // In single-tour mode, always finish here (don't chain to next feature)
+      if (singleTourMode || !cur.nextTour) { if (singleTourMode) resetActiveFeature(); closeTour(); return; }
+      // In complete-tour mode, hand off to the next feature
+      goToTour(cur.nextTour);
       return;
     }
+    // Individual (single-feature) tours finish WITHOUT the white finale screen —
+    // that's reserved for the end of the complete tour. Reset the feature back to
+    // its default state and close, instead of rendering the outcome step.
+    const next = list[tourStep + 1];
+    if (singleTourMode && next?.outcome) { resetActiveFeature(); closeTour(); return; }
     if (tourStep >= list.length - 1) {
       setActiveTour(null); setSpotlightRect(null); scrollDemoTop();
     } else {
@@ -982,11 +1026,23 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
           <div className="pointer-events-none absolute -bottom-20 -left-16 h-3/4 w-3/4 rounded-full bg-[#bcd4ff]/45 blur-3xl" />
           <div className="pointer-events-none absolute right-1/4 top-1/3 h-1/2 w-1/2 -rotate-12 rounded-full bg-white/25 blur-2xl" />
 
-          {/* top bar — "Take a tour" on every window, plus tab-specific controls */}
+          {/* top bar — "Complete tour" + contextual individual tour button */}
           <div className="relative z-10 flex flex-wrap items-center justify-between gap-3">
-            {tab === "eu-withdrawal"
-              ? <TourButton onClick={startEuTour} label="See the withdrawal flow" />
-              : <TourButton onClick={launchTour} />}
+            <div className="flex items-center gap-2">
+              <TourButton onClick={launchTour} label="Complete tour" />
+              <button
+                onClick={() => launchSingleTour(tab === "cancel" ? "editing" : tab as Tour)}
+                className="group inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/20 px-4 py-2 text-[12px] font-bold text-white ring-1 ring-white/30 backdrop-blur-sm transition-all hover:bg-white/35 hover:ring-white/50"
+              >
+                <Sparkles className="size-3.5" />
+                {tab === "editing" && "Order Editing Tour"}
+                {tab === "upsell" && "Upsell Tour"}
+                {tab === "address" && "Address Tour"}
+                {tab === "eu-withdrawal" && "EU Withdrawal Tour"}
+                {tab === "cancel" && "Order Editing Tour"}
+                <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
+              </button>
+            </div>
 
             {tab === "editing" && onUpsell && (
               <div className="relative">
@@ -1068,7 +1124,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                 {tab === "upsell" && (
                   upsellView === "thankyou" ? (
                     <DemoMock
-                      key="ty-demo"
+                      key={`ty-demo-${upsellResetKey}`}
                       store={store}
                       initialOpen={null}
                       maxHeight={560}
@@ -1078,6 +1134,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                     />
                   ) : (
                     <OneTapUpsellMock
+                      key={`onetap-${upsellResetKey}`}
                       store={store}
                       addBtnRef={upsellAddBtnRef}
                       offerRef={upsellOfferRef}
@@ -1087,9 +1144,10 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                 )}
                 {tab === "address" && (
                   <AddressValidationMock
+                    key={`addr-${addrResetKey}`}
                     store={store}
                     tourRefs={{ saveBtn: addrSaveBtnRef, flaggedAddr: addrFlaggedRef, recommended: addrRecommendedRef, confirmBtn: addrConfirmRef }}
-                    onValidated={() => { if (curStep?.id === "addr-save") advanceAfterPause(); }}
+                    onValidated={() => { if (curStep?.id === "addr-validate") advanceAfterPause(); }}
                     onConfirmed={() => { if (curStep?.id === "addr-confirm") advanceAfterPause(); }}
                   />
                 )}
