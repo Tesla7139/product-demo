@@ -2,9 +2,21 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import { motion } from "framer-motion";
+import { Marquee } from "@/components/primitives/Marquee";
 
 const TOUR_ACCENT = "#155FFF";
+
+// brands shown in the moving strip inside the final window
+const FINAL_BRAND_LOGOS = [
+  "/customers/doonails.svg",
+  "/customers/hautesauce.png",
+  "/customers/curlwarehouse.png",
+  "/customers/modomu.png",
+  "/customers/mateina.png",
+  "/customers/renuebyscience.svg",
+];
 
 /** Types `text` out character by character; restarts whenever `text` changes. */
 function Typewriter({ text, className }: { text: string; className?: string }) {
@@ -48,8 +60,6 @@ export function TourOverlay({
   hideCard = false,
   hideCta = false,
   outcome = false,
-  outcomeHeadline,
-  outcomeButton,
   outcomeHref,
   nextLabel,
   finalStep = false,
@@ -133,32 +143,63 @@ export function TourOverlay({
             initial={{ opacity: 0, scale: 0.94, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="pointer-events-auto absolute left-1/2 top-1/2 w-[min(93vw,420px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-white shadow-2xl"
+            className="pointer-events-auto absolute left-1/2 top-1/2 w-[min(94vw,440px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-black/5"
           >
-            <div className="h-[4px] w-full" style={{ background: `linear-gradient(90deg, ${TOUR_ACCENT}, #7c3aed)` }} />
-            <div className="px-8 py-8 text-center">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-neutral-500">
-                CP Order Editing &amp; Upsell
+            {/* bright gradient header */}
+            <div className="relative overflow-hidden px-7 pb-6 pt-7 text-center text-white" style={{ background: "linear-gradient(135deg, #3b7cff 0%, #155FFF 48%, #7c3aed 100%)" }}>
+              <div className="pointer-events-none absolute -right-10 -top-10 size-32 rounded-full bg-white/20 blur-2xl" />
+              <div className="pointer-events-none absolute -bottom-12 -left-8 size-28 rounded-full bg-white/15 blur-2xl" />
+              <div className="relative flex items-center justify-center gap-2.5">
+                <span className="flex size-9 items-center justify-center rounded-xl bg-white shadow-md">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- Shopify badge from /public */}
+                  <img src="/shopify-icon.png" alt="Shopify" className="size-6 object-contain" />
+                </span>
+                <span className="text-[27px] font-extrabold leading-none tracking-tight">CP Order Editing</span>
               </div>
-              <h3 className="mt-4 font-serif text-[25px] font-bold leading-tight tracking-tight text-neutral-900">
-                Ready to do this on your store?
-              </h3>
-              <p className="mx-auto mt-2 max-w-[20rem] text-[14px] font-medium leading-relaxed text-neutral-500">
-                {outcomeHeadline ?? desc}
+              <p className="relative mx-auto mt-3 max-w-[21rem] text-[13.5px] font-medium leading-relaxed text-white/90">
+                Cut support tickets, lift your AOV and stop wrong-address orders — for your store, using Order Editing.
               </p>
+            </div>
+
+            {/* moving brand strip (inside the box) */}
+            <div className="border-b border-neutral-100 bg-neutral-50/60 py-3">
+              <Marquee
+                duration={20}
+                items={FINAL_BRAND_LOGOS.map((src) => (
+                  // eslint-disable-next-line @next/next/no-img-element -- brand logo from /public
+                  <img key={src} src={src} alt="" className="h-5 w-auto max-w-[92px] object-contain opacity-60 brightness-0" />
+                ))}
+              />
+            </div>
+
+            {/* CTAs */}
+            <div className="px-7 py-6">
               <a
                 href={outcomeHref}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
-                style={{ background: TOUR_ACCENT, boxShadow: `0 8px 24px -6px ${TOUR_ACCENT}88` }}
+                className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl py-3.5 text-[15px] font-bold text-white transition-all hover:brightness-110 active:scale-[0.99]"
+                style={{ background: "linear-gradient(135deg, #3b7cff, #155FFF 55%, #7c3aed)", boxShadow: "0 10px 30px -8px rgba(21,95,255,0.65)" }}
               >
-                {outcomeButton ?? "Get started"}
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <motion.span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-y-0 w-1/3 -skew-x-12 bg-white/25"
+                  initial={{ x: "-180%" }}
+                  animate={{ x: "420%" }}
+                  transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 1.4, ease: "easeInOut" }}
+                />
+                <span className="relative">Install app</span>
+                <svg className="relative" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="M7 17 17 7M9 7h8v8" />
                 </svg>
               </a>
-              <button onClick={onAdvance} className="mt-3 text-[13px] font-semibold text-neutral-500 transition-colors hover:text-neutral-800">
+              <Link
+                href="/#contact"
+                className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-300 bg-white py-3 text-[14px] font-semibold text-neutral-700 transition-colors hover:bg-neutral-50"
+              >
+                Book a demo
+              </Link>
+              <button onClick={onAdvance} className="mt-3 w-full text-[13px] font-semibold text-neutral-400 transition-colors hover:text-neutral-700">
                 Finish tour
               </button>
             </div>
