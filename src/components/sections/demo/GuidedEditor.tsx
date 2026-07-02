@@ -996,6 +996,15 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     setTab(k);
   }
 
+  // Esc exits the tour
+  useEffect(() => {
+    if (!activeTour) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeTour(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTour]);
+
   // start a pending tour once its tab swap has mounted the targets
   useEffect(() => {
     if (!pendingTour || tab !== pendingTour) return;
@@ -1110,7 +1119,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                   New
                 </motion.span>
                 <button
-                  onClick={onUpsell}
+                  onClick={() => { setUpsellView("onetap"); selectFeature("upsell"); }}
                   className="group inline-flex items-center gap-1.5 rounded-full border-2 bg-white px-3.5 py-1.5 text-[12px] font-semibold shadow-md transition-all hover:bg-blue-50"
                   style={{ borderColor: ACCENT, color: ACCENT }}
                 >
