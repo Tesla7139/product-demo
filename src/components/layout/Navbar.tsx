@@ -23,25 +23,30 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // links to the hero demo (#demo) also shake the store-URL input to prompt a link
+  const fireDemoShake = (href: string) => {
+    if (href.endsWith("#demo")) window.dispatchEvent(new CustomEvent("demo:shake"));
+  };
+
   return (
     <motion.header className="pointer-events-none sticky top-10 z-40 w-full transition-all duration-300">
       <div className="pointer-events-auto mx-auto flex w-full max-w-[1240px] justify-center px-4 sm:px-6">
         <div
           className={cn(
-            "w-fit rounded-full border bg-white/95 px-3 shadow-md backdrop-blur-xl transition-all duration-300 sm:px-4",
+            "w-fit rounded-full border bg-white/95 px-3 shadow-md backdrop-blur-xl transition-all duration-300 sm:px-4 lg:w-[900px]",
             scrolled
               ? "border-border py-2.5 shadow-[0_8px_30px_rgb(0,0,0,0.06)]"
               : "border-border/60 py-3.5"
           )}
         >
-          <nav className="flex items-center gap-5" aria-label="Primary">
+          <nav className="flex w-full items-center gap-5" aria-label="Primary">
             <div className="pl-1.5">
               <Logo className="h-4" />
             </div>
 
             {/* Desktop links */}
             <div
-              className="hidden items-center gap-1 lg:flex"
+              className="hidden items-center gap-1 lg:ml-auto lg:flex"
               onMouseLeave={() => setOpenGroup(null)}
             >
               {mainNav.map((item) =>
@@ -96,6 +101,7 @@ export function Navbar() {
                   <a
                     key={item.label}
                     href={item.href}
+                    onClick={() => fireDemoShake(item.href)}
                     className="whitespace-nowrap rounded-full px-3 py-2 text-[0.85rem] font-medium text-foreground/85 transition-colors hover:text-foreground"
                   >
                     {item.label}
@@ -128,7 +134,7 @@ export function Navbar() {
             <Dialog.Root open={mobileOpen} onOpenChange={setMobileOpen}>
               <Dialog.Trigger asChild>
                 <button
-                  className="rounded-full p-2 text-foreground transition-colors hover:bg-foreground/[0.05] lg:hidden"
+                  className="ml-auto rounded-full p-2 text-foreground transition-colors hover:bg-foreground/[0.05] lg:hidden"
                   aria-label="Open menu"
                 >
                   <Menu className="size-6" />
@@ -152,7 +158,7 @@ export function Navbar() {
                       <div key={item.label}>
                         <a
                           href={item.href}
-                          onClick={() => setMobileOpen(false)}
+                          onClick={() => { setMobileOpen(false); fireDemoShake(item.href); }}
                           className="block rounded-md py-2 text-[1.05rem] font-medium text-foreground"
                         >
                           {item.label}

@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Star } from "lucide-react";
 import { Container } from "@/components/primitives/Container";
 import { DemoUrlInput } from "./demo/DemoUrlInput";
 import { DemoExperience } from "./demo/DemoExperience";
@@ -14,6 +13,15 @@ export function Hero() {
   const { status, store, submittedUrl, generate, reset } = useDemoData();
   const [url, setUrl] = useState("");
   const [open, setOpen] = useState(false);
+  const [shake, setShake] = useState(0);
+
+  // the "Product Tour" nav link fires this to nudge the store-URL input
+  useEffect(() => {
+    const onShake = () => setShake((n) => n + 1);
+    window.addEventListener("demo:shake", onShake);
+    if (window.location.hash === "#demo") onShake();
+    return () => window.removeEventListener("demo:shake", onShake);
+  }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,36 +53,21 @@ export function Hero() {
             className="text-balance font-serif font-bold tracking-tight text-foreground"
             style={{ fontSize: "clamp(2.25rem, 4.4vw, 3.75rem)", lineHeight: 1.04, letterSpacing: "-0.025em" }}
           >
-            Eliminate your customer service tickets and make six figures in upsell revenue
+            Reduce Support Tickets and Add Thousands in Upsell Revenue
           </motion.h1>
 
-          <motion.a
-            variants={fadeUp}
-            href="https://apps.shopify.com/clickpost-order-edit-cancel"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group mt-6 inline-flex items-center gap-2.5 transition-opacity hover:opacity-80"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element -- official Shopify app-store icon */}
-            <img src="/shopify-icon.png" alt="Shopify" className="size-5 object-contain" />
-            <Star className="size-4 fill-amber-400 text-amber-400" />
-            <span className="text-[0.9rem] font-medium tracking-tight text-foreground">5.0</span>
-            <span className="text-[0.9rem] font-normal tracking-tight text-muted-foreground">
-              (51) Shopify Reviews
-            </span>
-          </motion.a>
-
-          <motion.p variants={fadeUp} className="mt-7 text-sm text-muted-foreground">
-            Drop your URL and see how order editing would work on your store.
+          <motion.p variants={fadeUp} className="mt-6 text-lg text-muted-foreground md:text-xl">
+            Enter your store URL to have a personalized demo tailored to your store.
           </motion.p>
 
-          <motion.div variants={fadeUp} className="mt-3 w-full max-w-xl">
+          <motion.div variants={fadeUp} className="mt-6 w-full max-w-xl">
             <DemoUrlInput
               url={url}
               setUrl={setUrl}
               onSubmit={onSubmit}
               loading={status === "loading"}
               align="center"
+              shake={shake}
             />
           </motion.div>
         </motion.div>

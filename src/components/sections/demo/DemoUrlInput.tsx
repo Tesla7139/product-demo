@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+import { motion, useAnimationControls } from "framer-motion";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -9,27 +11,55 @@ export function DemoUrlInput({
   onSubmit,
   loading,
   align = "left",
+  shake = 0,
 }: {
   url: string;
   setUrl: (v: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   loading: boolean;
   align?: "left" | "center";
+  /** bump this counter to shake + focus the input (e.g. from the "Product Tour" nav link) */
+  shake?: number;
 }) {
+  const controls = useAnimationControls();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [highlight, setHighlight] = useState(false);
+
+  useEffect(() => {
+    if (shake <= 0) return;
+    inputRef.current?.focus({ preventScroll: false });
+    controls.start({
+      x: [0, -12, 12, -10, 10, -6, 6, 0],
+      transition: { duration: 0.55, ease: "easeInOut" },
+    });
+    setHighlight(true);
+    const t = setTimeout(() => setHighlight(false), 1800);
+    return () => clearTimeout(t);
+  }, [shake, controls]);
+
   return (
     <div className={cn("w-full", align === "center" && "mx-auto max-w-xl")}>
       <form onSubmit={onSubmit} className="w-full">
         <label htmlFor="store-url" className="sr-only">
           Your store URL
         </label>
-        <div className="group relative flex w-full items-center rounded-full border bg-white/95 p-2 shadow-[0_10px_40px_-12px_rgba(15,15,25,0.18)] backdrop-blur-xl transition-all border-border/60 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/20 focus-within:shadow-[0_14px_50px_-12px_rgba(47,91,255,0.3)]">
+        <motion.div
+          animate={controls}
+          className={cn(
+            "group relative flex w-full items-center rounded-full border bg-white/95 p-2 shadow-[0_10px_40px_-12px_rgba(15,15,25,0.18)] backdrop-blur-xl transition-all",
+            highlight
+              ? "border-red-400 ring-4 ring-red-500/25 shadow-[0_14px_50px_-12px_rgba(239,68,68,0.4)]"
+              : "border-border/60 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/20 focus-within:shadow-[0_14px_50px_-12px_rgba(47,91,255,0.3)]"
+          )}
+        >
           <input
             id="store-url"
+            ref={inputRef}
             type="text"
             inputMode="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="yourstore.com"
+            placeholder="Enter your store URL"
             className="h-12 flex-1 bg-transparent pl-5 pr-2 text-[0.95rem] text-foreground placeholder:text-muted-foreground/70 outline-none focus:outline-none focus-visible:outline-none [&:focus-visible]:outline-none"
             style={{ outline: "none", boxShadow: "none" }}
           />
@@ -45,11 +75,11 @@ export function DemoUrlInput({
               </>
             ) : (
               <>
-                See it on my store <ArrowRight className="size-4" />
+                See it live <ArrowRight className="size-4" />
               </>
             )}
           </button>
-        </div>
+        </motion.div>
       </form>
     </div>
   );

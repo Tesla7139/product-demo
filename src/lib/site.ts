@@ -33,7 +33,7 @@ export type NavLink = { label: string; href: string; desc?: string };
 export type NavItem = { label: string; href: string; items?: NavLink[] };
 
 export const mainNav: NavItem[] = [
-  { label: "Product Tour", href: "/#features" },
+  { label: "Product Tour", href: "/#demo" },
   {
     label: "Customer Love",
     href: "/reviews",
@@ -41,9 +41,6 @@ export const mainNav: NavItem[] = [
       { label: "Love Gallery", href: "/reviews", desc: "51 five-star merchant reviews" },
     ],
   },
-  { label: "Integrations", href: "/integrations" },
-  { label: "Analytics", href: "/analytics" },
-  { label: "Pricing", href: "/#pricing" },
 ];
 
 // ---- Integrations (shown on the dedicated /integrations page) ----
