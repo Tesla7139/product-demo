@@ -2,12 +2,10 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, ChevronDown, TriangleAlert, UserRound } from "lucide-react";
+import { Check, TriangleAlert } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
-import { DEFAULT_EMAIL, DEFAULT_PHONE } from "./DemoMock";
 
 const GOOGLE_BLUE = "#1a73e8";
-const RECOMMENDED = "10444 Main St, Flushing, NY 11367, USA";
 
 type AddrFields = { name: string; line1: string; line2: string; city: string; state: string; zip: string; country: string };
 const ENTERED_ADDR: AddrFields = { name: "Tucker Albright", line1: "Main Street", line2: "Apt 4B", city: "Flushing", state: "New York", zip: "10444", country: "United States" };
@@ -63,7 +61,6 @@ type AddrTourRefs = {
 /** Address validation: a flagged address + a Google-style "use the recommended address" confirm. */
 export function AddressValidationMock({ store, tourRefs, onConfirmed }: { store: DemoStore; tourRefs?: AddrTourRefs; onConfirmed?: () => void }) {
   const [step, setStep] = useState<"review" | "done">("review");
-  const [contactOpen, setContactOpen] = useState(false);
   const verified = step === "done";
   const fields = verified ? RECOMMENDED_ADDR : ENTERED_ADDR;
   const name = store.brandName || "Checkout";
@@ -79,31 +76,8 @@ export function AddressValidationMock({ store, tourRefs, onConfirmed }: { store:
 
         <div className="p-6">
           <div className="grid gap-5 md:grid-cols-2">
-            {/* left column: contact + status banner + flagged address */}
+            {/* left column: status banner + flagged address */}
             <div className="space-y-3">
-              {/* contact information — collapsed accordion (matches address width) */}
-              <div className="overflow-hidden rounded-lg border border-border">
-                <button
-                  onClick={() => setContactOpen((v) => !v)}
-                  className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left transition-colors hover:bg-neutral-50"
-                  aria-expanded={contactOpen}
-                >
-                  <UserRound className="size-4 shrink-0 text-neutral-600" />
-                  <span className="flex-1 text-sm font-semibold text-neutral-900">Contact information</span>
-                  <ChevronDown className={`size-4 text-neutral-400 transition-transform ${contactOpen ? "rotate-180" : ""}`} />
-                </button>
-                <AnimatePresence initial={false}>
-                  {contactOpen && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }} className="overflow-hidden">
-                      <div className="space-y-2.5 px-3.5 pb-4 pt-1">
-                        <Field label="Email" value={DEFAULT_EMAIL} />
-                        <Field label="Phone" value={DEFAULT_PHONE} />
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
               {/* status banner — directly above the address box */}
               {verified ? (
                 <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-[13px] font-semibold text-emerald-700">
@@ -144,39 +118,44 @@ export function AddressValidationMock({ store, tourRefs, onConfirmed }: { store:
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                  className="relative self-start rounded-2xl bg-neutral-50 p-5 ring-1 ring-neutral-200"
+                  className="relative self-start rounded-2xl bg-neutral-50 p-7 ring-1 ring-neutral-200"
                 >
                   {/* Google Maps badge */}
-                  <div className="absolute -right-3 -top-3 size-11 overflow-hidden rounded-xl shadow-md ring-1 ring-black/5">
+                  <div className="absolute -right-3 -top-3 size-12 overflow-hidden rounded-xl shadow-md ring-1 ring-black/5">
                     <GoogleMapsMark className="size-full" />
-                    <span className="absolute left-[3px] top-[3px] flex size-[15px] items-center justify-center rounded-md bg-white shadow-sm ring-1 ring-black/5">
-                      <GoogleG className="size-[10px]" />
+                    <span className="absolute left-[3px] top-[3px] flex size-4 items-center justify-center rounded-md bg-white shadow-sm ring-1 ring-black/5">
+                      <GoogleG className="size-[11px]" />
                     </span>
                   </div>
-                  <h4 className="pr-8 text-[16px] font-bold leading-tight text-neutral-900">Confirm your delivery address</h4>
-                  <p className="mt-0.5 text-[12px] text-neutral-500">Use the corrected, deliverable address</p>
+                  <h4 className="pr-8 text-[19px] font-bold leading-tight text-neutral-900">Confirm your delivery address</h4>
+                  <p className="mt-1 text-[13px] text-neutral-500">Use the corrected, deliverable address we found.</p>
 
                   <button
                     ref={tourRefs?.recommended}
-                    className="mt-3 flex w-full items-start gap-2.5 rounded-xl border-2 bg-white p-3 text-left"
+                    className="mt-4 flex w-full items-start gap-3 rounded-xl border-2 bg-white p-4 text-left"
                     style={{ borderColor: GOOGLE_BLUE }}
                   >
-                    <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border-2" style={{ borderColor: GOOGLE_BLUE }}>
+                    <span className="mt-1 flex size-4 shrink-0 items-center justify-center rounded-full border-2" style={{ borderColor: GOOGLE_BLUE }}>
                       <span className="size-2 rounded-full" style={{ background: GOOGLE_BLUE }} />
                     </span>
                     <span className="min-w-0">
-                      <span className="block text-[16px] font-bold text-neutral-900">Recommended</span>
-                      <span className="mt-0.5 block text-[12px] leading-snug text-neutral-500">{RECOMMENDED}</span>
+                      <span className="block text-[17px] font-bold text-neutral-900">Recommended</span>
+                      <span className="mt-1.5 block space-y-0.5 text-[14px] leading-relaxed text-neutral-700">
+                        <span className="block font-medium text-neutral-900">{RECOMMENDED_ADDR.name}</span>
+                        <span className="block">{RECOMMENDED_ADDR.line1}, {RECOMMENDED_ADDR.line2}</span>
+                        <span className="block">{RECOMMENDED_ADDR.city}, {RECOMMENDED_ADDR.state} {RECOMMENDED_ADDR.zip}</span>
+                        <span className="block">{RECOMMENDED_ADDR.country}</span>
+                      </span>
                     </span>
                   </button>
 
                   <button
                     ref={tourRefs?.confirmBtn}
                     onClick={() => { setStep("done"); onConfirmed?.(); }}
-                    className="mt-4 w-full rounded-full py-2.5 text-[13px] font-semibold text-white transition-all hover:brightness-110"
+                    className="mt-5 w-full rounded-full py-3 text-[14px] font-semibold text-white transition-all hover:brightness-110"
                     style={{ background: GOOGLE_BLUE }}
                   >
-                    Confirm
+                    Use this address
                   </button>
                 </motion.div>
               )}
