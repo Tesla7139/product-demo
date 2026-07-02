@@ -119,7 +119,7 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
 
   return (
     <div className="mx-auto w-full max-w-3xl overflow-hidden rounded-2xl border border-border bg-white shadow-soft-xl">
-      <div className="max-h-[560px] overflow-y-auto no-scrollbar p-6">
+      <div className="p-6 lg:max-h-[560px] lg:overflow-y-auto lg:no-scrollbar">
         {/* header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-2">

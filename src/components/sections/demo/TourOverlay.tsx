@@ -32,13 +32,6 @@ const FINAL_BRAND_LOGOS = [
   "/customers/curlwarehouse.png",
   "/customers/modomu.png",
   "/customers/mateina.png",
-  "/customers/renuebyscience.svg",
-  "/customers/alkalinegoddess.png",
-  "/customers/bluntcases.png",
-  "/customers/onebone.png",
-  "/customers/rareform.png",
-  "/customers/vegogarden.png",
-  "/customers/eternalperfumeoils.png",
 ];
 
 /** Types `text` out character by character; restarts whenever `text` changes. */
@@ -166,12 +159,12 @@ export function TourOverlay({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="pointer-events-none absolute flex items-center justify-center p-7"
+            className="pointer-events-none absolute flex items-center justify-center p-3 sm:p-7"
             style={dim ? { top: dim.top, left: dim.left, width: dim.width, height: dim.height } : { inset: 0 }}
           >
            {/* thick blue→purple frame (~1cm) + pulsing side glow — compact, squarish card */}
            <motion.div
-             className="pointer-events-auto flex max-h-full w-full max-w-md rounded-[28px] bg-gradient-to-br from-[#4c86ff] via-[#155FFF] to-[#7c3aed] p-4"
+             className="pointer-events-auto flex max-h-full w-full max-w-md rounded-[22px] bg-gradient-to-br from-[#4c86ff] via-[#155FFF] to-[#7c3aed] p-2.5 sm:rounded-[28px] sm:p-4"
              animate={{ boxShadow: [
                "0 0 44px -6px rgba(21,95,255,0.45), 0 0 100px -12px rgba(124,58,237,0.30)",
                "0 0 78px -4px rgba(21,95,255,0.68), 0 0 150px -8px rgba(124,58,237,0.48)",
@@ -188,7 +181,7 @@ export function TourOverlay({
              >
                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
              </button>
-             <div className="flex flex-col items-center overflow-y-auto px-6 py-7 text-center">
+             <div className="flex flex-col items-center overflow-y-auto px-5 py-6 text-center sm:px-6 sm:py-7">
               {/* top text — eyebrow */}
               <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-[#155FFF]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#155FFF]">
                 <span className="size-1.5 rounded-full bg-[#155FFF]" />
@@ -387,7 +380,7 @@ export function TourOverlay({
         initial={{ opacity: 0, y: tooltipBelow ? 10 : -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-        className="pointer-events-auto absolute w-[280px] overflow-hidden rounded-2xl bg-white shadow-2xl"
+        className="pointer-events-auto absolute w-[min(280px,calc(100vw-24px))] overflow-hidden rounded-2xl bg-white shadow-2xl"
         style={{ top: clampedTop, left: tooltipLeft, transition: "top 0.15s ease-out" }}
       >
         <div className="h-[3px] w-full" style={{ background: `linear-gradient(90deg, ${TOUR_ACCENT}, #7c3aed)` }} />

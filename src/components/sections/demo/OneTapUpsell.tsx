@@ -109,7 +109,7 @@ export function OneTapUpsell({
             </div>
 
             {/* offer */}
-            <div className="mt-4 grid gap-5 md:grid-cols-2">
+            <div className="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2">
               <div className="flex aspect-square items-center justify-center overflow-hidden rounded-xl bg-neutral-50">
                 {offer?.image ? (
                   // eslint-disable-next-line @next/next/no-img-element -- remote product image

@@ -269,7 +269,7 @@ function EditingView({ store, onUpsell }: { store: DemoStore; onUpsell: () => vo
       initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
       className="min-h-screen bg-background-muted/40"
     >
-      <div className="mx-auto max-w-7xl px-5 py-8">
+      <div className="mx-auto max-w-7xl px-3 py-5 sm:px-5 sm:py-8">
         <GuidedEditor store={store} onUpsell={onUpsell} />
       </div>
 

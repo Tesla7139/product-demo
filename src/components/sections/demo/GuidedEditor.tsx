@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowRight, ArrowUpRight, Check, Sparkles, Star, CalendarDays,
+  ArrowRight, ArrowUpRight, Check, Sparkles, Star, CalendarDays, ChevronDown,
 } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
 import type { Addr } from "./DemoMock";
@@ -454,6 +454,8 @@ function FeaturesRail({
   onSelect: (t: Tab) => void;
   cardRefs: Partial<Record<Tab, React.RefObject<HTMLButtonElement | null>>>;
 }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const activeCard = FEATURE_CARDS.find((f) => f.key === tab) ?? FEATURE_CARDS[0];
   return (
     <div className="flex h-full w-full flex-col lg:max-w-[340px]">
       {/* heading */}
@@ -461,8 +463,48 @@ function FeaturesRail({
         Click a feature to run it live.
       </h3>
 
-      {/* feature cards — single-select toggle, glass + hover tooltip */}
-      <div className="mt-3 flex flex-col gap-2">
+      {/* mobile: dropdown — selected feature on top, tap the arrow to reveal all four */}
+      <div className="relative z-30 mt-3 lg:hidden">
+        <button
+          onClick={() => setMobileOpen((o) => !o)}
+          aria-expanded={mobileOpen}
+          className="relative flex w-full items-center justify-between gap-2 rounded-2xl border-2 px-4 py-3 text-left text-white shadow-[0_8px_24px_-6px_rgba(21,95,255,0.55)]"
+          style={{ background: `linear-gradient(135deg, #3b7cff 0%, ${ACCENT} 100%)`, borderColor: "#2f6bff" }}
+        >
+          <span className="font-sans text-[15px] font-bold tracking-tight">{activeCard.title}</span>
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white/20">
+            <ChevronDown className={`size-4 transition-transform ${mobileOpen ? "rotate-180" : ""}`} strokeWidth={2.5} />
+          </span>
+        </button>
+        <AnimatePresence>
+          {mobileOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute left-0 right-0 top-full mt-2 overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-soft-xl"
+            >
+              {FEATURE_CARDS.map((f) => {
+                const active = tab === f.key;
+                return (
+                  <button
+                    key={f.key}
+                    onClick={() => { onSelect(f.key); setMobileOpen(false); }}
+                    className={`flex w-full items-center justify-between gap-2 rounded-xl px-3.5 py-2.5 text-left text-[15px] font-bold tracking-tight transition-colors ${active ? "bg-[#155FFF]/10 text-[#155FFF]" : "text-neutral-800 hover:bg-neutral-100"}`}
+                  >
+                    {f.title}
+                    {active ? <Check className="size-4" strokeWidth={3} /> : <ArrowRight className="size-4 text-neutral-400" />}
+                  </button>
+                );
+              })}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* desktop: feature cards — single-select toggle, glass + hover tooltip */}
+      <div className="mt-3 hidden lg:flex lg:flex-col lg:gap-2">
         {FEATURE_CARDS.map((f) => {
           const active = tab === f.key;
           return (
@@ -471,7 +513,7 @@ function FeaturesRail({
                 ref={cardRefs[f.key]}
                 aria-pressed={active}
                 onClick={() => onSelect(f.key)}
-                className={`relative flex w-full cursor-pointer items-center justify-between gap-3 overflow-hidden rounded-2xl border-2 px-5 py-3 text-left backdrop-blur-md transition-all duration-200 ${
+                className={`relative flex w-full cursor-pointer items-center justify-between gap-2 overflow-hidden rounded-2xl border-2 px-4 py-3 text-left backdrop-blur-md transition-all duration-200 lg:gap-3 lg:px-5 ${
                   active
                     ? "text-white shadow-[0_8px_24px_-6px_rgba(21,95,255,0.55)]"
                     : "border-neutral-200/90 bg-white/55 text-neutral-800 shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] hover:-translate-y-0.5 hover:border-[#155FFF]/60 hover:bg-white hover:shadow-[0_12px_30px_-10px_rgba(21,95,255,0.4)]"
@@ -484,7 +526,7 @@ function FeaturesRail({
                   className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-2xl"
                   style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 100%)", opacity: active ? 0.5 : 0.7 }}
                 />
-                <span className="relative font-sans text-[17px] font-bold tracking-tight">{f.title}</span>
+                <span className="relative font-sans text-[15px] font-bold leading-tight tracking-tight lg:text-[17px]">{f.title}</span>
                 {/* clickable affordance */}
                 <span
                   className={`relative flex size-8 shrink-0 items-center justify-center rounded-full transition-all ${
@@ -538,8 +580,8 @@ function FeaturesRail({
         })}
       </div>
 
-      {/* install CTA — bottom-aligned with the demo window */}
-      <div className="relative mt-4 flex flex-col justify-center gap-4 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-5 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md lg:flex-1">
+      {/* install CTA — desktop only (mobile keeps the demo front-and-center; the footer below carries the CTA) */}
+      <div className="relative mt-4 hidden flex-col justify-center gap-4 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-5 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md lg:flex lg:flex-1">
         {/* headline + rotating brand-result note */}
         <div>
           <h3 className="mx-auto max-w-[15rem] font-sans text-[19px] font-extrabold leading-[1.15] tracking-tight text-foreground">
@@ -920,6 +962,18 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     pauseTimer.current = setTimeout(() => advanceTour(), 2000);
   }
 
+  // the address demo hit its verified end-state — finish the address tour cleanly no
+  // matter which step is showing: single tour resets + closes, complete tour shows the finale
+  function finishAddressTour() {
+    if (activeTour !== "address") return;
+    setSpotlightRect(null);
+    if (pauseTimer.current) clearTimeout(pauseTimer.current);
+    pauseTimer.current = setTimeout(() => {
+      if (singleTourMode) { resetActiveFeature(); closeTour(); }
+      else enterStep("address", ADDRESS_TOUR_STEPS.length - 1);
+    }, 2000);
+  }
+
   function closeTour() {
     if (pauseTimer.current) clearTimeout(pauseTimer.current);
     setActiveTour(null);
@@ -1015,7 +1069,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
   return (
     <div ref={rootRef} className="scroll-mt-6">
       {/* two-column */}
-      <div className="grid items-stretch gap-8 lg:grid-cols-[0.52fr_1.48fr] lg:gap-10">
+      <div className="grid grid-cols-1 items-stretch gap-5 sm:gap-8 lg:grid-cols-[0.52fr_1.48fr] lg:gap-10">
         {/* ---- LEFT: features rail ---- */}
         <FeaturesRail tab={tab} onSelect={selectFeature} cardRefs={cardRefs} />
 
@@ -1027,8 +1081,8 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
           <div className="pointer-events-none absolute right-1/4 top-1/3 h-1/2 w-1/2 -rotate-12 rounded-full bg-white/25 blur-2xl" />
 
           {/* top bar — "Complete tour" + contextual individual tour button */}
-          <div className="relative z-10 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
+          <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+            <div className="flex flex-wrap items-center gap-2">
               <TourButton onClick={launchTour} label="Complete tour" />
               <button
                 onClick={() => launchSingleTour(tab === "cancel" ? "editing" : tab as Tour)}
@@ -1088,11 +1142,6 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
               </div>
             )}
 
-            {tab === "address" && (
-              <span className="rounded-full bg-white/15 px-3.5 py-1.5 text-[12px] font-semibold text-white ring-1 ring-white/30 backdrop-blur">
-                Address Validation — live preview
-              </span>
-            )}
 
           </div>
 
@@ -1148,7 +1197,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                     store={store}
                     tourRefs={{ saveBtn: addrSaveBtnRef, flaggedAddr: addrFlaggedRef, recommended: addrRecommendedRef, confirmBtn: addrConfirmRef }}
                     onValidated={() => { if (curStep?.id === "addr-validate") advanceAfterPause(); }}
-                    onConfirmed={() => { if (curStep?.id === "addr-confirm") advanceAfterPause(); }}
+                    onConfirmed={finishAddressTour}
                   />
                 )}
                 {tab === "eu-withdrawal" && (

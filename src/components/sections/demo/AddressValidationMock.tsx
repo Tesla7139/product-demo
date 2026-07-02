@@ -71,7 +71,7 @@ export function AddressValidationMock({ store, tourRefs, onValidated, onConfirme
 
   return (
     <div className="mx-auto w-full max-w-3xl overflow-hidden rounded-2xl border border-border bg-white shadow-soft-xl">
-      <div className="max-h-[560px] overflow-y-auto no-scrollbar">
+      <div className="lg:max-h-[560px] lg:overflow-y-auto lg:no-scrollbar">
         {/* header */}
         <div className="border-b border-border px-6 py-4">
           <div className="text-[13px] font-semibold text-neutral-800">{name} · Delivery</div>
@@ -79,7 +79,7 @@ export function AddressValidationMock({ store, tourRefs, onValidated, onConfirme
         </div>
 
         <div className="p-6">
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             {/* left column: status banner + flagged address */}
             <div className="space-y-3">
               {/* status banner — only after saving (red flagged / green verified) */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Check,
@@ -259,8 +259,8 @@ export function DemoMock({
     <div className="relative mx-auto w-full max-w-3xl text-left">
       <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-soft-xl">
         <div
-          className={`grid lg:grid-cols-[minmax(0,1fr)_270px] ${maxHeight ? "no-scrollbar overflow-y-auto" : ""}`}
-          style={maxHeight ? { maxHeight } : undefined}
+          className={`grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_270px] ${maxHeight ? "lg:no-scrollbar lg:max-h-[var(--demo-h)] lg:overflow-y-auto" : ""}`}
+          style={maxHeight ? ({ "--demo-h": `${maxHeight}px` } as CSSProperties) : undefined}
         >
           {/* LEFT: confirmation + editing panel OR one-tap upsell panel */}
           <div className="border-border p-4 lg:border-r">

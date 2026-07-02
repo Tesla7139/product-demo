@@ -74,7 +74,7 @@ export function OneTapUpsellMock({ store, onComplete, accentColor, addBtnRef, of
       </div>
 
       {/* page body */}
-      <div className="max-h-[520px] overflow-y-auto no-scrollbar">
+      <div className="lg:max-h-[520px] lg:overflow-y-auto lg:no-scrollbar">
         {/* store header */}
         <div className="border-b border-border px-6 py-2.5">
           <div className="text-[13px] font-semibold text-neutral-800">{slug}</div>
@@ -152,7 +152,7 @@ export function OneTapUpsellMock({ store, onComplete, accentColor, addBtnRef, of
             </div>
           </motion.div>
         ) : (
-          <div ref={offerRef} className="grid md:grid-cols-2">
+          <div ref={offerRef} className="grid grid-cols-1 md:grid-cols-2">
             {/* product image */}
             <div className="flex items-center justify-center bg-neutral-50 p-3">
               {offer?.image ? (
