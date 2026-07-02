@@ -878,11 +878,10 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     }
     setActiveTour(null);
     setSpotlightRect(null);
+    setPendingTour(null);
     setActivePill("tour");
     setTourForcedOpen(null);
     setTab(k);
-    // the EU Withdrawal card launches its own standalone mini-tour on click
-    setPendingTour(k === "eu-withdrawal" ? "eu-withdrawal" : null);
   }
 
   // start a pending tour once its tab swap has mounted the targets
