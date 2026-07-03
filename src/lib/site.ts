@@ -345,6 +345,7 @@ export const footerColumns = [
       { label: "Address Validation", href: "#features" },
       { label: "Cancellations", href: "#features" },
       { label: "Upsells", href: "#features" },
+      { label: "EU Product Withdrawal", href: "#features" },
     ],
   },
   {

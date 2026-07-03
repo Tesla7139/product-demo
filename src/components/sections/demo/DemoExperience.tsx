@@ -110,7 +110,7 @@ function LoadingView({ label }: { label: string }) {
   }, []);
 
   return (
-    <div className="relative flex min-h-screen overflow-hidden bg-background">
+    <div className="relative flex h-screen overflow-hidden bg-background">
       {/* soft glow top-left */}
       <div className="pointer-events-none absolute -left-24 -top-24 size-72 rounded-full blur-3xl transition-colors duration-500" style={{ background: `${accent}22` }} />
 
@@ -145,7 +145,7 @@ function LoadingView({ label }: { label: string }) {
 
       {/* ---- right main panel ---- */}
       <main className="flex-1 p-4 md:p-6">
-        <div className="flex h-full flex-col rounded-3xl border border-border bg-white p-7 shadow-soft-md md:p-10">
+        <div className="flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-white p-7 shadow-soft-md md:p-10">
           {/* top row */}
           <div className="flex items-center justify-between gap-4">
             <span className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition-colors duration-300" style={{ background: `${accent}1a`, color: accent }}>
@@ -170,17 +170,6 @@ function LoadingView({ label }: { label: string }) {
               ? "All set. Opening your branded preview now."
               : "We can open the experience now and continue settling in the remaining brand details in the background."}
           </p>
-
-          {/* progress bar */}
-          <div className="mt-7 h-2 w-full overflow-hidden rounded-full bg-background-muted">
-            <motion.div
-              initial={{ width: "8%" }}
-              animate={{ width: done ? "100%" : "82%" }}
-              transition={{ duration: done ? 0.4 : 2.4, ease: "easeInOut" }}
-              className="h-full rounded-full"
-              style={{ background: `linear-gradient(90deg, ${accent}33, ${accent})` }}
-            />
-          </div>
 
           {/* support tickets — scroll downward; the ones shoppers won't need to open */}
           <div className="mt-8 flex-1">

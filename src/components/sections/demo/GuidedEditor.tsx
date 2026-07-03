@@ -513,25 +513,24 @@ function FeaturesRail({
                 ref={cardRefs[f.key]}
                 aria-pressed={active}
                 onClick={() => onSelect(f.key)}
-                className={`relative flex w-full cursor-pointer items-center justify-between gap-2 overflow-hidden rounded-2xl border-2 px-4 py-3 text-left backdrop-blur-md transition-all duration-200 lg:gap-3 lg:px-5 ${
+                className={`relative flex w-full cursor-pointer items-center justify-between gap-2 overflow-hidden rounded-2xl border-2 px-4 py-2.5 text-left backdrop-blur-md transition-all duration-200 lg:gap-3 lg:px-5 lg:py-3 ${
                   active
-                    ? "text-white shadow-[0_8px_24px_-6px_rgba(21,95,255,0.55)]"
+                    ? "border-[#155FFF] bg-[#155FFF]/10 text-[#124bd6] shadow-[0_4px_16px_-8px_rgba(21,95,255,0.35)]"
                     : "border-neutral-200/90 bg-white/55 text-neutral-800 shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] hover:-translate-y-0.5 hover:border-[#155FFF]/60 hover:bg-white hover:shadow-[0_12px_30px_-10px_rgba(21,95,255,0.4)]"
                 }`}
-                style={active ? { background: `linear-gradient(135deg, #3b7cff 0%, ${ACCENT} 100%)`, borderColor: "#2f6bff" } : undefined}
               >
                 {/* glass sheen */}
                 <span
                   aria-hidden
                   className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-2xl"
-                  style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 100%)", opacity: active ? 0.5 : 0.7 }}
+                  style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 100%)", opacity: active ? 0.35 : 0.7 }}
                 />
-                <span className="relative font-sans text-[15px] font-bold leading-tight tracking-tight lg:text-[17px]">{f.title}</span>
+                <span className="relative font-sans text-[15px] font-bold leading-tight tracking-tight lg:text-[16px]">{f.title}</span>
                 {/* clickable affordance */}
                 <span
-                  className={`relative flex size-8 shrink-0 items-center justify-center rounded-full transition-all ${
+                  className={`relative flex size-8 shrink-0 items-center justify-center rounded-full transition-all lg:size-9 ${
                     active
-                      ? "bg-white/20 text-white"
+                      ? "bg-[#155FFF] text-white"
                       : "bg-[#155FFF]/10 text-[#155FFF] group-hover:bg-[#155FFF] group-hover:text-white"
                   }`}
                 >
@@ -623,46 +622,6 @@ function FeaturesRail({
         </Link>
       </div>
     </div>
-  );
-}
-
-/* the glowing "Take a tour" CTA, shown on every feature window */
-function TourButton({ onClick, label = "Take a tour" }: { onClick: () => void; label?: string }) {
-  return (
-    <motion.button
-      onClick={onClick}
-      animate={{
-        scale: [1, 1.05, 1],
-        boxShadow: [
-          "0 4px 14px -2px rgba(255,255,255,0.35), 0 0 0 0 rgba(255,255,255,0.0)",
-          "0 8px 22px -2px rgba(255,255,255,0.6), 0 0 0 8px rgba(255,255,255,0.18)",
-          "0 4px 14px -2px rgba(255,255,255,0.35), 0 0 0 0 rgba(255,255,255,0.0)",
-        ],
-      }}
-      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-      whileHover={{ scale: 1.08 }}
-      className="group relative inline-flex shrink-0 items-center gap-2 overflow-hidden rounded-full bg-white px-5 py-2 text-[13px] font-extrabold ring-1 ring-white/70"
-      style={{ color: ACCENT }}
-    >
-      <motion.span
-        aria-hidden
-        className="pointer-events-none absolute inset-y-0 w-1/3 -skew-x-12"
-        style={{ background: "linear-gradient(90deg, transparent, rgba(21,95,255,0.22), transparent)" }}
-        initial={{ x: "-160%" }}
-        animate={{ x: "360%" }}
-        transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1.6, ease: "easeInOut" }}
-      />
-      <motion.span
-        aria-hidden
-        animate={{ rotate: [0, 18, -12, 0], scale: [1, 1.15, 1] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        className="relative flex"
-      >
-        <Sparkles className="size-4" />
-      </motion.span>
-      <span className="relative">{label}</span>
-      <ArrowRight className="relative size-3.5 transition-transform group-hover:translate-x-0.5" />
-    </motion.button>
   );
 }
 
@@ -863,7 +822,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
       setTab("eu-withdrawal");
       setPendingTour("eu-withdrawal");
     } else {
-      if (tour === "upsell") setUpsellView("onetap");
+      if (tour === "upsell") { setUpsellView("onetap"); setUpsellResetKey((k) => k + 1); }
       if (tour === "address") setAddrResetKey((k) => k + 1); // fresh address window each run
       setTab(tour);
       setPendingTour(tour);
@@ -923,14 +882,6 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     if (window.scrollY > 0) window.scrollTo(0, 0);
   }
 
-  // reset the currently-shown feature window back to its fresh, pre-tour state
-  function resetActiveFeature() {
-    if (tab === "editing") resetDemo();
-    else if (tab === "address") setAddrResetKey((k) => k + 1);
-    else if (tab === "eu-withdrawal") setEuResetKey((k) => k + 1);
-    else if (tab === "upsell") { setUpsellView("onetap"); setUpsellResetKey((k) => k + 1); }
-  }
-
   function advanceTour() {
     if (!activeTour) return;
     const list = TOUR_STEPS[activeTour];
@@ -938,16 +889,16 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     // an outcome step is the end of a feature's tour
     if (cur?.outcome) {
       // In single-tour mode, always finish here (don't chain to next feature)
-      if (singleTourMode || !cur.nextTour) { if (singleTourMode) resetActiveFeature(); closeTour(); return; }
+      if (singleTourMode || !cur.nextTour) { closeTour(); return; }
       // In complete-tour mode, hand off to the next feature
       goToTour(cur.nextTour);
       return;
     }
     // Individual (single-feature) tours finish WITHOUT the white finale screen —
-    // that's reserved for the end of the complete tour. Reset the feature back to
-    // its default state and close, instead of rendering the outcome step.
+    // that's reserved for the end of the complete tour. Close and leave the feature
+    // at the final step where it ended (re-starting the tour resets it fresh).
     const next = list[tourStep + 1];
-    if (singleTourMode && next?.outcome) { resetActiveFeature(); closeTour(); return; }
+    if (singleTourMode && next?.outcome) { closeTour(); return; }
     if (tourStep >= list.length - 1) {
       setActiveTour(null); setSpotlightRect(null); scrollDemoTop();
     } else {
@@ -955,11 +906,11 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     }
   }
 
-  // hide the overlay for ~2s so the "saved / updated" confirmation is visible, then advance
-  function advanceAfterPause() {
+  // hide the overlay for a beat so the "saved / updated" confirmation is visible, then advance
+  function advanceAfterPause(delay = 2000) {
     setSpotlightRect(null);
     if (pauseTimer.current) clearTimeout(pauseTimer.current);
-    pauseTimer.current = setTimeout(() => advanceTour(), 2000);
+    pauseTimer.current = setTimeout(() => advanceTour(), delay);
   }
 
   // the address demo hit its verified end-state — finish the address tour cleanly no
@@ -969,7 +920,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     setSpotlightRect(null);
     if (pauseTimer.current) clearTimeout(pauseTimer.current);
     pauseTimer.current = setTimeout(() => {
-      if (singleTourMode) { resetActiveFeature(); closeTour(); }
+      if (singleTourMode) closeTour();
       else enterStep("address", ADDRESS_TOUR_STEPS.length - 1);
     }, 2000);
   }
@@ -1089,15 +1040,26 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
           <div className="pointer-events-none absolute -bottom-20 -left-16 h-3/4 w-3/4 rounded-full bg-[#bcd4ff]/45 blur-3xl" />
           <div className="pointer-events-none absolute right-1/4 top-1/3 h-1/2 w-1/2 -rotate-12 rounded-full bg-white/25 blur-2xl" />
 
-          {/* top bar — "Complete tour" + contextual individual tour button */}
+          {/* top bar — primary CTAs (install + book a demo) right; tour controls (secondary/tertiary) left */}
           <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+            {/* SECONDARY + TERTIARY: tour + view controls */}
             <div className="flex flex-wrap items-center gap-2">
-              <TourButton onClick={launchTour} label="Complete tour" />
+              {/* secondary — the full tour */}
+              {tab !== "eu-withdrawal" && (
+                <button
+                  onClick={launchTour}
+                  className="group inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/25 px-4 py-2 text-[12px] font-bold text-white ring-1 ring-white/40 backdrop-blur-sm transition-all hover:bg-white/35"
+                >
+                  <Sparkles className="size-3.5" />
+                  Complete tour
+                  <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
+                </button>
+              )}
+              {/* tertiary — this feature's tour */}
               <button
                 onClick={() => launchSingleTour(tab === "cancel" ? "editing" : tab as Tour)}
-                className="group inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/20 px-4 py-2 text-[12px] font-bold text-white ring-1 ring-white/30 backdrop-blur-sm transition-all hover:bg-white/35 hover:ring-white/50"
+                className="group inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-2 text-[12px] font-semibold text-white/90 ring-1 ring-white/20 backdrop-blur-sm transition-all hover:bg-white/20"
               >
-                <Sparkles className="size-3.5" />
                 {tab === "editing" && "Order Editing Tour"}
                 {tab === "upsell" && "Upsell Tour"}
                 {tab === "address" && "Address Tour"}
@@ -1105,53 +1067,61 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                 {tab === "cancel" && "Order Editing Tour"}
                 <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
               </button>
-            </div>
-
-            {tab === "editing" && onUpsell && (
-              <div className="relative">
-                {/* "new feature" flag */}
-                <motion.span
-                  animate={{ scale: [1, 1.08, 1] }}
-                  transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -right-1 -top-2 z-10 inline-flex items-center gap-1 rounded-full bg-emerald-500 px-1.5 py-[2px] text-[9px] font-bold uppercase tracking-wide text-white shadow-md"
-                >
-                  <span className="size-1.5 rounded-full bg-white" />
-                  New
-                </motion.span>
+              {/* tertiary — jump to the upsell feature */}
+              {tab === "editing" && onUpsell && (
                 <button
                   onClick={() => { setUpsellView("onetap"); selectFeature("upsell"); }}
-                  className="group inline-flex items-center gap-1.5 rounded-full border-2 bg-white px-3.5 py-1.5 text-[12px] font-semibold shadow-md transition-all hover:bg-blue-50"
-                  style={{ borderColor: ACCENT, color: ACCENT }}
+                  className="group inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-2 text-[12px] font-semibold text-white/90 ring-1 ring-white/20 backdrop-blur-sm transition-all hover:bg-white/20"
                 >
                   <Sparkles className="size-3" />
                   One-tap upsell
                   <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
                 </button>
-              </div>
-            )}
+              )}
+              {/* tertiary — upsell view toggle (upsell feature only) */}
+              {tab === "upsell" && (
+                <div ref={upsellToggleRef} className="flex items-center gap-1.5">
+                  {([["onetap", "One tap"], ["thankyou", "Order status"]] as const).map(([key, label]) => {
+                    const active = upsellView === key;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => setUpsellView(key)}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-colors ${
+                          active
+                            ? "bg-white text-neutral-900 shadow-md"
+                            : "bg-white/10 text-white/90 ring-1 ring-white/20 hover:bg-white/20"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
-            {tab === "upsell" && (
-              <div ref={upsellToggleRef} className="flex items-center gap-2">
-                {([["onetap", "One tap upsell"], ["thankyou", "Order status page"]] as const).map(([key, label]) => {
-                  const active = upsellView === key;
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => setUpsellView(key)}
-                      className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[12px] font-semibold transition-colors ${
-                        active
-                          ? "bg-white text-neutral-900 shadow-md"
-                          : "bg-white/15 text-white ring-1 ring-white/25 hover:bg-white/25"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-
+            {/* PRIMARY: convert — book a demo + install on the App Store */}
+            <div className="flex items-center gap-2">
+              <Link
+                href="/#contact"
+                className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[12px] font-bold shadow-md transition-all hover:brightness-105 active:scale-[0.98]"
+                style={{ color: ACCENT }}
+              >
+                <CalendarDays className="size-3.5" />
+                Book a demo
+              </Link>
+              <a
+                href={APP_URL}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="View on the Shopify App Store"
+                className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white shadow-md transition-transform hover:scale-105"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- Shopify icon from /public */}
+                <img src="/shopify-icon.png" alt="Shopify App Store" className="size-4 object-contain" />
+              </a>
+            </div>
           </div>
 
           {/* body */}
@@ -1214,7 +1184,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                     key={`eu-${euResetKey}`}
                     store={store}
                     tourRefs={{ euCard: euCardRef, withdrawRow: euWithdrawRowRef, withdrawBtn: euWithdrawBtnRef }}
-                    onWithdrawOpened={() => { if (curStep?.id === "eu-open") advanceAfterPause(); }}
+                    onWithdrawOpened={() => { if (curStep?.id === "eu-open") advanceAfterPause(600); }}
                     onWithdrawn={() => { if (curStep?.id === "eu-submit") advanceAfterPause(); }}
                   />
                 )}

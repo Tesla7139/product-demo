@@ -1,20 +1,14 @@
 import type { Metadata } from "next";
-import { Figtree, Bricolage_Grotesque, Fraunces } from "next/font/google";
+import { Inter, Fraunces } from "next/font/google";
 import "./globals.css";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { GlobeBackground } from "@/components/background/GlobeBackground";
 
-const figtree = Figtree({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-figtree",
-  display: "swap",
-});
-
-const bricolage = Bricolage_Grotesque({
-  subsets: ["latin"],
-  variable: "--font-bricolage",
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -60,7 +54,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${figtree.variable} ${bricolage.variable} ${fraunces.variable}`}>
+    <html lang="en" className={`${inter.variable} ${fraunces.variable}`}>
       <body className="relative min-h-screen antialiased">
         <a
           href="#main"
