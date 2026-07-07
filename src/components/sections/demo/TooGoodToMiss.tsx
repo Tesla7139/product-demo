@@ -1,6 +1,7 @@
 "use client";
 
 import type { DemoStore, DemoProduct } from "@/lib/site";
+import { DemoImg } from "./DemoImg";
 
 const money = (n: number, currency = "USD") =>
   new Intl.NumberFormat("en", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
@@ -26,12 +27,7 @@ export function TooGoodToMiss({
       <div className="flex gap-4">
         <div className="relative size-24 shrink-0 overflow-hidden rounded-lg bg-neutral-50">
           <span className="absolute left-1 top-1 z-10 rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-500">50% OFF</span>
-          {product.image ? (
-            // eslint-disable-next-line @next/next/no-img-element -- remote product image
-            <img src={product.image} alt="" className="size-full object-cover" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
-          ) : (
-            <div className="size-full bg-neutral-100" aria-hidden />
-          )}
+          <DemoImg src={product.image} className="size-full object-cover" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-[14px] font-semibold text-neutral-900">{product.title}</div>

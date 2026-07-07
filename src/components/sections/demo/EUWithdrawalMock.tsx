@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Check, ChevronDown, HelpCircle, Truck } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
 import { DEFAULT_ADDR, DEFAULT_EMAIL, DEFAULT_PHONE, DEFAULT_COUNTRY } from "./DemoMock";
+import { DemoImg } from "./DemoImg";
 
 const money = (n: number, currency = "USD") =>
   new Intl.NumberFormat("en", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
@@ -15,11 +16,7 @@ const ADDR_LINES = [CUSTOMER, DEFAULT_ADDR.line1, `${DEFAULT_ADDR.city}, ${DEFAU
 const TRACKING = "JAM8470GB72670273201";
 
 function Thumb({ src, alt }: { src?: string | null; alt: string }) {
-  if (src) {
-    // eslint-disable-next-line @next/next/no-img-element -- remote product image from any store
-    return <img src={src} alt={alt} className="size-12 shrink-0 rounded-lg border border-border object-cover" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />;
-  }
-  return <div className="size-12 shrink-0 rounded-lg bg-neutral-100" aria-hidden />;
+  return <DemoImg src={src} alt={alt} className="size-12 shrink-0 rounded-lg border border-border object-cover" />;
 }
 
 function InfoBlock({ label, lines }: { label: string; lines: string[] }) {
@@ -118,7 +115,7 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
   };
 
   return (
-    <div className="mx-auto w-full max-w-3xl overflow-hidden rounded-2xl border border-border bg-white shadow-soft-xl">
+    <div className="w-full overflow-hidden rounded-2xl border border-border bg-white shadow-soft-xl">
       <div className="p-6 lg:max-h-[560px] lg:overflow-y-auto lg:no-scrollbar">
         {/* header */}
         <div className="flex items-start justify-between gap-3">

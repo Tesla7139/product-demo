@@ -128,6 +128,9 @@ type TourStepDef = {
   hideCta?: boolean;
   /** keep the current scroll position (don't scroll the target into view) */
   noScroll?: boolean;
+  /** id of an element to programmatically "click" on step-enter so its animation
+   *  plays automatically (Next-driven tour — no tapping required) */
+  autoClickId?: string;
   /** end-of-feature conversion step: blurred backdrop + centered CTA linking to the app */
   outcome?: boolean;
   outcomeHeadline?: string;
@@ -153,62 +156,46 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
     desc: "Change address, swap items, update contact info, and more in seconds.",
     cta: "Next",
     measureDelayMs: 420,
-    tapTarget: true,
-    hideCta: true, // tap the address to change it
   },
   {
     id: "addr-save",
-    title: "Save in one tap",
-    desc: "The fix syncs to your store instantly.",
+    title: "Saved in one tap",
+    desc: "Watch the fix drop in — it syncs to your store instantly.",
     cta: "Next",
-    measureDelayMs: 1450, // wait for the address to finish auto-filling before the dot moves to Save
-    clickThrough: true,
-    tapTarget: true,
-    noScroll: true,              // stay put — the form + button are already framed from the last step
-    spotlightId: "addr-block",   // highlight the form AND the Update button as one block
-    dotId: "addr-save",          // point the dot at the Update button
-    hideCard: true,              // no tooltip — the highlighted address + Save dot say it all
+    measureDelayMs: 1450, // let the address finish auto-filling before we frame it
+    noScroll: true,
+    spotlightId: "addr-block",
   },
   {
     id: "order-row",
     title: "Add or change items",
     desc: "Add one more, swap, or remove — the total updates live.",
     cta: "Next",
-    measureDelayMs: 600, // let the shipping section collapse + order section expand fully first
-    tapTarget: true,
-    hideCta: true, // tap the order to add one more
-    dotId: "order-plus", // point the dot at the + button, not delete
+    measureDelayMs: 600,
+    spotlightId: "order-row",
   },
   {
     id: "order-save",
     title: "Update the order",
-    desc: "One tap applies the change.",
+    desc: "The change applies and the balance updates automatically.",
     cta: "Next",
-    measureDelayMs: 700, // wait for the quantity bump before the dot moves to Update
-    clickThrough: true,
-    tapTarget: true,
-    spotlightId: "order-row", // keep the whole (highlighted) item list visible
-    dotId: "order-btn",       // dot on the Update your order button
-    hideCard: true,
+    measureDelayMs: 700,
+    spotlightId: "order-row",
   },
   {
     id: "pay",
     title: "Confirm and pay",
-    desc: "Pay the difference to lock in the changes.",
+    desc: "The customer pays the difference to lock in the changes.",
     cta: "Next",
     measureDelayMs: 360,
-    clickThrough: true,
-    tapTarget: true,
-    spotlightId: "pay-panel", // highlight the balance-due panel (with the ask)
-    dotId: "pay-btn",         // dot on the Pay button
-    hideCard: true,
+    spotlightId: "pay-panel",
   },
   {
     id: "to-upsell",
     title: "Fewer support tickets, automatically",
     desc: "Every self-serve edit is a ticket your team never has to touch.",
     cta: "Next",
-    measureDelayMs: 360, // let the editing sections finish collapsing first
+    measureDelayMs: 360,
     outcome: true,
     outcomeHeadline: "Fewer support tickets",
     outcomeButton: "Reduce my store's support tickets now",
@@ -239,11 +226,8 @@ const UPSELL_TOUR_STEPS: TourStepDef[] = [
     desc: "No re-checkout, charged to the card on file.",
     cta: "Next",
     measureDelayMs: 320,
-    clickThrough: true,
-    tapTarget: true,
-    hideCard: true,
-    spotlightId: "upsell-offer", // keep the whole offer visible
-    dotId: "upsell-add",         // dot on the Add to order button
+    spotlightId: "upsell-offer",
+    autoClickId: "upsell-add",
   },
   {
     id: "ty-show",
@@ -259,11 +243,8 @@ const UPSELL_TOUR_STEPS: TourStepDef[] = [
     desc: "Charged to the card on file. No re-checkout.",
     cta: "Next",
     measureDelayMs: 320,
-    clickThrough: true,
-    tapTarget: true,
-    hideCard: true,
     spotlightId: "ty-grid",
-    dotId: "ty-add",
+    autoClickId: "ty-add",
   },
   {
     id: "to-address",
@@ -286,11 +267,7 @@ const ADDRESS_TOUR_STEPS: TourStepDef[] = [
     desc: "Every address is checked the moment it's saved — before the order ships.",
     cta: "Next",
     measureDelayMs: 320,
-    clickThrough: true,
-    tapTarget: true,
-    hideCta: true,
     spotlightId: "addr-validate",
-    dotId: "addr-validate",
   },
   {
     id: "addr-flagged",
@@ -299,6 +276,7 @@ const ADDRESS_TOUR_STEPS: TourStepDef[] = [
     cta: "Next",
     measureDelayMs: 420,
     spotlightId: "addr-flagged",
+    autoClickId: "addr-validate", // trigger the save → the address gets flagged
   },
   {
     id: "addr-recommended",
@@ -314,23 +292,20 @@ const ADDRESS_TOUR_STEPS: TourStepDef[] = [
     desc: "The customer accepts the fix and the order is safe to ship.",
     cta: "Next",
     measureDelayMs: 300,
-    clickThrough: true,
-    tapTarget: true,
-    hideCard: true,
-    spotlightId: "addr-confirm",
-    dotId: "addr-confirm",
+    spotlightId: "addr-flagged", // the address box itself — it turns green when accepted
+    autoClickId: "addr-confirm", // accept the recommended address → verified
   },
   {
     id: "addr-finish",
     title: "No more wrong-address returns",
     desc: "Every address is validated up front, so fewer parcels come back.",
-    cta: "Finish",
+    cta: "Next",
     measureDelayMs: 360,
     outcome: true,
     outcomeHeadline: "Zero wrong-address orders",
     outcomeButton: "Prevent wrong-address orders for my store now",
-    nextTour: null,
-    finalStep: true,
+    nextTour: "eu-withdrawal",
+    nextLabel: "EU withdrawal",
   },
 ];
 
@@ -349,23 +324,17 @@ const EU_WITHDRAWAL_TOUR_STEPS: TourStepDef[] = [
     desc: "'Withdraw from contract' sits right on the order status page, through the 14-day cooling-off period.",
     cta: "Next",
     measureDelayMs: 320,
-    tapTarget: true,
-    hideCta: true,
-    clickThrough: true,
     spotlightId: "eu-withdraw-row",
-    dotId: "eu-withdraw-row",
+    autoClickId: "eu-withdraw-row", // open the withdrawal form
   },
   {
     id: "eu-submit",
     title: "Two-step submission",
     desc: "Complete the request, then confirm with one clearly-labeled button — acknowledged instantly by email.",
     cta: "Next",
-    measureDelayMs: 420,
-    clickThrough: true,
-    tapTarget: true,
-    hideCard: true,
-    spotlightId: "eu-withdraw-btn",
-    dotId: "eu-withdraw-btn",
+    measureDelayMs: 520,
+    spotlightId: "eu-withdraw-row", // the form area — stays framed as it becomes the confirmation
+    autoClickId: "eu-withdraw-btn", // submit the request
   },
   {
     id: "eu-finish",
@@ -806,46 +775,13 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     }
   }
 
-  // Individual tour for just the current feature (no chaining to next)
-  function launchSingleTour(tour: Tour) {
-    setSingleTourMode(true);
-    setActiveTour(null);
-    setSpotlightRect(null);
-    setActivePill("tour");
-    if (tour === "editing") {
-      resetDemo();
-      if (tab === "editing") { startEditingTour(); return; }
-      setTab("editing");
-      setPendingTour("editing");
-    } else if (tour === "eu-withdrawal") {
-      setEuResetKey((k) => k + 1);
-      setTab("eu-withdrawal");
-      setPendingTour("eu-withdrawal");
-    } else {
-      if (tour === "upsell") { setUpsellView("onetap"); setUpsellResetKey((k) => k + 1); }
-      if (tour === "address") setAddrResetKey((k) => k + 1); // fresh address window each run
-      setTab(tour);
-      setPendingTour(tour);
-    }
-  }
-
-  // (re)start the EU withdrawal mini-tour from a fresh order-status page
-  function startEuTour() {
-    setSingleTourMode(true);
-    setActiveTour(null);
-    setSpotlightRect(null);
-    setActivePill("tour");
-    setEuResetKey((k) => k + 1);
-    setTab("eu-withdrawal");
-    setPendingTour("eu-withdrawal");
-  }
-
   // hand off from one feature's tour to the next: switch tabs, then start once mounted
   function goToTour(next: Tour) {
     setActiveTour(null);
     setSpotlightRect(null);
     if (next === "upsell") setUpsellView("onetap");
     if (next === "address") setAddrResetKey((k) => k + 1); // fresh address window on handoff
+    if (next === "eu-withdrawal") setEuResetKey((k) => k + 1); // fresh EU page on handoff
     setTab(next);
     setPendingTour(next);
   }
@@ -904,25 +840,6 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     } else {
       enterStep(activeTour, tourStep + 1);
     }
-  }
-
-  // hide the overlay for a beat so the "saved / updated" confirmation is visible, then advance
-  function advanceAfterPause(delay = 2000) {
-    setSpotlightRect(null);
-    if (pauseTimer.current) clearTimeout(pauseTimer.current);
-    pauseTimer.current = setTimeout(() => advanceTour(), delay);
-  }
-
-  // the address demo hit its verified end-state — finish the address tour cleanly no
-  // matter which step is showing: single tour resets + closes, complete tour shows the finale
-  function finishAddressTour() {
-    if (activeTour !== "address") return;
-    setSpotlightRect(null);
-    if (pauseTimer.current) clearTimeout(pauseTimer.current);
-    pauseTimer.current = setTimeout(() => {
-      if (singleTourMode) closeTour();
-      else enterStep("address", ADDRESS_TOUR_STEPS.length - 1);
-    }, 2000);
   }
 
   function closeTour() {
@@ -1015,6 +932,14 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
       timers.push(setTimeout(() => capture(false), 300));
     };
     timers.push(setTimeout(() => run(0), s.measureDelayMs ?? 80));
+    // Next-driven tour: trigger the step's action so its animation plays automatically
+    // (no tapping) — e.g. save the address, add the upsell, submit the withdrawal.
+    if (s.autoClickId) {
+      timers.push(setTimeout(() => {
+        if (cancelled) return;
+        (getStepTarget(s.autoClickId!) as HTMLElement | null)?.click();
+      }, (s.measureDelayMs ?? 80) + 550));
+    }
     return () => { cancelled = true; timers.forEach(clearTimeout); };
   }, [activeTour, tourStep]);
 
@@ -1045,26 +970,12 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
             {/* SECONDARY + TERTIARY: tour + view controls */}
             <div className="flex flex-wrap items-center gap-2">
               {/* secondary — the full tour */}
-              {tab !== "eu-withdrawal" && (
-                <button
-                  onClick={launchTour}
-                  className="group inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/25 px-4 py-2 text-[12px] font-bold text-white ring-1 ring-white/40 backdrop-blur-sm transition-all hover:bg-white/35"
-                >
-                  <Sparkles className="size-3.5" />
-                  Complete tour
-                  <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
-                </button>
-              )}
-              {/* tertiary — this feature's tour */}
               <button
-                onClick={() => launchSingleTour(tab === "cancel" ? "editing" : tab as Tour)}
-                className="group inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-2 text-[12px] font-semibold text-white/90 ring-1 ring-white/20 backdrop-blur-sm transition-all hover:bg-white/20"
+                onClick={launchTour}
+                className="group inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/25 px-4 py-2 text-[12px] font-bold text-white ring-1 ring-white/40 backdrop-blur-sm transition-all hover:bg-white/35"
               >
-                {tab === "editing" && "Order Editing Tour"}
-                {tab === "upsell" && "Upsell Tour"}
-                {tab === "address" && "Address Tour"}
-                {tab === "eu-withdrawal" && "EU Withdrawal Tour"}
-                {tab === "cancel" && "Order Editing Tour"}
+                <Sparkles className="size-3.5" />
+                Complete tour
                 <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
               </button>
               {/* tertiary — jump to the upsell feature */}
@@ -1143,10 +1054,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                     maxHeight={560}
                     tourRefs={{ countdown: countdownRef, shippingRow: shippingRowRef, addressForm: addressFormRef, addressBlock: addressBlockRef, saveBtn: saveBtnRef, orderRow: orderRowRef, orderBtn: orderBtnRef, orderPlusBtn: orderPlusBtnRef, payPanel: payPanelRef, payBtn: payBtnRef, sections: sectionsRef }}
                     addressOverride={addrOverride}
-                    onShippingSaved={() => { if (curStep?.id === "addr-save") advanceAfterPause(); }}
                     qtyBump={qtyBump}
-                    onOrderUpdated={() => { if (curStep?.id === "order-save") advanceAfterPause(); }}
-                    onPaid={() => { if (curStep?.id === "pay") advanceAfterPause(); }}
                   />
                 )}
                 {tab === "upsell" && (
@@ -1158,7 +1066,6 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                       maxHeight={560}
                       upsellFirst
                       tourRefs={{ upsellRow: tyGridRef, upsellAddBtn: tyAddBtnRef }}
-                      onUpsellAdded={() => { if (curStep?.id === "ty-add") advanceAfterPause(); }}
                     />
                   ) : (
                     <OneTapUpsellMock
@@ -1166,7 +1073,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                       store={store}
                       addBtnRef={upsellAddBtnRef}
                       offerRef={upsellOfferRef}
-                      onAdded={() => { if (curStep?.id === "upsell-add") advanceAfterPause(); }}
+                      onComplete={(added) => { if (!added) setUpsellView("thankyou"); }}
                     />
                   )
                 )}
@@ -1175,8 +1082,6 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                     key={`addr-${addrResetKey}`}
                     store={store}
                     tourRefs={{ saveBtn: addrSaveBtnRef, flaggedAddr: addrFlaggedRef, recommended: addrRecommendedRef, confirmBtn: addrConfirmRef }}
-                    onValidated={() => { if (curStep?.id === "addr-validate") advanceAfterPause(); }}
-                    onConfirmed={finishAddressTour}
                   />
                 )}
                 {tab === "eu-withdrawal" && (
@@ -1184,8 +1089,6 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                     key={`eu-${euResetKey}`}
                     store={store}
                     tourRefs={{ euCard: euCardRef, withdrawRow: euWithdrawRowRef, withdrawBtn: euWithdrawBtnRef }}
-                    onWithdrawOpened={() => { if (curStep?.id === "eu-open") advanceAfterPause(600); }}
-                    onWithdrawn={() => { if (curStep?.id === "eu-submit") advanceAfterPause(); }}
                   />
                 )}
                 {tab === "cancel" && (

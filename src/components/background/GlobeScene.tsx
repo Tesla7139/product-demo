@@ -52,13 +52,7 @@ function buildArc(latA: number, lonA: number, latB: number, lonB: number, r: num
   return new THREE.QuadraticBezierCurve3(start, mid, end);
 }
 
-function Globe({
-  scrollRef,
-  firstPageScrollRef,
-}: {
-  scrollRef: React.MutableRefObject<number>;
-  firstPageScrollRef: React.MutableRefObject<number>;
-}) {
+function Globe() {
   const group = useRef<THREE.Group>(null);
   const markers = useRef<(THREE.Mesh | null)[]>([]);
 
@@ -103,36 +97,13 @@ function Globe({
   }, []);
 
   useFrame((state, delta) => {
-    const p = scrollRef.current; // 0..1 page scroll progress
-    const fp = firstPageScrollRef.current; // 0..1 first page progress
     const t = state.clock.elapsedTime;
     if (group.current) {
-      // Clear, smooth, continuous auto-rotation (always alive, never just shimmering)
+      // Revolve in place — fixed position, tilt and size (never drifts or floats)
       group.current.rotation.y += delta * 0.16;
-      // Gentle tilt that eases with scroll + a slow breathing wobble
-      group.current.rotation.x = THREE.MathUtils.lerp(
-        group.current.rotation.x,
-        0.18 + p * 0.25 + Math.sin(t * 0.4) * 0.04,
-        0.05
-      );
-
-      // First-page offset: pushed down + right at the top, eases in as you scroll
-      const firstPageOffsetX = (1 - fp) * 0.6;
-      const firstPageOffsetY = (1 - fp) * -3.0;
-
-      // Gentle floating bob so it feels alive while resting
-      const floatY = Math.sin(t * 0.6) * 0.12;
-      const floatX = Math.cos(t * 0.45) * 0.06;
-
-      const targetX = Math.sin(p * Math.PI) * 1.15 + firstPageOffsetX + floatX;
-      const targetY = firstPageOffsetY + floatY;
-
-      group.current.position.x = THREE.MathUtils.lerp(group.current.position.x, targetX, 0.06);
-      group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, targetY, 0.06);
-
-      const targetScale = 1.3 + p * 0.4;
-      const s = THREE.MathUtils.lerp(group.current.scale.x, targetScale, 0.05);
-      group.current.scale.setScalar(s);
+      group.current.rotation.x = 0.18;
+      group.current.position.set(0, -2.1, 0); // centered, resting at the middle-bottom
+      group.current.scale.setScalar(1.3);
     }
     // travelling markers along arcs
     arcs.forEach((arc, i) => {
@@ -208,13 +179,7 @@ function Globe({
   );
 }
 
-export default function GlobeScene({
-  scrollRef,
-  firstPageScrollRef,
-}: {
-  scrollRef: React.MutableRefObject<number>;
-  firstPageScrollRef: React.MutableRefObject<number>;
-}) {
+export default function GlobeScene() {
   return (
     <Canvas
       camera={{ position: [0, 0, 3.1], fov: 45 }}
@@ -223,7 +188,7 @@ export default function GlobeScene({
       onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
       style={{ width: "100%", height: "100%", background: "transparent" }}
     >
-      <Globe scrollRef={scrollRef} firstPageScrollRef={firstPageScrollRef} />
+      <Globe />
     </Canvas>
   );
 }

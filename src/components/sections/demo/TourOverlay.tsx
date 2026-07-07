@@ -287,9 +287,10 @@ export function TourOverlay({
         {!finalStep && (
           <button
             onClick={onClose}
-            className="pointer-events-auto absolute right-5 top-5 rounded-full bg-neutral-900/80 px-4 py-2 text-[12px] font-medium text-white ring-1 ring-white/20 transition-colors hover:bg-neutral-900"
+            className="group pointer-events-auto absolute right-5 top-5 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3.5 py-2 text-[12px] font-semibold text-neutral-600 shadow-[0_6px_20px_-6px_rgba(15,23,42,0.4)] ring-1 ring-black/5 backdrop-blur-md transition-all hover:bg-white hover:text-neutral-900 active:scale-95"
           >
-            Exit tour
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="transition-transform group-hover:rotate-90"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            Close tour
           </button>
         )}
       </div>,
@@ -421,9 +422,10 @@ export function TourOverlay({
       {/* Skip */}
       <button
         onClick={onClose}
-        className="pointer-events-auto absolute right-5 top-5 rounded-full bg-white/10 px-4 py-2 text-[12px] font-medium text-white backdrop-blur-sm ring-1 ring-white/20 transition-colors hover:bg-white/20"
+        className="group pointer-events-auto absolute right-5 top-5 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3.5 py-2 text-[12px] font-semibold text-neutral-600 shadow-[0_6px_20px_-6px_rgba(15,23,42,0.5)] ring-1 ring-black/5 backdrop-blur-md transition-all hover:bg-white hover:text-neutral-900 active:scale-95"
       >
-        Exit tour
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="transition-transform group-hover:rotate-90"><path d="M6 6l12 12M18 6L6 18" /></svg>
+        Close tour
       </button>
     </div>,
     document.body

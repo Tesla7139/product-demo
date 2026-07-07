@@ -5,16 +5,13 @@ import { motion } from "framer-motion";
 import { Check, ChevronDown } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
 import { readableBrand } from "@/lib/utils";
+import { DemoImg } from "./DemoImg";
 
 const money = (n: number, currency = "USD") =>
   new Intl.NumberFormat("en", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
 
 function Pic({ src }: { src?: string | null }) {
-  if (src) {
-    // eslint-disable-next-line @next/next/no-img-element -- remote product image
-    return <img src={src} alt="" className="size-10 shrink-0 rounded-lg border border-border object-cover" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />;
-  }
-  return <div className="size-10 shrink-0 rounded-lg bg-neutral-100" aria-hidden />;
+  return <DemoImg src={src} className="size-10 shrink-0 rounded-lg border border-border object-cover" />;
 }
 
 export function OneTapUpsellMock({ store, onComplete, accentColor, addBtnRef, offerRef, onAdded }: { store: DemoStore; onComplete?: (wasAdded: boolean) => void; accentColor?: string; addBtnRef?: React.RefObject<HTMLButtonElement | null>; offerRef?: React.RefObject<HTMLDivElement | null>; onAdded?: () => void }) {
@@ -155,19 +152,7 @@ export function OneTapUpsellMock({ store, onComplete, accentColor, addBtnRef, of
           <div ref={offerRef} className="grid grid-cols-1 md:grid-cols-2">
             {/* product image */}
             <div className="flex items-center justify-center bg-neutral-50 p-3">
-              {offer?.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={offer.image}
-                  alt={offer.title}
-                  className="max-h-[150px] w-full object-contain"
-                  onError={(e) => (e.currentTarget.style.display = "none")}
-                />
-              ) : (
-                <div className="flex h-[140px] w-full items-center justify-center rounded-xl bg-neutral-200">
-                  <span className="text-4xl">📦</span>
-                </div>
-              )}
+              <DemoImg src={offer?.image} alt={offer?.title ?? ""} className="h-[150px] w-full object-contain" />
             </div>
 
             {/* offer details */}

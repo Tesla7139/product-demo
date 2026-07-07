@@ -70,7 +70,7 @@ export function AddressValidationMock({ store, tourRefs, onValidated, onConfirme
   const boxBg = verified ? "#ecfdf5" : flagged ? "#fef2f2" : "#ffffff";
 
   return (
-    <div className="mx-auto w-full max-w-3xl overflow-hidden rounded-2xl border border-border bg-white shadow-soft-xl">
+    <div className="w-full overflow-hidden rounded-2xl border border-border bg-white shadow-soft-xl">
       <div className="lg:max-h-[560px] lg:overflow-y-auto lg:no-scrollbar">
         {/* header */}
         <div className="border-b border-border px-6 py-4">

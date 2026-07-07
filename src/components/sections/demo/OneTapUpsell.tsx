@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
+import { DemoImg } from "./DemoImg";
 
 const ACCENT = "#155FFF";
 const money = (n: number) => `$${n.toFixed(2)}`;
@@ -111,12 +112,7 @@ export function OneTapUpsell({
             {/* offer */}
             <div className="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2">
               <div className="flex aspect-square items-center justify-center overflow-hidden rounded-xl bg-neutral-50">
-                {offer?.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- remote product image
-                  <img src={offer.image} alt={offer.title} className="size-full object-contain p-6" />
-                ) : (
-                  <div className="size-2/3 rounded-lg bg-neutral-200" aria-hidden />
-                )}
+                <DemoImg src={offer?.image} alt={offer?.title ?? ""} className="size-full object-contain p-6" />
               </div>
 
               <div className="flex flex-col">

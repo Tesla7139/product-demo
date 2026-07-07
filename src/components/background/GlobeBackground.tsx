@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
 const GlobeScene = dynamic(() => import("./GlobeScene"), { ssr: false });
@@ -25,8 +25,6 @@ function supportsWebGL() {
  */
 export function GlobeBackground() {
   const [enabled, setEnabled] = useState(false);
-  const scrollRef = useRef(0);
-  const firstPageScrollRef = useRef(0);
 
   useEffect(() => {
     const ok =
@@ -35,18 +33,6 @@ export function GlobeBackground() {
       supportsWebGL();
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time capability check on mount
     setEnabled(ok);
-
-    const onScroll = () => {
-      const scrollY = window.scrollY;
-      const height = window.innerHeight;
-      const max = document.documentElement.scrollHeight - height;
-      
-      scrollRef.current = max > 0 ? Math.min(1, scrollY / max) : 0;
-      firstPageScrollRef.current = height > 0 ? Math.min(1, scrollY / height) : 0;
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
@@ -54,18 +40,18 @@ export function GlobeBackground() {
       aria-hidden="true"
       className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
     >
-      {/* ambient brand glow (also the fallback when WebGL is off) — lower-right */}
+      {/* ambient brand glow (also the fallback when WebGL is off) — bottom center */}
       <div
-        className="absolute left-[74%] top-[82%] h-[70vmin] w-[70vmin] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-25 blur-3xl"
+        className="absolute left-1/2 top-[88%] h-[70vmin] w-[70vmin] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-25 blur-3xl"
         style={{
           background:
             "radial-gradient(circle, color-mix(in srgb, var(--primary) 22%, transparent) 0%, transparent 65%)",
         }}
       />
       {enabled && (
-        // pushed down + right so the globe sits behind the hero visual (redo-style)
-        <div className="absolute inset-0 translate-x-[10%] translate-y-[14%]">
-          <GlobeScene scrollRef={scrollRef} firstPageScrollRef={firstPageScrollRef} />
+        // centered; the globe rises from the middle-bottom of the hero
+        <div className="absolute inset-0 translate-y-[6%]">
+          <GlobeScene />
         </div>
       )}
     </div>

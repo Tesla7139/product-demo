@@ -63,6 +63,7 @@ export function DemoExperience({
             <X className="size-5" />
           </button>
 
+
           {status === "loading" && <LoadingView label={domain || name} />}
 
           {status === "ready" && store && (
@@ -171,6 +172,17 @@ function LoadingView({ label }: { label: string }) {
               : "We can open the experience now and continue settling in the remaining brand details in the background."}
           </p>
 
+          {/* progress bar */}
+          <div className="mt-7 h-3 w-full overflow-hidden rounded-full bg-neutral-200 ring-1 ring-black/5">
+            <motion.div
+              initial={{ width: "8%" }}
+              animate={{ width: done ? "100%" : "82%" }}
+              transition={{ duration: done ? 0.4 : 2.4, ease: "easeInOut" }}
+              className="h-full rounded-full"
+              style={{ background: accent, boxShadow: `0 0 12px ${accent}80` }}
+            />
+          </div>
+
           {/* support tickets — scroll downward; the ones shoppers won't need to open */}
           <div className="mt-8 flex-1">
             <p className="mb-2.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
@@ -256,13 +268,14 @@ function EditingView({ store, onUpsell }: { store: DemoStore; onUpsell: () => vo
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
-      className="min-h-screen bg-background-muted/40"
+      className="bg-background-muted/40"
     >
-      <div className="mx-auto max-w-7xl px-3 py-5 sm:px-5 sm:py-8">
+      {/* page 1 — the demo fills the viewport */}
+      <div className="mx-auto flex min-h-[100svh] w-full flex-col justify-center px-3 py-5 sm:px-6 sm:py-8 lg:px-10 xl:px-16 2xl:px-24">
         <GuidedEditor store={store} onUpsell={onUpsell} />
       </div>
 
-      {/* below the demo: moving brand marquee + Wall of Love reviews + footer */}
+      {/* page 2 — moving brand strip + Wall of Love reviews + footer */}
       <CustomerLogos />
       <WallOfLoveTeaser />
       <Footer />
@@ -276,7 +289,7 @@ function UpsellView({ store, name, onDone }: { store: DemoStore; name: string; o
     <motion.div
       initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
     >
-      <div className="mx-auto max-w-7xl px-5 py-8">
+      <div className="mx-auto w-full px-4 py-8 sm:px-6 lg:px-10 xl:px-16 2xl:px-24">
         <button onClick={onDone} className="mb-5 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
           <ArrowRight className="size-4 rotate-180" />
           Back

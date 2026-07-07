@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(curl -s -A \"ClickpostDemoBot/1.0\" -m 12 -o /dev/null -w \"final:%{url_effective} | HTTP %{http_code} | type:%{content_type}\\\\n\" -L \"https://www.saltoftheearthnatural.com/products.json?limit=8\")",
+      "Bash(curl -s -A \"ClickpostDemoBot/1.0\" -m 12 -o /dev/null -w \"HTTP %{http_code} | type:%{content_type} | size:%{size_download}\\\\n\" -L \"https://www.saltoftheearthnatural.com/en/products.json?limit=8\")",
+      "Bash(curl -s -A \"ClickpostDemoBot/1.0\" -m 12 -L \"https://www.saltoftheearthnatural.com/en/products.json?limit=8\")"
     ]
   }
 }

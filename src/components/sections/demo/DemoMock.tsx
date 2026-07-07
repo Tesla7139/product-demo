@@ -16,6 +16,9 @@ import {
 } from "lucide-react";
 import type { DemoStore, DemoProduct } from "@/lib/site";
 import { readableBrand } from "@/lib/utils";
+import { DemoImg } from "./DemoImg";
+import { ThankYouMap } from "./ThankYouMap";
+import { OrderDetails } from "./OrderDetails";
 import { ThankYouProducts } from "./ThankYouProducts";
 import { ThankYouUpsell } from "./ThankYouUpsell";
 import { TooGoodToMiss } from "./TooGoodToMiss";
@@ -29,7 +32,7 @@ export type Addr = { first: string; last: string; line1: string; city: string; s
 
 // Single source of truth for the demo customer, so every surface (editing window,
 // EU withdrawal order-status page, etc.) shows the same order details.
-export const DEFAULT_EMAIL = "your_email@gmail.com";
+export const DEFAULT_EMAIL = "tucker.briggs01@gmail.com";
 export const DEFAULT_PHONE = "+1 760-637-2644";
 export const DEFAULT_COUNTRY = "United States";
 export const DEFAULT_ADDR: Addr = { first: "Tucker", last: "Briggs", line1: "4563 Coronado Dr", city: "Oceanside", state: "California", zip: "92057" };
@@ -213,6 +216,18 @@ export function DemoMock({
   );
   const due = cancelled ? 0 : Math.max(0, subtotal - paid);
 
+  // Free-shipping threshold: set just above the starting cart, so adding one upsell
+  // item unlocks it and the shipping fee is removed from the order.
+  const baseSubtotal = useMemo(() => cartProducts.reduce((s, p) => s + (p.price ?? 0), 0), [cartProducts]);
+  const cheapestUpsell = useMemo(() => {
+    const prices = upsellPool.map((p) => p.price ?? 0).filter((n) => n > 0);
+    return prices.length ? Math.min(...prices) : Math.max(50, Math.round(baseSubtotal * 0.15));
+  }, [upsellPool, baseSubtotal]);
+  const freeShipAt = baseSubtotal + cheapestUpsell;
+  const shipFee = useMemo(() => Math.max(3, Math.round((baseSubtotal * 0.04) / 5) * 5), [baseSubtotal]);
+  const freeShip = subtotal >= freeShipAt;
+  const shipping = cancelled || freeShip ? 0 : shipFee;
+
   const toggle = (s: Section) => setOpen((cur) => (cur === s ? null : s));
 
   const flash = (msg: string) => {
@@ -256,8 +271,8 @@ export function DemoMock({
   };
 
   return (
-    <div className="relative mx-auto w-full max-w-3xl text-left">
-      <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-soft-xl">
+    <div className="relative w-full text-left">
+      <div className="overflow-hidden rounded-none border border-border bg-white shadow-soft-xl">
         <div
           className={`grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_270px] ${maxHeight ? "lg:no-scrollbar lg:max-h-[var(--demo-h)] lg:overflow-y-auto" : ""}`}
           style={maxHeight ? ({ "--demo-h": `${maxHeight}px` } as CSSProperties) : undefined}
@@ -268,13 +283,7 @@ export function DemoMock({
               <OneTapPanel store={store} brand={brand} addBtnRef={oneTapAddBtnRef} />
             ) : (
             <>
-            {/* cross-sell at the TOP (thank-you page style) */}
-            {upsellFirst && !cancelled && (
-              <div className="mb-4">
-                <ThankYouUpsell store={store} brand="#111827" products={upsellPool} onAdd={(p, discounted) => addUpsell(p, discounted)} gridRef={tourRefs?.upsellRow} addBtnRef={tourRefs?.upsellAddBtn} />
-              </div>
-            )}
-            {/* confirmation header */}
+            {/* confirmation header — pinned at the very top */}
             <div className="mb-3 flex items-center gap-3">
               <span
                 className="flex size-8 items-center justify-center rounded-full border-2"
@@ -284,9 +293,15 @@ export function DemoMock({
               </span>
               <div>
                 <div className="text-xs text-neutral-500">Confirmation #JDTNH5Z6N</div>
-                <div className="text-base font-bold text-neutral-900">Thank you, Tucker!</div>
+                <div className="text-lg font-bold text-neutral-900">Thank you, Tucker!</div>
               </div>
             </div>
+            {/* cross-sell (thank-you page style) */}
+            {upsellFirst && !cancelled && (
+              <div className="mb-4">
+                <ThankYouUpsell store={store} brand="#111827" products={upsellPool} onAdd={(p, discounted) => addUpsell(p, discounted)} gridRef={tourRefs?.upsellRow} addBtnRef={tourRefs?.upsellAddBtn} subtotal={subtotal} freeShipAt={freeShipAt} />
+              </div>
+            )}
 
             {cancelled ? (
               <div className="rounded-xl border border-border p-6 text-center">
@@ -445,6 +460,20 @@ export function DemoMock({
                 <TooGoodToMiss store={store} brand="#111827" product={upsellPool[upsellPool.length - 1]} onAdd={(p) => addUpsell(p, true)} />
               </div>
             )}
+
+            {/* shipping map + order-confirmed (thank-you page style) */}
+            {!cancelled && (
+              <div className="mt-3">
+                <ThankYouMap city={addr.city} region={addr.state} />
+              </div>
+            )}
+
+            {/* order details summary */}
+            {!cancelled && (
+              <div className="mt-3">
+                <OrderDetails addr={addr} email={email} phone={phone} country={DEFAULT_COUNTRY} amount={`${fmt(cancelled ? 0 : subtotal + shipping)} ${store.currency || "USD"}`} />
+              </div>
+            )}
             </>
             )}
           </div>
@@ -484,12 +513,22 @@ export function DemoMock({
             </div>
             <div className="mt-5 space-y-1.5 border-t border-border pt-4 text-sm">
               <Row label={`Subtotal · ${items.reduce((n, i) => n + i.qty, 0)} items`} value={fmt(subtotal)} />
-              <Row label="Shipping" value="FREE" />
+              {freeShip ? (
+                <div className="flex items-center justify-between text-neutral-600">
+                  <span>Shipping</span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-neutral-400 line-through">{fmt(shipFee)}</span>
+                    <span className="font-bold text-emerald-600">FREE</span>
+                  </span>
+                </div>
+              ) : (
+                <Row label="Shipping" value={fmt(shipping)} />
+              )}
             </div>
             <div className="mt-3 flex items-baseline justify-between border-t border-border pt-3">
               <span className="font-bold text-neutral-900">Total</span>
               <span className="text-lg font-bold text-neutral-900">
-                {fmt(cancelled ? 0 : subtotal)}
+                {fmt(cancelled ? 0 : subtotal + shipping)}
               </span>
             </div>
             {savings > 0 && !cancelled && (
@@ -683,11 +722,7 @@ function Stepper({ qty, onDec, onInc, incRef }: { qty: number; onDec: () => void
 
 function Thumb({ src, alt, full }: { src?: string | null; alt: string; full?: boolean }) {
   const cls = full ? "size-full object-cover" : "size-11 shrink-0 rounded-lg border border-border object-cover";
-  if (src) {
-    // eslint-disable-next-line @next/next/no-img-element -- remote product images from any store
-    return <img src={src} alt={alt} className={cls} onError={(e) => (e.currentTarget.style.visibility = "hidden")} />;
-  }
-  return <div className={full ? "size-full bg-neutral-100" : "size-11 shrink-0 rounded-lg bg-neutral-100"} aria-hidden />;
+  return <DemoImg src={src} alt={alt} className={cls} />;
 }
 
 function Row({ label, value }: { label: string; value: string }) {
@@ -743,12 +778,7 @@ function OneTapPanel({
       {/* offer card */}
       <div className="grid grid-cols-2 gap-4">
         <div className="flex aspect-square items-center justify-center overflow-hidden rounded-xl bg-neutral-50">
-          {offer?.image ? (
-            // eslint-disable-next-line @next/next/no-img-element -- remote product image
-            <img src={offer.image} alt={offer?.title ?? ""} className="size-full object-contain p-4" onError={(e) => (e.currentTarget.style.display = "none")} />
-          ) : (
-            <div className="size-2/3 rounded-lg bg-neutral-200" aria-hidden />
-          )}
+          <DemoImg src={offer?.image} alt={offer?.title ?? ""} className="size-full object-contain p-4" />
         </div>
 
         <div className="flex flex-col justify-between py-1">

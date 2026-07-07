@@ -2,23 +2,13 @@
 
 import { Check } from "lucide-react";
 import type { DemoStore, DemoProduct } from "@/lib/site";
+import { DemoImg } from "./DemoImg";
 
 const money = (n: number, currency = "USD") =>
   new Intl.NumberFormat("en", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
 
 function ProductImg({ src, alt }: { src?: string | null; alt: string }) {
-  if (src) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element -- remote product images from any store
-      <img
-        src={src}
-        alt={alt}
-        className="size-full object-cover"
-        onError={(e) => (e.currentTarget.style.visibility = "hidden")}
-      />
-    );
-  }
-  return <div className="size-full bg-neutral-100" aria-hidden />;
+  return <DemoImg src={src} alt={alt} className="size-full object-cover" />;
 }
 
 /**
