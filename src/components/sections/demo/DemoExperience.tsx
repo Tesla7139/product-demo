@@ -173,7 +173,7 @@ function LoadingView({ label }: { label: string }) {
           </p>
 
           {/* progress bar */}
-          <div className="mt-7 h-3 w-full overflow-hidden rounded-full bg-neutral-200 ring-1 ring-black/5">
+          <div className="mt-7 h-3 w-full shrink-0 overflow-hidden rounded-full bg-neutral-200 ring-1 ring-black/5">
             <motion.div
               initial={{ width: "8%" }}
               animate={{ width: done ? "100%" : "82%" }}
