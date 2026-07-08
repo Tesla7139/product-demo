@@ -54,7 +54,7 @@ export function ThankYouUpsell({
       <div className="aspect-square w-full overflow-hidden rounded-lg bg-neutral-50">
         <Img src={p.image} className="size-full object-cover" />
       </div>
-      <div className="mt-2 line-clamp-2 text-[12.5px] font-medium" style={{ color: brand }}>{p.title}</div>
+      <div className="mt-2 line-clamp-2 text-[12.5px] font-medium leading-tight" style={{ color: brand, minHeight: "2.5em" }}>{p.title}</div>
       <div className="mt-1 text-[13px] font-bold text-neutral-900">{fmt(p.price)}</div>
       <button
         ref={btnRef}

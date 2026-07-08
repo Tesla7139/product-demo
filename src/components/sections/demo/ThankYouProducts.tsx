@@ -61,7 +61,7 @@ export function ThankYouProducts({
                 <button
                   ref={i === 0 ? addBtnRef : undefined}
                   onClick={() => onAdd(p)}
-                  className="mt-auto w-full rounded-md py-1.5 text-xs font-semibold text-white transition-all hover:brightness-110"
+                  className="mt-2 w-full rounded-md py-1.5 text-xs font-semibold text-white transition-all hover:brightness-110"
                   style={{ background: brand }}
                 >
                   Add · {fmt(deal(p.price))}
@@ -106,7 +106,7 @@ export function ThankYouProducts({
             <button
               ref={i === 0 ? addBtnRef : undefined}
               onClick={() => onAdd(p)}
-              className="mt-auto w-full rounded-md py-1.5 text-xs font-semibold text-white"
+              className="mt-1.5 w-full rounded-md py-1.5 text-xs font-semibold text-white"
               style={{ background: brand }}
             >
               Add · {fmt(deal(p.price))}
