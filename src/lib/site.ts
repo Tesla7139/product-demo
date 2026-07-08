@@ -214,9 +214,9 @@ export const customerLogos: CustomerLogo[] = [
     date: "May 17, 2024",
   },
   // More brands from the Shopify App Store export. Real brand logos (transparent
-  // PNGs pulled from each store) render like the others; V-Guard has no
-  // transparent logo available so it falls back to a styled wordmark. Review text
-  // is the EXACT content from reviews.ts (pulled by store name, no rewording).
+  // PNGs pulled from each store; V-Guard's black-bg logo was keyed to a
+  // transparent silhouette) render like the others. Review text is the EXACT
+  // content from reviews.ts (pulled by store name, no rewording).
   {
     src: "/customers/westside.png",
     name: "Westside Global",
@@ -258,6 +258,7 @@ export const customerLogos: CustomerLogo[] = [
     date: "Feb 4, 2026",
   },
   {
+    src: "/customers/vguard.png",
     name: "V-Guard Industries Limited",
     reviewer: "V-Guard Industries Team",
     role: "E-commerce",
