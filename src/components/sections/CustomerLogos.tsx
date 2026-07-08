@@ -79,7 +79,7 @@ export function CustomerLogos({ embedded = false }: { embedded?: boolean }) {
             className="max-h-12 max-w-[150px] object-contain brightness-0"
           />
         ) : (
-          <span className="max-w-[160px] text-center text-[19px] font-extrabold uppercase leading-none tracking-tight text-foreground">
+          <span className="max-w-[170px] text-center text-[15px] font-extrabold uppercase leading-tight tracking-tight text-foreground">
             {logo.name}
           </span>
         )}

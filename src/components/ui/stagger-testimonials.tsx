@@ -62,7 +62,7 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({ position, review, han
         ) : (
           <span
             className={cn(
-              "max-w-[170px] truncate text-[18px] font-extrabold uppercase tracking-tight",
+              "max-w-[195px] text-[15px] font-extrabold uppercase leading-tight tracking-tight",
               isCenter ? "text-primary-foreground" : "text-foreground"
             )}
           >

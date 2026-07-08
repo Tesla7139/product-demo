@@ -19,6 +19,13 @@ import {
   Mail,
   Package,
 } from "lucide-react";
+import { reviews } from "./reviews";
+
+/** Exact review text from the Shopify App Store export (reviews.ts), by store name. */
+function reviewText(storeName: string): string | null {
+  const r = reviews.find((rv) => rv.name === storeName);
+  return r ? r.content.replace(/\s*\n\s*/g, " ").trim() : null;
+}
 
 export const site = {
   name: "Clickpost", // brand wordmark (logo slot left intentionally empty in UI)
@@ -207,54 +214,48 @@ export const customerLogos: CustomerLogo[] = [
     date: "May 17, 2024",
   },
   // Notable brands from the Shopify App Store export — no logo file on hand, so
-  // these render as a styled wordmark in the strip + carousel. Reviews are real
-  // (faithfully condensed from the full export).
+  // these render as a styled wordmark in the strip + carousel. Review text is the
+  // EXACT content from reviews.ts (pulled by store name, no rewording).
   {
-    name: "Westside",
-    reviewer: "Westside Team",
+    name: "Westside Global",
+    reviewer: "Westside Global Team",
     role: "E-commerce",
-    review:
-      "The order editing feature is exactly what we needed — customers always want to change something after checkout. Setup was way easier than I expected and everything worked right out of the box.",
+    review: reviewText("Westside Global"),
     date: "Feb 13, 2026",
   },
   {
     name: "MyBorosil",
     reviewer: "MyBorosil Team",
     role: "E-commerce",
-    review:
-      "Easy to install with a super responsive support team. It has reduced our support tickets and just made our life easier. Loving it!",
+    review: reviewText("MyBorosil"),
     date: "Oct 14, 2025",
   },
   {
     name: "Wellbeing Nutrition",
     reviewer: "Wellbeing Nutrition Team",
     role: "E-commerce",
-    review:
-      "Customers can now edit their orders without contacting support. Their upsells are a cherry on top and have increased our AOV — real value for money.",
+    review: reviewText("Wellbeing Nutrition"),
     date: "Sep 17, 2025",
   },
   {
-    name: "Mars by GHC",
-    reviewer: "Mars by GHC Team",
+    name: "Mars By GHC",
+    reviewer: "Mars By GHC Team",
     role: "E-commerce",
-    review:
-      "Customers can handle order edits themselves, and the post-purchase upsells have been a solid bonus for incremental revenue. Setup was straightforward and support has been great.",
+    review: reviewText("Mars By GHC"),
     date: "Jan 8, 2026",
   },
   {
     name: "Amrutam",
     reviewer: "Amrutam Team",
     role: "E-commerce",
-    review:
-      "If your support team is spending 20%+ of their time fixing order typos or swapping sizes, this is an essential ROI tool. It pays for itself in saved labor hours almost immediately.",
+    review: reviewText("Amrutam"),
     date: "Feb 4, 2026",
   },
   {
-    name: "V-Guard",
+    name: "V-Guard Industries Limited",
     reviewer: "V-Guard Industries Team",
     role: "E-commerce",
-    review:
-      "Earlier our support inbox was full of simple edit requests, but now most customers handle those changes themselves. Definitely helped streamline things for our team.",
+    review: reviewText("V-Guard Industries Limited"),
     date: "Jun 2, 2026",
   },
 ];
