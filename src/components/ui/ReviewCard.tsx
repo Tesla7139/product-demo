@@ -1,11 +1,12 @@
 import { Star } from "lucide-react";
 import { Review } from "@/lib/reviews";
-import { customerLogos } from "@/lib/site";
+import { customerLogos, extraReviewLogos } from "@/lib/site";
 
-// Brand logos from the strip, keyed by lowercase name (only those with an image).
-const LOGOS = customerLogos
-  .filter((c) => c.src)
-  .map((c) => ({ name: c.name.toLowerCase(), src: c.src as string }));
+// Brand logos, keyed by lowercase name: the strip logos + the /reviews-only extras.
+const LOGOS = [
+  ...customerLogos.filter((c) => c.src).map((c) => ({ name: c.name.toLowerCase(), src: c.src as string })),
+  ...Object.entries(extraReviewLogos).map(([name, src]) => ({ name: name.toLowerCase(), src })),
+];
 
 /** Find a strip logo for a review's store name (exact, then a safe loose match). */
 function findLogo(name: string): string | undefined {

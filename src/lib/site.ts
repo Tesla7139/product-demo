@@ -270,6 +270,32 @@ export const customerLogos: CustomerLogo[] = [
 // number of blank placeholder marks to show while `customerLogos` is empty
 export const customerLogoCount = 8;
 
+// Extra brand logos for the /reviews "Wall of love" cards ONLY (kept out of the
+// brand strip so it stays curated). Keyed by the exact store name in reviews.ts;
+// each was fetched from that brand's own site and verified.
+export const extraReviewLogos: Record<string, string> = {
+  "PairieTales": "/customers/pairietales.png",
+  "litemed": "/customers/litemed.png",
+  "Muffynn": "/customers/muffynn.png",
+  "lovelang": "/customers/lovelang.png",
+  "buysohi": "/customers/buysohi.png",
+  "GHAR SOAPS": "/customers/gharsoaps.png",
+  "Bacca Bucci": "/customers/baccabucci.png",
+  "World of Asaya": "/customers/worldofasaya.png",
+  "Miniwesst": "/customers/miniwesst.png",
+  "Bonhomie": "/customers/bonhomie.png",
+  "French Accent": "/customers/frenchaccent.png",
+  "Tuco Kids": "/customers/tucokids.png",
+  "Starquik": "/customers/starquik.png",
+  "VanillaPura": "/customers/vanillapura.png",
+  "Recode Studios": "/customers/recodestudios.png",
+  "URturms": "/customers/urturms.png",
+  "RIJAC": "/customers/rijac.png",
+  "Sammvaad": "/customers/sammvaad.png",
+  "Italian Colony": "/customers/italiancolony.png",
+  "Sudathi": "/customers/sudathi.png",
+};
+
 // ---- Feature showcase rows (mapped to the product's own screenshots) ----
 export type Feature = {
   eyebrow: string;
