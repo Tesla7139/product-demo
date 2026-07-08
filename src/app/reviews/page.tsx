@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Star } from "lucide-react";
 import { Container } from "@/components/primitives/Container";
 import { ReviewCard } from "@/components/ui/ReviewCard";
@@ -94,8 +94,33 @@ const displayedReviews: Review[] = rankedReviews.slice(0, MAX_REVIEWS_COUNT);
 
 export default function ReviewsPage() {
   const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
+  const [cols, setCols] = useState(3);
 
   const visible = displayedReviews.slice(0, visibleCount);
+
+  // responsive column count
+  useEffect(() => {
+    const calc = () => {
+      const w = window.innerWidth;
+      setCols(w < 640 ? 1 : w < 1024 ? 2 : 3);
+    };
+    calc();
+    window.addEventListener("resize", calc);
+    return () => window.removeEventListener("resize", calc);
+  }, []);
+
+  // balanced masonry: place each card in the currently-shortest column
+  // (estimated by content length) so columns stay even with no big gaps.
+  const columns = useMemo(() => {
+    const buckets = Array.from({ length: cols }, () => ({ items: [] as Review[], h: 0 }));
+    const estimate = (r: Review) => 150 + Math.ceil(r.content.length / 38) * 26;
+    for (const r of visible) {
+      const shortest = buckets.reduce((a, b) => (b.h < a.h ? b : a));
+      shortest.items.push(r);
+      shortest.h += estimate(r) + 24;
+    }
+    return buckets.map((b) => b.items);
+  }, [visible, cols]);
 
   const handleShowMore = () => {
     setVisibleCount((prev) => Math.min(prev + INCREMENT_COUNT, displayedReviews.length));
@@ -152,11 +177,13 @@ export default function ReviewsPage() {
             </p>
           </div>
 
-          {/* Masonry: content-sized cards packed tightly (browser-balanced columns) */}
-          <div className="columns-1 gap-6 sm:columns-2 lg:columns-3">
-            {visible.map((review) => (
-              <div key={review.id} className="mb-6 break-inside-avoid">
-                <ReviewCard review={review} />
+          {/* Balanced masonry: each card placed in the shortest column, no big gaps */}
+          <div className="flex items-start gap-6">
+            {columns.map((col, i) => (
+              <div key={i} className="flex flex-1 flex-col gap-6">
+                {col.map((review) => (
+                  <ReviewCard key={review.id} review={review} />
+                ))}
               </div>
             ))}
           </div>
