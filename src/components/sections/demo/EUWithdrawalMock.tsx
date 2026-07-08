@@ -115,10 +115,10 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
   };
 
   return (
-    <div className="w-full overflow-hidden rounded-2xl border border-border bg-white shadow-soft-xl">
-      <div className="p-6 lg:max-h-[560px] lg:overflow-y-auto lg:no-scrollbar">
+    <div className="w-full bg-white">
+      <div className="p-6 lg:h-[560px] lg:overflow-y-auto lg:no-scrollbar">
         {/* header */}
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
           <div className="flex items-start gap-2">
             <ArrowLeft className="mt-1 size-4 text-neutral-500" />
             <div>
@@ -126,9 +126,6 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
               <div className="text-xs text-neutral-500">Confirmed 18 Jun</div>
             </div>
           </div>
-          <button className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-emerald-600 transition-colors hover:bg-emerald-50">
-            Buy again
-          </button>
         </div>
 
         <div className="mt-5 grid gap-5 md:grid-cols-[1.5fr_1fr]">
@@ -190,7 +187,7 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
                           <button
                             ref={tourRefs?.withdrawBtn}
                             onClick={submit}
-                            className="w-full rounded-lg py-3 text-sm font-semibold text-white shadow-md transition-all hover:brightness-125 active:scale-[0.99]"
+                            className="w-full rounded-xl py-3.5 text-[14px] font-semibold text-white shadow-md transition-all hover:brightness-125 active:scale-[0.99]"
                             style={{ background: "#111827" }}
                           >
                             Withdraw Contract

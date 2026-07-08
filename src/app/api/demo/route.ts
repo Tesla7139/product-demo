@@ -1,4 +1,8 @@
 import { NextResponse } from "next/server";
+import { execFile } from "child_process";
+import { promisify } from "util";
+
+const execFileP = promisify(execFile);
 
 export const runtime = "nodejs";
 
@@ -26,6 +30,14 @@ const TTL = 1000 * 60 * 30; // 30 min
 
 const FETCH_TIMEOUT = 4500;
 const MAX_BYTES = 600_000; // cap HTML we read
+
+// Many stores (Cloudflare/WAF) block generic bot User-Agents — even for the
+// public /products.json — so present as a real browser to read public data.
+const BROWSER_HEADERS: Record<string, string> = {
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  "Accept-Language": "en-US,en;q=0.9",
+};
 
 /** Reject obviously-internal / non-public hosts (basic SSRF guard). */
 function isBlockedHost(host: string) {
@@ -59,29 +71,41 @@ function normalizeUrl(raw: string): URL | null {
   }
 }
 
-async function fetchText(url: string): Promise<string | null> {
+/** True when a response body is a Cloudflare/WAF challenge instead of real content. */
+function isChallenge(text: string): boolean {
+  return /Just a moment|challenge-platform|cf-browser-verification|Attention Required/i.test(text.slice(0, 2500));
+}
+
+/** Read a capped amount of the body (whole for JSON; up to </head> for HTML). */
+async function readCapped(res: Response, htmlHead: boolean): Promise<string | null> {
+  if (!res.ok || !res.body) return null;
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let out = "";
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    out += decoder.decode(value, { stream: true });
+    if (total > MAX_BYTES || (htmlHead && /<\/head>/i.test(out))) break;
+  }
+  reader.cancel().catch(() => {});
+  return out;
+}
+
+async function tryFetch(url: string, accept: string, htmlHead: boolean): Promise<string | null> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
   try {
     const res = await fetch(url, {
       signal: controller.signal,
       redirect: "follow",
-      headers: { "User-Agent": "ClickpostDemoBot/1.0 (+branding preview)" },
+      headers: { ...BROWSER_HEADERS, Accept: accept },
     });
-    if (!res.ok || !res.body) return null;
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let out = "";
-    let total = 0;
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      total += value.byteLength;
-      out += decoder.decode(value, { stream: true });
-      if (total > MAX_BYTES || /<\/head>/i.test(out)) break; // we only need <head>
-    }
-    reader.cancel().catch(() => {});
-    return out;
+    const text = await readCapped(res, htmlHead);
+    if (text && isChallenge(text)) return null; // let curl handle it
+    return text;
   } catch {
     return null;
   } finally {
@@ -89,33 +113,44 @@ async function fetchText(url: string): Promise<string | null> {
   }
 }
 
-async function fetchJson(url: string): Promise<unknown | null> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+/**
+ * Fallback via the system `curl` — many Shopify stores sit behind Cloudflare,
+ * which fingerprints and blocks Node/undici (returns a "Just a moment" 403) but
+ * lets curl through, so we can still read the public /products.json + branding.
+ */
+async function curlFetch(url: string, accept: string): Promise<string | null> {
   try {
-    const res = await fetch(url, {
-      signal: controller.signal,
-      redirect: "follow",
-      headers: { "User-Agent": "ClickpostDemoBot/1.0 (+products preview)", Accept: "application/json" },
-    });
-    if (!res.ok || !res.body) return null;
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let out = "";
-    let total = 0;
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      total += value.byteLength;
-      out += decoder.decode(value, { stream: true });
-      if (total > MAX_BYTES) break;
-    }
-    reader.cancel().catch(() => {});
-    return JSON.parse(out);
+    const { stdout } = await execFileP(
+      "curl",
+      [
+        "-sL",
+        "--max-redirs", "5",
+        "--max-time", String(Math.ceil(FETCH_TIMEOUT / 1000) + 4),
+        "-A", BROWSER_HEADERS["User-Agent"],
+        "-H", `Accept: ${accept}`,
+        "-H", `Accept-Language: ${BROWSER_HEADERS["Accept-Language"]}`,
+        url,
+      ],
+      { maxBuffer: MAX_BYTES + 200_000, timeout: FETCH_TIMEOUT + 6000 }
+    );
+    if (!stdout || isChallenge(stdout)) return null;
+    return stdout;
   } catch {
     return null;
-  } finally {
-    clearTimeout(timer);
+  }
+}
+
+async function fetchText(url: string): Promise<string | null> {
+  return (await tryFetch(url, "text/html,application/xhtml+xml", true)) ?? (await curlFetch(url, "text/html,application/xhtml+xml"));
+}
+
+async function fetchJson(url: string): Promise<unknown | null> {
+  const raw = (await tryFetch(url, "application/json", false)) ?? (await curlFetch(url, "application/json"));
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
   }
 }
 

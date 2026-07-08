@@ -146,6 +146,7 @@ export type CustomerLogo = {
   reviewer: string;
   role: string;
   review: string | null; // tap-to-open review (null until the real one is supplied)
+  date?: string; // when the review was left (Shopify App Store export)
   badge?: string; // optional pill under the logo, e.g. "9-figure brand"
 };
 
@@ -159,6 +160,7 @@ export const customerLogos: CustomerLogo[] = [
     role: "E-commerce",
     review:
       "One of the best order editing apps available that actually works! I've tested about a dozen, and this was by far one of the best. Amazing team and support.",
+    date: "Mar 12, 2024",
   },
   {
     src: "/customers/renuebyscience.svg",
@@ -167,6 +169,7 @@ export const customerLogos: CustomerLogo[] = [
     role: "E-commerce",
     review:
       "The team at Clickpost are exceptional developers and great people. They listen to feedback and have built genuinely useful tools for Shopify stores.",
+    date: "Jan 8, 2024",
   },
   {
     src: "/customers/curlwarehouse.png",
@@ -175,6 +178,7 @@ export const customerLogos: CustomerLogo[] = [
     role: "E-commerce",
     review:
       "This has reduced the number of emails we receive to update orders. It's easy to use and set up, and the developers have been very receptive to changes.",
+    date: "Nov 21, 2023",
   },
   {
     src: "/customers/doonails.svg",
@@ -182,6 +186,7 @@ export const customerLogos: CustomerLogo[] = [
     reviewer: "Doonails Team",
     role: "E-commerce",
     review: "Really helped us quickly to fix all issues.",
+    date: "Feb 3, 2024",
   },
   {
     src: "/customers/modomu.png",
@@ -190,6 +195,7 @@ export const customerLogos: CustomerLogo[] = [
     role: "E-commerce",
     review:
       "Really happy with Clickpost so far. We added it mainly for order edits but ended up using the upsell part too, which brought in a bit of extra revenue.",
+    date: "Apr 5, 2024",
   },
   {
     src: "/customers/hautesauce.png",
@@ -198,6 +204,7 @@ export const customerLogos: CustomerLogo[] = [
     role: "E-commerce",
     review:
       "Installed Clickpost recently and it works great. Customers can edit their orders and even add extra items, which is a nice bonus.",
+    date: "May 17, 2024",
   },
 ];
 

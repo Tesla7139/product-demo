@@ -36,6 +36,9 @@ export const DEFAULT_EMAIL = "tucker.briggs01@gmail.com";
 export const DEFAULT_PHONE = "+1 760-637-2644";
 export const DEFAULT_COUNTRY = "United States";
 export const DEFAULT_ADDR: Addr = { first: "Tucker", last: "Briggs", line1: "4563 Coronado Dr", city: "Oceanside", state: "California", zip: "92057" };
+/** Address-validation mode: Tucker's current address is flagged, then corrected on validate. */
+const FLAGGED_ADDR: Addr = DEFAULT_ADDR;
+const VERIFIED_ADDR: Addr = { first: "Tucker", last: "Briggs", line1: "4563 Coronado Drive", city: "Oceanside", state: "California", zip: "92057-3812" };
 
 const money = (n: number, currency = "USD") =>
   new Intl.NumberFormat("en", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
@@ -60,6 +63,7 @@ export function DemoMock({
   onPaid,
   upsellFirst = false,
   onUpsellAdded,
+  addressValidation = false,
 }: {
   store: DemoStore;
   initialOpen?: Section | null;
@@ -68,6 +72,8 @@ export function DemoMock({
   maxHeight?: number;
   forceOneTap?: boolean;
   extraItem?: DemoProduct;
+  /** Address-validation mode: shipping opens with a flagged address that validates on save. */
+  addressValidation?: boolean;
   /** External refs (owned by a parent tour controller) attached to key elements. */
   tourRefs?: {
     countdown?: React.RefObject<HTMLDivElement | null>;
@@ -75,6 +81,7 @@ export function DemoMock({
     addressForm?: React.RefObject<HTMLDivElement | null>;
     addressBlock?: React.RefObject<HTMLDivElement | null>;
     saveBtn?: React.RefObject<HTMLDivElement | null>;
+    addrSaveBtn?: React.RefObject<HTMLButtonElement | null>;
     orderRow?: React.RefObject<HTMLDivElement | null>;
     orderBtn?: React.RefObject<HTMLDivElement | null>;
     orderPlusBtn?: React.RefObject<HTMLButtonElement | null>;
@@ -117,6 +124,8 @@ export function DemoMock({
     return all.map((p) => ({ ...p, uid: uid() }));
   });
   const [open, setOpen] = useState<Section | null>(initialOpen);
+  const [addrValidated, setAddrValidated] = useState(false);
+  const addrFlagged = addressValidation && !addrValidated;
   const [cancelled, setCancelled] = useState(false);
   const [processing, setProcessing] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -140,7 +149,7 @@ export function DemoMock({
   // editable field state (sample-prefilled — this is a UI demo)
   const [email, setEmail] = useState(DEFAULT_EMAIL);
   const [phone, setPhone] = useState(DEFAULT_PHONE);
-  const [addr, setAddr] = useState<Addr>(DEFAULT_ADDR);
+  const [addr, setAddr] = useState<Addr>(addressValidation ? FLAGGED_ADDR : DEFAULT_ADDR);
   const [discount, setDiscount] = useState("");
 
   // report which section is open (so an outer panel can explain it)
@@ -228,7 +237,11 @@ export function DemoMock({
   const freeShip = subtotal >= freeShipAt;
   const shipping = cancelled || freeShip ? 0 : shipFee;
 
-  const toggle = (s: Section) => setOpen((cur) => (cur === s ? null : s));
+  // in address-validation mode only the shipping section can be opened
+  const toggle = (s: Section) => {
+    if (addressValidation && s !== "shipping") return;
+    setOpen((cur) => (cur === s ? null : s));
+  };
 
   const flash = (msg: string) => {
     setToast(msg);
@@ -272,9 +285,9 @@ export function DemoMock({
 
   return (
     <div className="relative w-full text-left">
-      <div className="overflow-hidden rounded-none border border-border bg-white shadow-soft-xl">
+      <div className="bg-white">
         <div
-          className={`grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_270px] ${maxHeight ? "lg:no-scrollbar lg:max-h-[var(--demo-h)] lg:overflow-y-auto" : ""}`}
+          className={`grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_270px] ${maxHeight ? "lg:no-scrollbar lg:h-[var(--demo-h)] lg:overflow-y-auto" : ""}`}
           style={maxHeight ? ({ "--demo-h": `${maxHeight}px` } as CSSProperties) : undefined}
         >
           {/* LEFT: confirmation + editing panel OR one-tap upsell panel */}
@@ -336,7 +349,7 @@ export function DemoMock({
                 </div>
 
                 <div ref={tourRefs?.sections} className="flex flex-col gap-2">
-                  <AccordionRow icon={UserRound} label="Change Contact Information" isOpen={open === "contact"} onClick={() => toggle("contact")}>
+                  <AccordionRow icon={UserRound} label="Change Contact Information" isOpen={open === "contact"} onClick={() => toggle("contact")} locked={addressValidation}>
                     <Field label="Email" value={email} onChange={setEmail} />
                     <Field label="Phone" value={phone} onChange={setPhone} />
                     <CheckboxRow brand={brand} label="Update Profile" />
@@ -346,7 +359,23 @@ export function DemoMock({
                   </AccordionRow>
 
                   <div ref={tourRefs?.shippingRow}>
-                    <AccordionRow icon={MapPin} label="Edit Shipping Address" isOpen={open === "shipping"} onClick={() => toggle("shipping")}>
+                    <AccordionRow
+                      icon={MapPin}
+                      label="Edit Shipping Address"
+                      isOpen={open === "shipping"}
+                      onClick={() => toggle("shipping")}
+                      badge={
+                        addrFlagged ? (
+                          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-neutral-800 px-2.5 py-1 text-[11px] font-semibold text-white">
+                            <TriangleAlert className="size-3 shrink-0" /> Address check required
+                          </span>
+                        ) : addrValidated ? (
+                          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-emerald-500 px-2.5 py-1 text-[11px] font-semibold text-white">
+                            <Check className="size-3 shrink-0" strokeWidth={3} /> Address verified
+                          </span>
+                        ) : undefined
+                      }
+                    >
                       <div ref={tourRefs?.addressBlock} className="flex flex-col gap-2.5">
                         <div ref={tourRefs?.addressForm} className="flex flex-col gap-2.5">
                           <SelectField label="Country" value="United States" emphasize={formEmphasis} />
@@ -354,25 +383,34 @@ export function DemoMock({
                             <Field label="First Name" value={addr.first} onChange={(v) => setAddr({ ...addr, first: v })} emphasize={formEmphasis} />
                             <Field label="Last Name" value={addr.last} onChange={(v) => setAddr({ ...addr, last: v })} emphasize={formEmphasis} />
                           </div>
-                          <Field label="Address 1" value={addr.line1} onChange={(v) => setAddr({ ...addr, line1: v })} emphasize={emphasis.line1 || formEmphasis} />
+                          <Field label="Address 1" value={addr.line1} onChange={(v) => setAddr({ ...addr, line1: v })} emphasize={emphasis.line1 || formEmphasis} invalid={addrFlagged} valid={addrValidated} error={addrFlagged ? "Street address could not be fully validated. Please review." : undefined} />
                           <Field label="Address 2" value="" onChange={() => {}} />
                           <div className="grid grid-cols-3 gap-2.5">
                             <Field label="City" value={addr.city} onChange={(v) => setAddr({ ...addr, city: v })} emphasize={emphasis.city || formEmphasis} />
                             <SelectField label="Province / State" value={addr.state} emphasize={formEmphasis} />
-                            <Field label="Postal Code" value={addr.zip} onChange={(v) => setAddr({ ...addr, zip: v })} emphasize={emphasis.zip || formEmphasis} />
+                            <Field label="Postal Code" value={addr.zip} onChange={(v) => setAddr({ ...addr, zip: v })} emphasize={emphasis.zip || formEmphasis} invalid={addrFlagged} valid={addrValidated} error={addrFlagged ? "Postal code could not be validated." : undefined} />
                           </div>
                         </div>
                         <div ref={tourRefs?.saveBtn}>
-                          <PrimaryButton onClick={() => { flash("Shipping address updated"); onShippingSaved?.(); }}>
-                            Update Shipping Address
-                          </PrimaryButton>
+                          <button
+                            ref={tourRefs?.addrSaveBtn}
+                            onClick={() => {
+                              if (addrFlagged) { setAddr(VERIFIED_ADDR); setAddrValidated(true); flash("Address verified & deliverable"); }
+                              else { flash("Shipping address updated"); }
+                              onShippingSaved?.();
+                            }}
+                            className="mt-1 w-full rounded-md py-3 text-sm font-semibold text-white transition-all hover:brightness-125 active:scale-[0.99]"
+                            style={{ background: "#111827" }}
+                          >
+                            {addrFlagged ? "Use validated address" : "Update Shipping Address"}
+                          </button>
                         </div>
                       </div>
                     </AccordionRow>
                   </div>
 
                   <div ref={tourRefs?.orderRow}>
-                  <AccordionRow icon={Pencil} label="Update your order" isOpen={open === "order"} onClick={() => toggle("order")}>
+                  <AccordionRow icon={Pencil} label="Update your order" isOpen={open === "order"} onClick={() => toggle("order")} locked={addressValidation}>
                     <div className="flex flex-col divide-y divide-border">
                       {items.map((item, i) => (
                         <div
@@ -404,7 +442,7 @@ export function DemoMock({
                   </AccordionRow>
                   </div>
 
-                  <AccordionRow icon={Tag} label="Apply Discount Code" isOpen={open === "discount"} onClick={() => toggle("discount")}>
+                  <AccordionRow icon={Tag} label="Apply Discount Code" isOpen={open === "discount"} onClick={() => toggle("discount")} locked={addressValidation}>
                     <div className="flex gap-2">
                       <input
                         value={discount}
@@ -424,7 +462,7 @@ export function DemoMock({
                     </p>
                   </AccordionRow>
 
-                  <AccordionRow icon={X} label="Cancel Your Order" isOpen={open === "cancel"} onClick={() => toggle("cancel")}>
+                  <AccordionRow icon={X} label="Cancel Your Order" isOpen={open === "cancel"} onClick={() => toggle("cancel")} locked={addressValidation}>
                     <p className="text-sm text-neutral-600">
                       Cancel your order for {fmt(subtotal)} and choose how you&apos;d like to be refunded.
                     </p>
@@ -611,23 +649,30 @@ function AccordionRow({
   isOpen,
   onClick,
   children,
+  badge,
+  locked,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   isOpen: boolean;
   onClick: () => void;
   children: React.ReactNode;
+  badge?: React.ReactNode;
+  locked?: boolean;
 }) {
   return (
     <div className="overflow-hidden rounded-lg border border-border">
       <button
         onClick={onClick}
-        className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left transition-colors hover:bg-neutral-50"
+        disabled={locked}
+        className={`flex w-full items-center gap-3 px-3.5 py-2.5 text-left transition-colors ${locked ? "cursor-default" : "hover:bg-neutral-50"}`}
         aria-expanded={isOpen}
       >
         <Icon className="size-4 shrink-0 text-neutral-600" />
-        <span className="flex-1 text-sm font-semibold text-neutral-900">{label}</span>
-        <ChevronDown className={`size-4 text-neutral-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        <span className="text-sm font-semibold text-neutral-900">{label}</span>
+        {badge}
+        <span className="flex-1" />
+        <ChevronDown className={`size-4 shrink-0 text-neutral-400 transition-transform ${isOpen ? "rotate-180" : ""} ${locked ? "opacity-30" : ""}`} />
       </button>
       <AnimatePresence initial={false}>
         {isOpen && (
@@ -646,22 +691,25 @@ function AccordionRow({
   );
 }
 
-function Field({ label, value, onChange, emphasize }: { label: string; value: string; onChange: (v: string) => void; emphasize?: boolean }) {
+function Field({ label, value, onChange, emphasize, invalid, valid, error }: { label: string; value: string; onChange: (v: string) => void; emphasize?: boolean; invalid?: boolean; valid?: boolean; error?: string }) {
   return (
-    <label
-      className={`relative block rounded-md border px-3 pt-5 pb-1.5 transition-colors duration-300 ${
-        emphasize ? "border-amber-300 bg-amber-50" : "border-border focus-within:border-neutral-400"
-      }`}
-    >
-      <span className="pointer-events-none absolute left-3 top-1.5 text-[10px] font-medium uppercase tracking-wide text-neutral-400">
-        {label}
-      </span>
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-transparent text-sm text-neutral-800 focus:outline-none"
-      />
-    </label>
+    <div>
+      <label
+        className={`relative block rounded-md border-2 px-3 pt-5 pb-1.5 transition-colors duration-300 ${
+          invalid ? "border-red-400" : valid ? "border-emerald-300" : emphasize ? "border-amber-300 bg-amber-50" : "border-border focus-within:border-neutral-400"
+        }`}
+      >
+        <span className="pointer-events-none absolute left-3 top-1.5 text-[10px] font-medium uppercase tracking-wide text-neutral-400">
+          {label}
+        </span>
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full bg-transparent text-sm text-neutral-800 focus:outline-none"
+        />
+      </label>
+      {error && <div className="mt-1 text-[12px] font-medium text-red-500">{error}</div>}
+    </div>
   );
 }
 

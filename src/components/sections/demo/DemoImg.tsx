@@ -21,8 +21,17 @@ export function DemoImg({
 }) {
   const [ok, setOk] = useState(true);
   if (src && ok) {
-    // eslint-disable-next-line @next/next/no-img-element -- remote product images from any store
-    return <img src={src} alt={alt} className={className} onError={() => setOk(false)} />;
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- remote product images from any store
+      <img
+        src={src}
+        alt={alt}
+        className={className}
+        loading="lazy"
+        referrerPolicy="no-referrer"
+        onError={() => setOk(false)}
+      />
+    );
   }
   return (
     <div

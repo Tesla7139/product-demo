@@ -77,9 +77,10 @@ export function TourOverlay({
   hideCta = false,
   outcome = false,
   outcomeHref,
+  outcomeHeadline,
   nextLabel,
   finalStep = false,
-  blurRect,
+  tapAt,
   onAdvance,
   onClose,
 }: {
@@ -110,6 +111,8 @@ export function TourOverlay({
   finalStep?: boolean;
   /** The editing/demo window rect — outcome steps blur only this region. */
   blurRect?: TourRect | null;
+  /** Viewport point where the tour just auto-tapped a button — shows a ripple. */
+  tapAt?: { top: number; left: number } | null;
   onAdvance: () => void;
   onClose: () => void;
 }) {
@@ -133,35 +136,28 @@ export function TourOverlay({
   // Final step (end of the chain): a bigger centered conversion window with the app name.
   if (outcome) {
     const swallow = (e: React.SyntheticEvent) => { e.preventDefault(); e.stopPropagation(); };
-    // light dim/blur limited to the editing window (fallback: whole screen, still light)
-    const dim = blurRect
-      ? { top: blurRect.top, left: blurRect.left, width: blurRect.width, height: blurRect.height }
-      : null;
-    const dimClass = "pointer-events-auto absolute bg-[rgba(15,23,42,0.16)] backdrop-blur-[3px]";
-
-    // small callout anchored beside the highlighted next-feature card
-    const calloutTop = rect ? Math.max(12, Math.min(rect.top, window.innerHeight - 130)) : 0;
-    const calloutLeft = rect ? Math.min(rect.left + rect.width + 14, window.innerWidth - 236) : 0;
+    const headline = finalStep
+      ? "Ready to reduce support tickets and boost AOV using CP Order Editing?"
+      : outcomeHeadline ?? "You've seen it in action — start your free trial now.";
 
     return createPortal(
       <div className="pointer-events-none fixed inset-0 z-[500]">
-        {/* light blur over the editing window */}
-        {dim ? (
-          <div className={`${dimClass} rounded-[1.75rem]`} style={{ top: dim.top, left: dim.left, width: dim.width, height: dim.height }} onClickCapture={swallow} onPointerDownCapture={swallow} onTouchStartCapture={swallow} />
-        ) : (
-          <div className={`${dimClass} inset-0`} onClickCapture={swallow} onPointerDownCapture={swallow} onTouchStartCapture={swallow} />
-        )}
+        {/* dim + blur backdrop — no feature highlight */}
+        <div
+          className="pointer-events-auto absolute inset-0 bg-[rgba(15,23,42,0.30)] backdrop-blur-[3px]"
+          onClickCapture={swallow}
+          onPointerDownCapture={swallow}
+          onTouchStartCapture={swallow}
+        />
 
-        {finalStep ? (
-          /* ---- final conversion card — floats over the blurred demo window; rail stays visible ---- */
-          <motion.div
-            key={`outcome-${step}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="pointer-events-none absolute flex items-center justify-center p-3 sm:p-7"
-            style={dim ? { top: dim.top, left: dim.left, width: dim.width, height: dim.height } : { inset: 0 }}
-          >
+        {/* conversion box — the SAME box on in-between hops and the final step */}
+        <motion.div
+          key={`outcome-${step}`}
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          className="pointer-events-none absolute inset-0 flex items-center justify-center p-3 sm:p-7"
+        >
            {/* thick blue→purple frame (~1cm) + pulsing side glow — compact, squarish card */}
            <motion.div
              className="pointer-events-auto flex max-h-full w-full max-w-md rounded-[22px] bg-gradient-to-br from-[#4c86ff] via-[#155FFF] to-[#7c3aed] p-2.5 sm:rounded-[28px] sm:p-4"
@@ -202,11 +198,20 @@ export function TourOverlay({
 
               {/* headline */}
               <h2 className="mt-4 max-w-xs font-sans text-[17px] font-extrabold leading-[1.15] tracking-tight text-neutral-900">
-                Ready to reduce support tickets and boost AOV using CP Order Editing?
+                {headline}
               </h2>
 
-              {/* two CTAs side by side */}
+              {/* buttons — Continue (hops) / Book a demo (final) + the main free-trial CTA */}
               <div className="mt-5 flex w-full flex-col gap-2.5 sm:flex-row">
+                {!finalStep && (
+                  <button
+                    onClick={onAdvance}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border-2 border-[#155FFF] bg-white py-2.5 text-[13px] font-bold text-[#155FFF] transition-colors hover:bg-[#155FFF]/5"
+                  >
+                    Continue to {nextLabel ?? "next"}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                  </button>
+                )}
                 <a
                   href={outcomeHref}
                   target="_blank"
@@ -221,15 +226,17 @@ export function TourOverlay({
                     animate={{ x: "460%" }}
                     transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 1.4, ease: "easeInOut" }}
                   />
-                  <span className="relative">Start 14-day free trial</span>
+                  <span className="relative">Start free trial</span>
                   <svg className="relative" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M7 17 17 7M9 7h8v8" /></svg>
                 </a>
-                <Link
-                  href="/#contact"
-                  className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white py-2.5 text-[13px] font-semibold text-neutral-800 transition-colors hover:bg-neutral-50"
-                >
-                  Book a demo
-                </Link>
+                {finalStep && (
+                  <Link
+                    href="/#contact"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white py-2.5 text-[13px] font-semibold text-neutral-800 transition-colors hover:bg-neutral-50"
+                  >
+                    Book a demo
+                  </Link>
+                )}
               </div>
 
               {/* review button → wall of love */}
@@ -252,47 +259,6 @@ export function TourOverlay({
             </div>
            </motion.div>
           </motion.div>
-        ) : rect ? (
-          /* ---- in-between hop: highlight next card + small explore callout ---- */
-          <>
-            <motion.div
-              className="pointer-events-none absolute rounded-2xl"
-              style={{ top: rect.top - 6, left: rect.left - 6, width: rect.width + 12, height: rect.height + 12 }}
-              animate={{ boxShadow: ["0 0 0 2px rgba(21,95,255,0.85), 0 0 20px 2px rgba(21,95,255,0.3)", "0 0 0 3px rgba(21,95,255,1), 0 0 34px 5px rgba(21,95,255,0.5)", "0 0 0 2px rgba(21,95,255,0.85), 0 0 20px 2px rgba(21,95,255,0.3)"] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-            />
-            <motion.div
-              key={`callout-${step}`}
-              initial={{ opacity: 0, x: -6 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="pointer-events-auto absolute w-[220px] rounded-2xl bg-white p-4 shadow-2xl"
-              style={{ top: calloutTop, left: calloutLeft }}
-            >
-              <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-400">Up next</div>
-              <button
-                onClick={onAdvance}
-                className="mt-1.5 flex w-full items-center justify-between gap-2 text-left text-[15px] font-extrabold tracking-tight text-neutral-900 transition-colors hover:text-[#155FFF]"
-              >
-                Explore {nextLabel ?? "the next feature"}
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={TOUR_ACCENT} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-              </button>
-            </motion.div>
-          </>
-        ) : null}
-
-        {/* Skip — for the in-between hop; the final card has its own close cross */}
-        {!finalStep && (
-          <button
-            onClick={onClose}
-            className="group pointer-events-auto absolute right-5 top-5 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3.5 py-2 text-[12px] font-semibold text-neutral-600 shadow-[0_6px_20px_-6px_rgba(15,23,42,0.4)] ring-1 ring-black/5 backdrop-blur-md transition-all hover:bg-white hover:text-neutral-900 active:scale-95"
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="transition-transform group-hover:rotate-90"><path d="M6 6l12 12M18 6L6 18" /></svg>
-            Close tour
-          </button>
-        )}
       </div>,
       document.body
     );
@@ -354,6 +320,16 @@ export function TourOverlay({
         style={{ top: sl.top, left: sl.left, width: sl.width, height: sl.height }}
         onClick={clickThrough ? undefined : onAdvance}
       />
+
+      {/* Tap ripple — shown when the tour auto-taps a button (Next-driven action) */}
+      {tapAt && (
+        <span className="pointer-events-none absolute z-10" style={{ top: tapAt.top, left: tapAt.left }} aria-hidden>
+          <span className="relative flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full" style={{ background: "rgba(21,95,255,0.55)" }} />
+            <span className="relative inline-flex size-5 rounded-full ring-2 ring-white" style={{ background: TOUR_ACCENT }} />
+          </span>
+        </span>
+      )}
 
       {/* Red ripple tap indicator — only on steps you tap the highlighted element */}
       {showDot && (
@@ -422,7 +398,7 @@ export function TourOverlay({
       {/* Skip */}
       <button
         onClick={onClose}
-        className="group pointer-events-auto absolute right-5 top-5 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3.5 py-2 text-[12px] font-semibold text-neutral-600 shadow-[0_6px_20px_-6px_rgba(15,23,42,0.5)] ring-1 ring-black/5 backdrop-blur-md transition-all hover:bg-white hover:text-neutral-900 active:scale-95"
+        className="group pointer-events-auto absolute right-5 top-5 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-[13px] font-bold text-neutral-700 shadow-[0_6px_20px_-6px_rgba(15,23,42,0.5)] ring-1 ring-black/5 backdrop-blur-md transition-all hover:bg-white hover:text-neutral-900 active:scale-95"
       >
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="transition-transform group-hover:rotate-90"><path d="M6 6l12 12M18 6L6 18" /></svg>
         Close tour

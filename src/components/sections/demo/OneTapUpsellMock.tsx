@@ -14,7 +14,7 @@ function Pic({ src }: { src?: string | null }) {
   return <DemoImg src={src} className="size-10 shrink-0 rounded-lg border border-border object-cover" />;
 }
 
-export function OneTapUpsellMock({ store, onComplete, accentColor, addBtnRef, offerRef, onAdded }: { store: DemoStore; onComplete?: (wasAdded: boolean) => void; accentColor?: string; addBtnRef?: React.RefObject<HTMLButtonElement | null>; offerRef?: React.RefObject<HTMLDivElement | null>; onAdded?: () => void }) {
+export function OneTapUpsellMock({ store, onComplete, onViewOrder, accentColor, addBtnRef, offerRef, onAdded }: { store: DemoStore; onComplete?: (wasAdded: boolean) => void; onViewOrder?: () => void; accentColor?: string; addBtnRef?: React.RefObject<HTMLButtonElement | null>; offerRef?: React.RefObject<HTMLDivElement | null>; onAdded?: () => void }) {
   const brand = readableBrand(store.brandColor || accentColor);
   const currency = store.currency || "USD";
   const fmt = (n: number) => money(n, currency);
@@ -50,46 +50,27 @@ export function OneTapUpsellMock({ store, onComplete, accentColor, addBtnRef, of
 
   const handleSkip = () => onComplete?.(false);
 
-  const slug = (store.brandName || "yourstore").toLowerCase().replace(/\s+/g, "-");
-  const url = `${slug}.myshopify.com/checkouts/post-purchase`;
-
   return (
-    <div className="mx-auto w-full max-w-3xl overflow-hidden rounded-2xl border border-border bg-white shadow-soft-xl">
-      {/* browser chrome */}
-      <div className="flex items-center gap-3 border-b border-border bg-neutral-50 px-4 py-2.5">
-        <div className="flex gap-1.5">
-          <span className="size-2.5 rounded-full bg-[#ff5f57]" />
-          <span className="size-2.5 rounded-full bg-[#febc2e]" />
-          <span className="size-2.5 rounded-full bg-[#28c840]" />
-        </div>
-        <div className="flex flex-1 items-center justify-center">
-          <div className="flex items-center gap-1.5 rounded-md bg-white px-3 py-1 text-[11px] text-neutral-500 ring-1 ring-neutral-200">
-            <span className="size-2.5 rounded-full bg-green-500/80" />
-            {url}
-          </div>
-        </div>
-      </div>
-
+    <div className="mx-auto w-full bg-white">
       {/* page body */}
-      <div className="lg:max-h-[520px] lg:overflow-y-auto lg:no-scrollbar">
-        {/* store header */}
-        <div className="border-b border-border px-6 py-2.5">
-          <div className="text-[13px] font-semibold text-neutral-800">{slug}</div>
-          <div className="mt-1 flex items-start gap-2.5">
+      <div className="lg:h-[560px] lg:overflow-y-auto lg:no-scrollbar">
+        {/* confirmation header — matches order editing */}
+        <div className="border-b border-border px-6 py-4">
+          <div className="flex items-center gap-3">
             <span
-              className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border-2"
+              className="flex size-8 shrink-0 items-center justify-center rounded-full border-2"
               style={{ borderColor: brand, color: brand }}
             >
-              <Check className="size-3" strokeWidth={3} />
+              <Check className="size-4" strokeWidth={3} />
             </span>
             <div>
-              <div className="text-[12px] text-neutral-500">Confirmation #0WP59XCW8</div>
-              <div className="text-[15px] font-bold text-neutral-900">You&apos;ve paid for your order.</div>
-              <button className="mt-0.5 text-[12px]" style={{ color: brand }}>
-                View order confirmation &rsaquo;
-              </button>
+              <div className="text-xs text-neutral-500">Confirmation #0WP59XCW8</div>
+              <div className="text-lg font-bold text-neutral-900">Thank you, Tucker!</div>
             </div>
           </div>
+          <button onClick={onViewOrder} className="mt-2 text-[12px] font-medium" style={{ color: brand }}>
+            View order confirmation &rsaquo;
+          </button>
         </div>
 
         {/* before-you-go header */}

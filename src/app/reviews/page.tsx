@@ -11,26 +11,6 @@ const INITIAL_COUNT = 12;
 const INCREMENT_COUNT = 12;
 const MAX_REVIEWS_COUNT = 51;
 
-// Re-colored: mostly orange/green/blue, white only occasionally.
-// Deterministic pattern (no random) so SSR and client match.
-const PALETTE: Review["color"][] = [
-  "orange",
-  "green",
-  "blue",
-  "green",
-  "orange",
-  "blue",
-  "orange",
-  "green",
-  "blue",
-  "white",
-  "green",
-  "orange",
-  "blue",
-  "green",
-  "orange",
-];
-
 // ---- Review ranking --------------------------------------------------------
 // Rank by (1) store size / notability, (2) quantified impact, (3) detail.
 // Then a diversity pass surfaces a review for each *different reason* the app
@@ -110,9 +90,7 @@ const rankedReviews: Review[] = (() => {
   return [...top, ...rest];
 })();
 
-const displayedReviews: Review[] = rankedReviews
-  .slice(0, MAX_REVIEWS_COUNT)
-  .map((r, i) => ({ ...r, color: PALETTE[i % PALETTE.length] }));
+const displayedReviews: Review[] = rankedReviews.slice(0, MAX_REVIEWS_COUNT);
 
 export default function ReviewsPage() {
   const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);

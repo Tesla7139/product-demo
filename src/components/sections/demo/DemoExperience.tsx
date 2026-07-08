@@ -5,13 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Check, X } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
 import { GuidedEditor } from "./GuidedEditor";
-import { OneTapUpsell } from "./OneTapUpsell";
 import { CustomerLogos } from "@/components/sections/CustomerLogos";
-import { WallOfLoveTeaser } from "@/components/sections/WallOfLoveTeaser";
+import { StaggerTestimonials } from "@/components/ui/stagger-testimonials";
 import { Footer } from "@/components/layout/Footer";
 
 type Status = "idle" | "loading" | "ready";
-type Step = "welcome" | "editing" | "upsell";
+type Step = "welcome" | "editing";
 
 const ACCENT = "#155FFF";
 
@@ -58,7 +57,7 @@ export function DemoExperience({
           <button
             onClick={onClose}
             aria-label="Close preview"
-            className="fixed right-5 top-5 z-[120] flex size-10 items-center justify-center rounded-full border border-border bg-white text-foreground shadow-soft-md transition-colors hover:bg-neutral-50"
+            className="fixed right-4 top-3 z-[120] flex size-9 items-center justify-center rounded-full border border-border bg-white text-foreground shadow-soft-md transition-colors hover:bg-neutral-50"
           >
             <X className="size-5" />
           </button>
@@ -72,10 +71,7 @@ export function DemoExperience({
                 <WelcomeView key="welcome" store={store} brand={brand} name={name} onContinue={() => setStep("editing")} />
               )}
               {step === "editing" && (
-                <EditingView key="editing" store={store} onUpsell={() => setStep("upsell")} />
-              )}
-              {step === "upsell" && (
-                <UpsellView key="upsell" store={store} name={name} onDone={() => setStep("editing")} />
+                <EditingView key="editing" store={store} />
               )}
             </AnimatePresence>
           )}
@@ -264,38 +260,40 @@ function WelcomeView({ store, brand, name, onContinue }: { store: DemoStore; bra
 }
 
 /* ----------------------------- Editing ----------------------------- */
-function EditingView({ store, onUpsell }: { store: DemoStore; onUpsell: () => void }) {
+function EditingView({ store }: { store: DemoStore }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
       className="bg-background-muted/40"
     >
-      {/* page 1 — the demo fills the viewport */}
-      <div className="mx-auto flex min-h-[100svh] w-full flex-col justify-center px-3 py-5 sm:px-6 sm:py-8 lg:px-10 xl:px-16 2xl:px-24">
-        <GuidedEditor store={store} onUpsell={onUpsell} />
+      {/* page 1 — reserved left panel + full-bleed blue demo stage (right) */}
+      <div className="flex min-h-[100svh] w-full flex-col justify-center px-3 py-6 sm:px-6 sm:py-8 lg:py-0 lg:pl-5 lg:pr-0 xl:pl-6">
+        <GuidedEditor store={store} />
       </div>
 
-      {/* page 2 — moving brand strip + Wall of Love reviews + footer */}
+      {/* page 2 — moving brand strip + stagger review carousel + footer */}
       <CustomerLogos />
-      <WallOfLoveTeaser />
+      <section className="border-t border-border/60 bg-background pt-14 pb-4">
+        <div className="mx-auto max-w-3xl px-4 text-center">
+          <h2 className="font-serif text-3xl font-bold tracking-tight text-foreground md:text-4xl" style={{ fontFamily: "var(--font-fraunces), serif" }}>
+            Loved by fast-growing brands
+          </h2>
+          <p className="mt-2 text-[15px] text-muted-foreground">What Shopify merchants say about Clickpost.</p>
+        </div>
+        <div className="mt-6">
+          <StaggerTestimonials />
+        </div>
+        <div className="mt-6 flex justify-center">
+          <a
+            href="/reviews"
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-6 py-3 text-sm font-semibold text-foreground shadow-soft-md transition-colors hover:bg-neutral-50"
+          >
+            Show all 51 reviews
+            <ArrowRight className="size-4" />
+          </a>
+        </div>
+      </section>
       <Footer />
-    </motion.div>
-  );
-}
-
-/* ----------------------------- Upsell ----------------------------- */
-function UpsellView({ store, name, onDone }: { store: DemoStore; name: string; onDone: () => void }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
-    >
-      <div className="mx-auto w-full px-4 py-8 sm:px-6 lg:px-10 xl:px-16 2xl:px-24">
-        <button onClick={onDone} className="mb-5 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
-          <ArrowRight className="size-4 rotate-180" />
-          Back
-        </button>
-      </div>
-      <OneTapUpsell store={store} name={name} onAdd={onDone} onSkip={onDone} />
     </motion.div>
   );
 }

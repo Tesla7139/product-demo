@@ -3,18 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  ArrowRight, ArrowUpRight, Check, Sparkles, Star, CalendarDays, ChevronDown,
-} from "lucide-react";
+import { ArrowUpRight, CalendarDays, ChevronRight, Globe, MapPin, Pencil, Play, ShieldCheck, Sparkles, Star, TrendingUp } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
 import type { Addr } from "./DemoMock";
 import { DemoMock } from "./DemoMock";
 import { OneTapUpsellMock } from "./OneTapUpsellMock";
-import { AddressValidationMock } from "./AddressValidationMock";
 import { EUWithdrawalMock } from "./EUWithdrawalMock";
 import { TourOverlay, type TourRect } from "./TourOverlay";
 
-const ACCENT = "#155FFF";
 const APP_URL = "https://apps.shopify.com/clickpost-order-edit-cancel";
 
 type Tab = "editing" | "upsell" | "address" | "cancel" | "eu-withdrawal";
@@ -24,73 +20,14 @@ type Section = "contact" | "shipping" | "order" | "discount" | "cancel";
 /** Address the guided tour drops into the form to demonstrate an edit. */
 const CORRECTED_ADDRESS: Partial<Addr> = { line1: "1820 Seacrest Blvd", city: "Carlsbad", zip: "92008" };
 
-const FEATURE_CARDS: {
-  key: Tab;
-  title: string;
-  desc: string;
-  capLabel: string;
-  points: string[];
-  stats: { value: string; label: string }[];
-}[] = [
-  {
-    key: "editing",
-    title: "Order editing",
-    desc: "Shoppers fix their own order before it ships.",
-    capLabel: "What customers can change",
-    points: [
-      "Shipping address & contact details",
-      "Items, variants & quantities",
-      "Discount codes, cancel & auto-refund",
-    ],
-    stats: [
-      { value: "~40%", label: "fewer support tickets" },
-      { value: "94%", label: "of edits completed self-serve" },
-    ],
-  },
-  {
-    key: "upsell",
-    title: "Post-purchase upsell",
-    desc: "Every edit is an upsell opportunity — lift your AOV.",
-    capLabel: "What you can configure",
-    points: [
-      "Turn every edit & checkout into extra revenue",
-      "One-tap add-ons on the thank-you page or post-checkout",
-      "You set the product, discount & timing",
-    ],
-    stats: [
-      { value: "+3-4%", label: "AOV from one-tap upsell" },
-      { value: "+2-3%", label: "AOV from on-page upsell" },
-    ],
-  },
-  {
-    key: "address",
-    title: "Address validation",
-    desc: "Stop undeliverable orders before fulfillment.",
-    capLabel: "What it checks",
-    points: [
-      "Live autocomplete & correction suggestions",
-      "Flags risky & blocks undeliverable addresses",
-    ],
-    stats: [
-      { value: "~30%", label: "fewer failed deliveries" },
-    ],
-  },
-  {
-    key: "eu-withdrawal",
-    title: "EU Withdrawal",
-    desc: "Give EU shoppers a compliant one-tap withdrawal function.",
-    capLabel: "What it handles",
-    points: [
-      "Clearly-labeled 'Withdraw Contract' on the order status page",
-      "Available through the 14-day cooling-off period",
-      "Holds the order & cancels before it hits your WMS / 3PL",
-      "Routes requests to your team via Shopify Flow & fulfillment stack",
-    ],
-    stats: [
-      { value: "Jun 19, 2026", label: "EU rule — ready out of the box" },
-    ],
-  },
+/** Left-rail features, each with an icon. */
+const NAV_FEATURES: { key: Tab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { key: "editing", label: "Order editing", icon: Pencil },
+  { key: "upsell", label: "Upsell", icon: TrendingUp },
+  { key: "address", label: "Address validation", icon: MapPin },
+  { key: "eu-withdrawal", label: "EU withdrawal", icon: ShieldCheck },
 ];
+
 
 type ActionPill = {
   key: "tour" | Section;
@@ -177,10 +114,11 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
   {
     id: "order-save",
     title: "Update the order",
-    desc: "The change applies and the balance updates automatically.",
+    desc: "Tap + to add one more — the balance updates automatically.",
     cta: "Next",
     measureDelayMs: 700,
     spotlightId: "order-row",
+    autoClickId: "order-plus", // tap the + button (shows the tap effect) → quantity increases
   },
   {
     id: "pay",
@@ -262,38 +200,21 @@ const UPSELL_TOUR_STEPS: TourStepDef[] = [
 
 const ADDRESS_TOUR_STEPS: TourStepDef[] = [
   {
-    id: "addr-validate",
-    title: "Customer saves an address",
-    desc: "Every address is checked the moment it's saved — before the order ships.",
-    cta: "Next",
-    measureDelayMs: 320,
-    spotlightId: "addr-validate",
-  },
-  {
     id: "addr-flagged",
     title: "We catch bad addresses",
     desc: "Undeliverable or incomplete addresses are flagged before the order ships.",
     cta: "Next",
     measureDelayMs: 420,
     spotlightId: "addr-flagged",
-    autoClickId: "addr-validate", // trigger the save → the address gets flagged
   },
   {
-    id: "addr-recommended",
-    title: "A verified suggestion",
-    desc: "We propose the corrected, deliverable address from the postal database.",
+    id: "addr-validate",
+    title: "Fixed & verified in one tap",
+    desc: "The customer accepts the corrected, deliverable address and the order is safe to ship.",
     cta: "Next",
-    measureDelayMs: 300,
-    spotlightId: "addr-recommended",
-  },
-  {
-    id: "addr-confirm",
-    title: "Confirm in one tap",
-    desc: "The customer accepts the fix and the order is safe to ship.",
-    cta: "Next",
-    measureDelayMs: 300,
-    spotlightId: "addr-flagged", // the address box itself — it turns green when accepted
-    autoClickId: "addr-confirm", // accept the recommended address → verified
+    measureDelayMs: 320,
+    spotlightId: "addr-validate",
+    autoClickId: "addr-validate", // click Update → the address is validated (turns green)
   },
   {
     id: "addr-finish",
@@ -413,189 +334,10 @@ function RotatingNote({ notes }: { notes: BrandNote[] }) {
   );
 }
 
-/* ----------------------------- features rail ----------------------------- */
-function FeaturesRail({
-  tab,
-  onSelect,
-  cardRefs,
-}: {
-  tab: Tab;
-  onSelect: (t: Tab) => void;
-  cardRefs: Partial<Record<Tab, React.RefObject<HTMLButtonElement | null>>>;
-}) {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const activeCard = FEATURE_CARDS.find((f) => f.key === tab) ?? FEATURE_CARDS[0];
-  return (
-    <div className="flex h-full w-full flex-col lg:max-w-[340px]">
-      {/* heading */}
-      <h3 className="font-serif text-[1.3rem] font-bold italic leading-tight tracking-tight text-foreground lg:whitespace-nowrap">
-        Click a feature to run it live.
-      </h3>
-
-      {/* mobile: dropdown — selected feature on top, tap the arrow to reveal all four */}
-      <div className="relative z-30 mt-3 lg:hidden">
-        <button
-          onClick={() => setMobileOpen((o) => !o)}
-          aria-expanded={mobileOpen}
-          className="relative flex w-full items-center justify-between gap-2 rounded-2xl border-2 px-4 py-3 text-left text-white shadow-[0_8px_24px_-6px_rgba(21,95,255,0.55)]"
-          style={{ background: `linear-gradient(135deg, #3b7cff 0%, ${ACCENT} 100%)`, borderColor: "#2f6bff" }}
-        >
-          <span className="font-sans text-[15px] font-bold tracking-tight">{activeCard.title}</span>
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white/20">
-            <ChevronDown className={`size-4 transition-transform ${mobileOpen ? "rotate-180" : ""}`} strokeWidth={2.5} />
-          </span>
-        </button>
-        <AnimatePresence>
-          {mobileOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute left-0 right-0 top-full mt-2 overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-soft-xl"
-            >
-              {FEATURE_CARDS.map((f) => {
-                const active = tab === f.key;
-                return (
-                  <button
-                    key={f.key}
-                    onClick={() => { onSelect(f.key); setMobileOpen(false); }}
-                    className={`flex w-full items-center justify-between gap-2 rounded-xl px-3.5 py-2.5 text-left text-[15px] font-bold tracking-tight transition-colors ${active ? "bg-[#155FFF]/10 text-[#155FFF]" : "text-neutral-800 hover:bg-neutral-100"}`}
-                  >
-                    {f.title}
-                    {active ? <Check className="size-4" strokeWidth={3} /> : <ArrowRight className="size-4 text-neutral-400" />}
-                  </button>
-                );
-              })}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* desktop: feature cards — single-select toggle, glass + hover tooltip */}
-      <div className="mt-3 hidden lg:flex lg:flex-col lg:gap-2">
-        {FEATURE_CARDS.map((f) => {
-          const active = tab === f.key;
-          return (
-            <div key={f.key} className="group relative">
-              <button
-                ref={cardRefs[f.key]}
-                aria-pressed={active}
-                onClick={() => onSelect(f.key)}
-                className={`relative flex w-full cursor-pointer items-center justify-between gap-2 overflow-hidden rounded-2xl border-2 px-4 py-2.5 text-left backdrop-blur-md transition-all duration-200 lg:gap-3 lg:px-5 lg:py-3 ${
-                  active
-                    ? "border-[#155FFF] bg-[#155FFF]/10 text-[#124bd6] shadow-[0_4px_16px_-8px_rgba(21,95,255,0.35)]"
-                    : "border-neutral-200/90 bg-white/55 text-neutral-800 shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] hover:-translate-y-0.5 hover:border-[#155FFF]/60 hover:bg-white hover:shadow-[0_12px_30px_-10px_rgba(21,95,255,0.4)]"
-                }`}
-              >
-                {/* glass sheen */}
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-2xl"
-                  style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 100%)", opacity: active ? 0.35 : 0.7 }}
-                />
-                <span className="relative font-sans text-[15px] font-bold leading-tight tracking-tight lg:text-[16px]">{f.title}</span>
-                {/* clickable affordance */}
-                <span
-                  className={`relative flex size-8 shrink-0 items-center justify-center rounded-full transition-all lg:size-9 ${
-                    active
-                      ? "bg-[#155FFF] text-white"
-                      : "bg-[#155FFF]/10 text-[#155FFF] group-hover:bg-[#155FFF] group-hover:text-white"
-                  }`}
-                >
-                  {active ? <Check className="size-4" strokeWidth={3} /> : <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />}
-                </span>
-              </button>
-
-              {/* hover tooltip — capabilities */}
-              <div className="pointer-events-none absolute left-full top-1/2 z-40 ml-4 hidden w-[18rem] -translate-y-1/2 group-hover:block">
-                <div className="overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-soft-xl">
-                  <div className="px-4 py-3.5" style={{ background: `linear-gradient(135deg, ${ACCENT}0d, transparent)` }}>
-                    <p className="text-[14px] font-bold tracking-tight text-neutral-900">{f.title}</p>
-                    <p className="mt-0.5 text-[12px] leading-relaxed text-neutral-500">{f.desc}</p>
-                  </div>
-                  <div className="h-px bg-neutral-100" />
-                  <div className="px-4 py-3.5">
-                    <p className="mb-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-400">
-                      {f.capLabel}
-                    </p>
-                    <ul className="grid gap-2">
-                      {f.points.map((c) => (
-                        <li key={c} className="flex items-start gap-2.5 text-[12.5px] font-medium leading-snug text-neutral-700">
-                          <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full" style={{ background: `${ACCENT}1a` }}>
-                            <Check className="size-2.5" strokeWidth={3.5} style={{ color: ACCENT }} />
-                          </span>
-                          {c}
-                        </li>
-                      ))}
-                    </ul>
-
-                    {/* quantified impact */}
-                    <div className="mt-3 grid gap-1.5 border-t border-neutral-100 pt-3">
-                      {f.stats.map((s) => (
-                        <div key={s.label} className="flex items-baseline gap-1.5 text-[12px] leading-snug text-neutral-500">
-                          <span className="font-bold text-emerald-600">{s.value}</span>
-                          <span>{s.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <span className="absolute right-full top-1/2 -translate-y-1/2 border-[7px] border-transparent border-r-white drop-shadow-[-1px_0_0_rgba(0,0,0,0.04)]" />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* install CTA — desktop only (mobile keeps the demo front-and-center; the footer below carries the CTA) */}
-      <div className="relative mt-4 hidden flex-col justify-center gap-4 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-5 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md lg:flex lg:flex-1">
-        {/* headline + rotating brand-result note */}
-        <div>
-          <h3 className="mx-auto max-w-[15rem] font-sans text-[19px] font-extrabold leading-[1.15] tracking-tight text-foreground">
-            Ready to try it on your Shopify store?
-          </h3>
-          <p className="mx-auto mt-2 flex min-h-[3.2em] max-w-[17rem] items-center justify-center font-serif text-[13px] font-medium italic leading-snug text-neutral-600">
-            <RotatingNote notes={RESULT_NOTES} />
-          </p>
-        </div>
-
-        {/* app listing — the whole card links to the Shopify App Store */}
-        <a
-          href={APP_URL}
-          target="_blank"
-          rel="noreferrer"
-          className="group flex items-center gap-3 rounded-xl border border-neutral-200 bg-white/80 p-3 text-left transition-all hover:border-[#155FFF]/50 hover:shadow-md"
-        >
-          <ClickpostMark className="size-10 shrink-0 rounded-[9px] shadow-sm" />
-          <div className="min-w-0 flex-1">
-            <div className="text-[15px] font-extrabold leading-tight tracking-tight text-neutral-900">CP Order Editing &amp; Upsell</div>
-            <div className="mt-1 flex items-center gap-1.5 text-[12px] text-neutral-500">
-              {/* eslint-disable-next-line @next/next/no-img-element -- Shopify icon from /public */}
-              <img src="/shopify-icon.png" alt="Shopify" className="size-4 object-contain" />
-              <Star className="size-3.5 fill-amber-400 text-amber-400" />
-              <span className="font-bold text-neutral-900">5.0</span>
-              <span>· 50+ reviews</span>
-            </div>
-          </div>
-          <ArrowUpRight className="size-4 shrink-0 text-neutral-400 transition-colors group-hover:text-[#155FFF]" />
-        </a>
-
-        {/* single CTA */}
-        <Link
-          href="/#contact"
-          className="flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
-          style={{ background: ACCENT }}
-        >
-          <CalendarDays className="size-4 shrink-0" /> Book a free demo
-        </Link>
-      </div>
-    </div>
-  );
-}
 
 /* ----------------------------- guided editor ----------------------------- */
-export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?: () => void }) {
+export function GuidedEditor({ store }: { store: DemoStore }) {
+  const domain = `${(store.brandName || "yourstore").toLowerCase().replace(/[^a-z0-9]+/g, "")}.com`;
   const [tab, setTab] = useState<Tab>("editing");
   const [activePill, setActivePill] = useState<ActionPill["key"]>("tour");
   const [upsellView, setUpsellView] = useState<"thankyou" | "onetap">("onetap");
@@ -607,6 +349,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
   const [dotRect, setDotRect] = useState<TourRect | null>(null); // where the red dot points (may differ from spotlight)
   const [measuredStep, setMeasuredStep] = useState(-1); // which step the current rect belongs to
   const [demoRect, setDemoRect] = useState<TourRect | null>(null); // editing-window bounds (blurred on outcome steps)
+  const [tapAt, setTapAt] = useState<{ top: number; left: number } | null>(null); // ripple where the tour auto-taps
   const [pendingTour, setPendingTour] = useState<Tour | null>(null); // start this tour once its tab mounts
   const [singleTourMode, setSingleTourMode] = useState(false); // true = don't chain to the next feature's tour
 
@@ -650,8 +393,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
   // address-validation tour targets
   const addrSaveBtnRef = useRef<HTMLButtonElement>(null);
   const addrFlaggedRef = useRef<HTMLDivElement>(null);
-  const addrRecommendedRef = useRef<HTMLButtonElement>(null);
-  const addrConfirmRef = useRef<HTMLButtonElement>(null);
+  const addrShippingRowRef = useRef<HTMLDivElement>(null);
   // EU-withdrawal tour targets
   const euCardRef = useRef<HTMLDivElement>(null);
   const euWithdrawRowRef = useRef<HTMLDivElement>(null);
@@ -694,8 +436,6 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
       case "ty-add": return tyAddBtnRef.current;
       case "addr-validate": return addrSaveBtnRef.current;
       case "addr-flagged": return addrFlaggedRef.current;
-      case "addr-recommended": return addrRecommendedRef.current;
-      case "addr-confirm": return addrConfirmRef.current;
       case "eu-card": return euCardRef.current;
       case "eu-withdraw-row": return euWithdrawRowRef.current;
       case "eu-withdraw-btn": return euWithdrawBtnRef.current;
@@ -726,9 +466,8 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
         setTourForcedOpen("order");
         break;
       case "order-save":
-        // box stays open; add one more of the first item (highlighted)
+        // box stays open; the + button is auto-tapped (with tap effect) to add one more
         setTourForcedOpen("order");
-        setQtyBump((b) => b + 1);
         break;
       case "pay":
         // collapse the editing sections so the balance-due panel is the focus
@@ -861,6 +600,8 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     setPendingTour(null);
     setActivePill("tour");
     setTourForcedOpen(null);
+    // tapping the Upsell feature always opens the One-tap view first
+    if (k === "upsell") setUpsellView("onetap");
     setTab(k);
   }
 
@@ -937,7 +678,15 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
     if (s.autoClickId) {
       timers.push(setTimeout(() => {
         if (cancelled) return;
-        (getStepTarget(s.autoClickId!) as HTMLElement | null)?.click();
+        const el = getStepTarget(s.autoClickId!) as HTMLElement | null;
+        if (!el) return;
+        // show a visible tap: ripple over the button + a quick press-down
+        const r = el.getBoundingClientRect();
+        setTapAt({ top: r.top + r.height / 2, left: r.left + r.width / 2 });
+        el.style.transition = "transform 0.12s ease";
+        el.style.transform = "scale(0.95)";
+        timers.push(setTimeout(() => { if (cancelled) return; el.style.transform = ""; el.click(); }, 150));
+        timers.push(setTimeout(() => { if (!cancelled) setTapAt(null); }, 750));
       }, (s.measureDelayMs ?? 80) + 550));
     }
     return () => { cancelled = true; timers.forEach(clearTimeout); };
@@ -953,97 +702,175 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
 
   return (
     <div ref={rootRef} className="scroll-mt-6">
-      {/* two-column */}
-      <div className="grid grid-cols-1 items-stretch gap-5 sm:gap-8 lg:grid-cols-[0.52fr_1.48fr] lg:gap-10">
-        {/* ---- LEFT: features rail ---- */}
-        <FeaturesRail tab={tab} onSelect={selectFeature} cardRefs={cardRefs} />
-
-        {/* ---- RIGHT: aurora frame ---- */}
-        <div ref={demoFrameRef} className="relative flex w-full flex-col gap-3 overflow-hidden rounded-[1.75rem] p-4 shadow-soft-xl sm:p-5">
-          <div className="absolute inset-0 -z-0" style={{ background: "linear-gradient(135deg, #cdddff 0%, #6f9bff 48%, #2f5bff 100%)" }} />
-          <div className="pointer-events-none absolute -right-16 -top-16 h-3/4 w-3/4 rounded-full bg-white/35 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-20 -left-16 h-3/4 w-3/4 rounded-full bg-[#bcd4ff]/45 blur-3xl" />
-          <div className="pointer-events-none absolute right-1/4 top-1/3 h-1/2 w-1/2 -rotate-12 rounded-full bg-white/25 blur-2xl" />
-
-          {/* top bar — primary CTAs (install + book a demo) right; tour controls (secondary/tertiary) left */}
-          <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 sm:gap-3">
-            {/* SECONDARY + TERTIARY: tour + view controls */}
-            <div className="flex flex-wrap items-center gap-2">
-              {/* secondary — the full tour */}
-              <button
-                onClick={launchTour}
-                className="group inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/25 px-4 py-2 text-[12px] font-bold text-white ring-1 ring-white/40 backdrop-blur-sm transition-all hover:bg-white/35"
-              >
-                <Sparkles className="size-3.5" />
-                Complete tour
-                <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
-              </button>
-              {/* tertiary — jump to the upsell feature */}
-              {tab === "editing" && onUpsell && (
+      <div className="grid grid-cols-1 items-stretch gap-6 lg:min-h-[100svh] lg:grid-cols-[minmax(0,0.52fr)_minmax(0,1.48fr)] lg:gap-0">
+        {/* LEFT: feature buttons + the "ready to try" box */}
+        <div className="relative z-10 flex flex-col gap-6 px-3 pb-6 lg:items-center lg:justify-between lg:py-12 lg:pl-5 lg:pr-4">
+          {/* heading + feature buttons */}
+          <div className="w-full max-w-sm">
+            <h3 className="mb-4 font-serif text-[1.3rem] font-bold italic leading-tight tracking-tight text-foreground">
+              Click a feature to run it live.
+            </h3>
+            <div className="flex flex-col gap-3">
+            {NAV_FEATURES.map((n) => {
+              const active = tab === n.key;
+              return (
                 <button
-                  onClick={() => { setUpsellView("onetap"); selectFeature("upsell"); }}
-                  className="group inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-2 text-[12px] font-semibold text-white/90 ring-1 ring-white/20 backdrop-blur-sm transition-all hover:bg-white/20"
+                  key={n.key}
+                  ref={cardRefs[n.key]}
+                  onClick={() => selectFeature(n.key)}
+                  className={`group flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-left text-[16px] font-semibold transition-all ${
+                    active
+                      ? "bg-neutral-900 text-white shadow-[0_12px_30px_-12px_rgba(0,0,0,0.55)]"
+                      : "bg-white text-neutral-800 ring-1 ring-neutral-200 hover:-translate-y-0.5 hover:ring-neutral-300 hover:shadow-md"
+                  }`}
                 >
-                  <Sparkles className="size-3" />
-                  One-tap upsell
-                  <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
+                  <span
+                    className={`flex size-9 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                      active ? "bg-white/15 text-white" : "bg-neutral-100 text-neutral-600 group-hover:bg-[#155FFF]/10 group-hover:text-[#155FFF]"
+                    }`}
+                  >
+                    <n.icon className="size-[18px]" />
+                  </span>
+                  <span className="flex-1">{n.label}</span>
+                  <ChevronRight
+                    className={`size-4 shrink-0 transition-transform ${
+                      active ? "text-white/70" : "text-neutral-300 group-hover:translate-x-0.5 group-hover:text-[#155FFF]"
+                    }`}
+                  />
                 </button>
-              )}
-              {/* tertiary — upsell view toggle (upsell feature only) */}
-              {tab === "upsell" && (
-                <div ref={upsellToggleRef} className="flex items-center gap-1.5">
-                  {([["onetap", "One tap"], ["thankyou", "Order status"]] as const).map(([key, label]) => {
-                    const active = upsellView === key;
-                    return (
-                      <button
-                        key={key}
-                        onClick={() => setUpsellView(key)}
-                        className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-colors ${
-                          active
-                            ? "bg-white text-neutral-900 shadow-md"
-                            : "bg-white/10 text-white/90 ring-1 ring-white/20 hover:bg-white/20"
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* PRIMARY: convert — book a demo + install on the App Store */}
-            <div className="flex items-center gap-2">
-              <Link
-                href="/#contact"
-                className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[12px] font-bold shadow-md transition-all hover:brightness-105 active:scale-[0.98]"
-                style={{ color: ACCENT }}
-              >
-                <CalendarDays className="size-3.5" />
-                Book a demo
-              </Link>
-              <a
-                href={APP_URL}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="View on the Shopify App Store"
-                className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white shadow-md transition-transform hover:scale-105"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element -- Shopify icon from /public */}
-                <img src="/shopify-icon.png" alt="Shopify App Store" className="size-4 object-contain" />
-              </a>
+              );
+            })}
             </div>
           </div>
 
-          {/* body */}
-          <div className="relative z-10 w-full">
-            <AnimatePresence mode="wait">
+          {/* the "ready to try" box — rotating result + app listing + Book a free demo */}
+          <div className="relative flex w-full max-w-sm flex-col gap-5 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-6 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md">
+            <div>
+              <h3 className="font-sans text-[22px] font-extrabold leading-[1.15] tracking-tight text-foreground">
+                Ready to try it on your Shopify store?
+              </h3>
+              <p className="mt-2.5 flex min-h-[3.4em] items-center justify-center font-serif text-[14px] font-medium italic leading-snug text-neutral-600">
+                <RotatingNote notes={RESULT_NOTES} />
+              </p>
+            </div>
+            <a
+              href={APP_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="group flex items-center gap-3 rounded-xl border border-neutral-200 bg-white/80 p-3 text-left transition-all hover:border-[#155FFF]/50 hover:shadow-md"
+            >
+              <ClickpostMark className="size-10 shrink-0 rounded-[9px] shadow-sm" />
+              <div className="min-w-0 flex-1">
+                <div className="text-[15px] font-extrabold leading-tight tracking-tight text-neutral-900">CP Order Editing &amp; Upsell</div>
+                <div className="mt-1 flex items-center gap-1.5 text-[12px] text-neutral-500">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- Shopify icon from /public */}
+                  <img src="/shopify-icon.png" alt="Shopify" className="size-4 object-contain" />
+                  <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                  <span className="font-bold text-neutral-900">5.0</span>
+                  <span>· 50+ reviews</span>
+                </div>
+              </div>
+              <ArrowUpRight className="size-4 shrink-0 text-neutral-400 transition-colors group-hover:text-[#155FFF]" />
+            </a>
+            <Link
+              href="/#contact"
+              className="flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
+              style={{ background: "#155FFF" }}
+            >
+              <CalendarDays className="size-4 shrink-0" /> Book a free demo
+            </Link>
+          </div>
+        </div>
+
+        {/* RIGHT: full-bleed blue demo stage — top pill nav + paired sub-row + sliding window */}
+        <div
+          ref={demoFrameRef}
+          className="relative flex w-full flex-col justify-center gap-4 lg:justify-start lg:gap-5 lg:px-10 lg:pt-8 lg:pb-12 xl:px-16"
+        >
+          {/* blue backdrop (desktop only) */}
+          <div aria-hidden className="absolute inset-0 z-0 hidden lg:block" style={{ background: "linear-gradient(160deg, #eaf2ff 0%, #cfe0ff 42%, #a8c8ff 100%)" }} />
+
+          {/* bar over the editing window — Start tour (left) · brand URL (center) · Start free trial (right) */}
+          <div className="relative z-10 flex items-center justify-between gap-3">
+            {/* Start tour — with a shine sweep */}
+            <button
+              onClick={launchTour}
+              className="group relative hidden shrink-0 items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-full bg-white px-4 py-2.5 text-[12.5px] font-semibold text-neutral-800 shadow-soft-md ring-1 ring-neutral-200 transition-all hover:bg-neutral-50 lg:inline-flex"
+            >
+              <motion.span
+                aria-hidden
+                className="pointer-events-none absolute inset-0"
+                style={{ background: "linear-gradient(100deg, transparent 38%, rgba(21,95,255,0.28) 50%, transparent 62%)" }}
+                initial={{ x: "-140%" }}
+                animate={{ x: "140%" }}
+                transition={{ duration: 1.8, ease: "easeInOut", repeat: Infinity, repeatDelay: 1.2 }}
+              />
+              <Play className="relative z-10 size-3 fill-current" />
+              <span className="relative z-10">Start tour</span>
+            </button>
+
+            <a
+              href={APP_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-5 py-2.5 text-[13px] font-bold text-white shadow-md transition-all hover:brightness-110"
+              style={{ background: "#155FFF" }}
+            >
+              Start free trial
+            </a>
+          </div>
+
+          {/* paired sub-row — contextual sub-views + the guided tour */}
+          <div className="relative z-10 flex flex-wrap items-center justify-center gap-2">
+            {tab === "upsell" && (
+              <div ref={upsellToggleRef} className="flex items-center gap-1">
+                {([["onetap", "One tap upsell"], ["thankyou", "Order status page"]] as const).map(([key, label]) => {
+                  const active = upsellView === key;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setUpsellView(key)}
+                      className={`rounded-full px-4 py-1.5 text-[12px] font-semibold transition-colors ${
+                        active ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-500 hover:text-neutral-800"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            {/* Start tour — mobile only (desktop has it left of the strip) */}
+            <button
+              onClick={launchTour}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-[12px] font-semibold text-neutral-700 shadow-sm ring-1 ring-neutral-200 transition-all hover:bg-neutral-50 lg:hidden"
+            >
+              <Play className="size-3.5 fill-current" />
+              Start tour
+            </button>
+          </div>
+
+          {/* body — the editing window: browser bezel (store URL) + sliding mock */}
+          <div className="relative z-10 w-full overflow-hidden rounded-2xl bg-white shadow-soft-xl" style={{ border: "1.5px solid #1f2430" }}>
+            {/* browser bezel with the store URL */}
+            <div className="flex items-center gap-2 border-b border-neutral-200 bg-neutral-50 px-4 py-2.5">
+              <div className="flex gap-1.5">
+                <span className="size-2.5 rounded-full bg-[#ff5f57]" />
+                <span className="size-2.5 rounded-full bg-[#febc2e]" />
+                <span className="size-2.5 rounded-full bg-[#28c840]" />
+              </div>
+              <div className="mx-auto flex items-center gap-1.5 rounded-md bg-white px-4 py-1 text-[12.5px] font-bold text-neutral-800 ring-1 ring-neutral-200">
+                <Globe className="size-3.5 text-neutral-400" />
+                {domain}
+              </div>
+            </div>
+            <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={tab === "upsell" ? `upsell-${upsellView}` : tab}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.12 }}
               >
                 {tab === "editing" && (
                   <DemoMock
@@ -1073,15 +900,20 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
                       store={store}
                       addBtnRef={upsellAddBtnRef}
                       offerRef={upsellOfferRef}
-                      onComplete={(added) => { if (!added) setUpsellView("thankyou"); }}
+                      onComplete={() => setUpsellView("thankyou")}
+                      onViewOrder={() => setUpsellView("thankyou")}
                     />
                   )
                 )}
                 {tab === "address" && (
-                  <AddressValidationMock
+                  <DemoMock
                     key={`addr-${addrResetKey}`}
                     store={store}
-                    tourRefs={{ saveBtn: addrSaveBtnRef, flaggedAddr: addrFlaggedRef, recommended: addrRecommendedRef, confirmBtn: addrConfirmRef }}
+                    initialOpen="shipping"
+                    forceOpen="shipping"
+                    maxHeight={560}
+                    addressValidation
+                    tourRefs={{ shippingRow: addrShippingRowRef, addressBlock: addrFlaggedRef, addrSaveBtn: addrSaveBtnRef }}
                   />
                 )}
                 {tab === "eu-withdrawal" && (
@@ -1120,6 +952,7 @@ export function GuidedEditor({ store, onUpsell }: { store: DemoStore; onUpsell?:
           outcomeHref={APP_URL}
           nextLabel={curStep.nextLabel}
           finalStep={curStep.finalStep}
+          tapAt={tapAt}
           blurRect={demoRect}
           onAdvance={advanceTour}
           onClose={closeTour}

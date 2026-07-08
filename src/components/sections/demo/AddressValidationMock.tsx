@@ -2,27 +2,24 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, TriangleAlert } from "lucide-react";
+import { Check, TriangleAlert, MapPin, ChevronDown } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
 
 const GOOGLE_BLUE = "#1a73e8";
+const CTA_BLUE = "#155FFF";
 
-type AddrFields = { name: string; line1: string; line2: string; city: string; state: string; zip: string; country: string };
-const ENTERED_ADDR: AddrFields = { name: "Tucker Albright", line1: "Main Street", line2: "Apt 4B", city: "Flushing", state: "New York", zip: "10444", country: "United States" };
-const RECOMMENDED_ADDR: AddrFields = { name: "Tucker Albright", line1: "10444 Main St", line2: "Apt 4B", city: "Flushing", state: "NY", zip: "11367", country: "USA" };
-
-/** Boxed, input-style field with a floating label (matches the order-editing windows). */
-function Field({ label, value, changed }: { label: string; value: string; changed?: boolean }) {
-  return (
-    <div
-      className="relative rounded-md border bg-white px-3 pt-5 pb-1.5 transition-colors"
-      style={{ borderColor: changed ? "#6ee7b7" : "#e5e7eb" }}
-    >
-      <span className="pointer-events-none absolute left-3 top-1.5 text-[10px] font-medium uppercase tracking-wide text-neutral-400">{label}</span>
-      <div className={`text-sm leading-snug ${changed ? "font-semibold text-neutral-900" : "text-neutral-800"}`}>{value}</div>
-    </div>
-  );
-}
+type Fields = {
+  firstName: string; lastName: string; address1: string; address2: string;
+  city: string; state: string; zip: string; country: string;
+};
+const ENTERED: Fields = {
+  firstName: "Mohit", lastName: "Jain", address1: "123, Main Street", address2: "",
+  city: "New York", state: "New York", zip: "10044", country: "United States",
+};
+const CORRECTED: Fields = {
+  firstName: "Mohit", lastName: "Jain", address1: "123 Main St", address2: "",
+  city: "New York", state: "New York", zip: "10044-1601", country: "United States",
+};
 
 /** The four-colour Google "G". */
 function GoogleG({ className }: { className?: string }) {
@@ -36,19 +33,31 @@ function GoogleG({ className }: { className?: string }) {
   );
 }
 
-/** Google Maps app tile: stylized map with a red location pin. */
-function GoogleMapsMark({ className }: { className?: string }) {
+/** Input-style field box with a small label on top and the value below. */
+function Field({
+  label, value, invalid, valid, error, chevron,
+}: { label: string; value?: string; invalid?: boolean; valid?: boolean; error?: string; chevron?: boolean }) {
+  const border = invalid ? "#ef4444" : valid ? "#6ee7b7" : "#e5e7eb";
   return (
-    <svg viewBox="0 0 48 48" className={className} role="img" aria-label="Google Maps" xmlns="http://www.w3.org/2000/svg">
-      <rect width="48" height="48" fill="#E8EAED" />
-      <path d="M0 30 L18 48 L0 48 Z" fill="#A8DAB5" />
-      <path d="M34 0 L48 0 L48 13 Z" fill="#AECBFA" />
-      <path d="M-4 17 L21 42 L16 47 L-9 22 Z" fill="#FBBC04" />
-      <path d="M6 -2 L44 36" stroke="#fff" strokeWidth="3" fill="none" />
-      <path d="M0 39 L28 48" stroke="#fff" strokeWidth="2.4" fill="none" />
-      <path d="M24 8.5c-5.4 0-9.8 4.4-9.8 9.8 0 7.2 9.8 17.2 9.8 17.2s9.8-10 9.8-17.2c0-5.4-4.4-9.8-9.8-9.8z" fill="#EA4335" />
-      <circle cx="24" cy="18" r="3.5" fill="#A50E0E" />
-    </svg>
+    <div>
+      <div
+        className="flex items-center justify-between rounded-xl border-2 bg-white px-3.5 py-2 transition-colors"
+        style={{ borderColor: border }}
+      >
+        <div className="min-w-0">
+          <div className="text-[11px] font-medium text-neutral-400">{label}</div>
+          <div className={`truncate text-[14px] ${value ? "font-medium text-neutral-900" : "text-neutral-300"}`}>
+            {value || "—"}
+          </div>
+        </div>
+        {chevron && <ChevronDown className="size-4 shrink-0 text-neutral-400" />}
+      </div>
+      {error && (
+        <div className="mt-1 flex items-start gap-1 text-[12px] font-medium text-red-500">
+          {error}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -59,128 +68,136 @@ type AddrTourRefs = {
   saveBtn?: React.RefObject<HTMLButtonElement | null>;
 };
 
-/** Address validation: save an address → it's flagged → accept the recommended fix → verified. */
+/** Address validation: a flagged address by default → review the fix → verified. */
 export function AddressValidationMock({ store, tourRefs, onValidated, onConfirmed }: { store: DemoStore; tourRefs?: AddrTourRefs; onValidated?: () => void; onConfirmed?: () => void }) {
   const [step, setStep] = useState<"edit" | "review" | "done">("edit");
-  const flagged = step === "review";
+  const flagged = step !== "done";
   const verified = step === "done";
-  const fields = verified ? RECOMMENDED_ADDR : ENTERED_ADDR;
+  const f = verified ? CORRECTED : ENTERED;
   const name = store.brandName || "Checkout";
-  const boxBorder = verified ? "#6ee7b7" : flagged ? "#fca5a5" : "#e5e7eb";
-  const boxBg = verified ? "#ecfdf5" : flagged ? "#fef2f2" : "#ffffff";
 
   return (
-    <div className="w-full overflow-hidden rounded-2xl border border-border bg-white shadow-soft-xl">
-      <div className="lg:max-h-[560px] lg:overflow-y-auto lg:no-scrollbar">
+    <div className="w-full bg-white">
+      <div className="lg:h-[560px] lg:overflow-y-auto lg:no-scrollbar">
         {/* header */}
         <div className="border-b border-border px-6 py-4">
           <div className="text-[13px] font-semibold text-neutral-800">{name} · Delivery</div>
-          <div className="text-[12px] text-neutral-500">Every address is checked before the order ships.</div>
+          <div className="mt-2.5 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-[15px] font-bold text-neutral-900">
+              <MapPin className="size-4 text-neutral-500" />
+              Edit Shipping Address
+            </div>
+            {verified ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-3 py-1 text-[12px] font-semibold text-white">
+                <Check className="size-3.5" strokeWidth={3} />
+                Address verified
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-800 px-3 py-1 text-[12px] font-semibold text-white">
+                <TriangleAlert className="size-3.5" />
+                Address check required
+              </span>
+            )}
+          </div>
         </div>
 
-        <div className="p-6">
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            {/* left column: status banner + flagged address */}
-            <div className="space-y-3">
-              {/* status banner — only after saving (red flagged / green verified) */}
-              {verified && (
-                <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-[13px] font-semibold text-emerald-700">
-                  <span className="flex size-5 items-center justify-center rounded-full bg-emerald-500 text-white"><Check className="size-3" strokeWidth={3} /></span>
-                  Address verified &amp; deliverable
-                </div>
-              )}
-              {flagged && (
-                <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-[13px] font-semibold text-red-600">
-                  <TriangleAlert className="size-4 shrink-0" />
-                  We couldn&apos;t validate this address
-                </div>
-              )}
-
-              {/* address, boxed fields */}
-              <div className="mb-0 text-[11px] font-medium uppercase tracking-wide text-neutral-400">Delivery address</div>
-              <motion.div
-                ref={tourRefs?.flaggedAddr}
-                className="space-y-2.5 rounded-xl border-2 p-3 transition-colors"
-                style={{ borderColor: boxBorder, background: boxBg }}
-                animate={flagged ? { x: [0, -9, 9, -7, 7, -4, 4, 0] } : { x: 0 }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
-              >
-                <Field label="Full name" value={fields.name} />
-                <Field label="Address" value={fields.line1} changed={verified} />
-                <Field label="Apartment, suite, etc." value={fields.line2} />
-                <div className="grid grid-cols-3 gap-2.5">
-                  <Field label="City" value={fields.city} />
-                  <Field label="State" value={fields.state} changed={verified} />
-                  <Field label="ZIP code" value={fields.zip} changed={verified} />
-                </div>
-                <Field label="Country" value={fields.country} changed={verified} />
-              </motion.div>
-
-              {/* Save address — only before validation */}
-              {step === "edit" && (
-                <button
-                  ref={tourRefs?.saveBtn}
-                  onClick={() => { setStep("review"); onValidated?.(); }}
-                  className="w-full rounded-lg py-3 text-[14px] font-semibold text-white shadow-md transition-all hover:brightness-125 active:scale-[0.99]"
-                  style={{ background: "#111827" }}
-                >
-                  Save address
-                </button>
-              )}
+        <div className="space-y-3 p-6">
+          {/* the address — flagged red by default, turns green once verified */}
+          <motion.div
+            ref={tourRefs?.flaggedAddr}
+            className="space-y-3"
+            animate={step === "review" ? { x: [0, -8, 8, -6, 6, -3, 3, 0] } : { x: 0 }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
+          >
+            <Field label="Country" value={f.country} chevron />
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="First Name" value={f.firstName} />
+              <Field label="Last Name" value={f.lastName} />
             </div>
+            <Field
+              label="Address 1"
+              value={f.address1}
+              invalid={flagged}
+              valid={verified}
+              error={flagged ? "Street address could not be fully validated. Please review." : undefined}
+            />
+            <Field label="Address 2" value={f.address2} />
+            <div className="grid grid-cols-3 gap-3">
+              <Field label="City" value={f.city} />
+              <Field label="Province / State" value={f.state} chevron />
+              <Field
+                label="Postal Code"
+                value={f.zip}
+                invalid={flagged}
+                valid={verified}
+                error={flagged ? "Postal code could not be validated." : undefined}
+              />
+            </div>
+          </motion.div>
 
-            {/* right: recommended address confirm (only after saving) */}
-            <AnimatePresence mode="wait">
-              {flagged && (
-                <motion.div
-                  key="popup"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                  className="relative self-start rounded-2xl bg-neutral-50 p-7 ring-1 ring-neutral-200"
+          {/* recommended, verified suggestion — shown after the check */}
+          <AnimatePresence>
+            {step === "review" && (
+              <motion.div
+                key="rec"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="rounded-2xl border-2 p-4"
+                style={{ borderColor: GOOGLE_BLUE }}
+              >
+                <div className="flex items-center gap-2">
+                  <GoogleG className="size-4" />
+                  <span className="text-[13px] font-bold text-neutral-900">Recommended address</span>
+                </div>
+                <p className="mt-0.5 text-[12px] text-neutral-500">Use the corrected, deliverable address we found.</p>
+                <button
+                  ref={tourRefs?.recommended}
+                  className="mt-3 flex w-full items-start gap-3 rounded-xl border-2 bg-white p-3 text-left"
+                  style={{ borderColor: GOOGLE_BLUE }}
                 >
-                  {/* Google Maps badge */}
-                  <div className="absolute -right-3 -top-3 size-12 overflow-hidden rounded-xl shadow-md ring-1 ring-black/5">
-                    <GoogleMapsMark className="size-full" />
-                    <span className="absolute left-[3px] top-[3px] flex size-4 items-center justify-center rounded-md bg-white shadow-sm ring-1 ring-black/5">
-                      <GoogleG className="size-[11px]" />
-                    </span>
-                  </div>
-                  <h4 className="pr-8 text-[19px] font-bold leading-tight text-neutral-900">Confirm your delivery address</h4>
-                  <p className="mt-1 text-[13px] text-neutral-500">Use the corrected, deliverable address we found.</p>
+                  <span className="mt-1 flex size-4 shrink-0 items-center justify-center rounded-full border-2" style={{ borderColor: GOOGLE_BLUE }}>
+                    <span className="size-2 rounded-full" style={{ background: GOOGLE_BLUE }} />
+                  </span>
+                  <span className="min-w-0 text-[13px] leading-relaxed text-neutral-700">
+                    <span className="block font-semibold text-neutral-900">{CORRECTED.firstName} {CORRECTED.lastName}</span>
+                    <span className="block">{CORRECTED.address1}</span>
+                    <span className="block">{CORRECTED.city}, {CORRECTED.state} {CORRECTED.zip}</span>
+                    <span className="block">{CORRECTED.country}</span>
+                  </span>
+                </button>
+                <button
+                  ref={tourRefs?.confirmBtn}
+                  onClick={() => { setStep("done"); onConfirmed?.(); }}
+                  className="mt-3 w-full rounded-full py-2.5 text-[13px] font-semibold text-white transition-all hover:brightness-110"
+                  style={{ background: GOOGLE_BLUE }}
+                >
+                  Use this address
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-                  <button
-                    ref={tourRefs?.recommended}
-                    className="mt-4 flex w-full items-start gap-3 rounded-xl border-2 bg-white p-4 text-left"
-                    style={{ borderColor: GOOGLE_BLUE }}
-                  >
-                    <span className="mt-1 flex size-4 shrink-0 items-center justify-center rounded-full border-2" style={{ borderColor: GOOGLE_BLUE }}>
-                      <span className="size-2 rounded-full" style={{ background: GOOGLE_BLUE }} />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block text-[17px] font-bold text-neutral-900">Recommended</span>
-                      <span className="mt-1.5 block space-y-0.5 text-[14px] leading-relaxed text-neutral-700">
-                        <span className="block font-medium text-neutral-900">{RECOMMENDED_ADDR.name}</span>
-                        <span className="block">{RECOMMENDED_ADDR.line1}, {RECOMMENDED_ADDR.line2}</span>
-                        <span className="block">{RECOMMENDED_ADDR.city}, {RECOMMENDED_ADDR.state} {RECOMMENDED_ADDR.zip}</span>
-                        <span className="block">{RECOMMENDED_ADDR.country}</span>
-                      </span>
-                    </span>
-                  </button>
+          {/* verified banner */}
+          {verified && (
+            <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-[13px] font-semibold text-emerald-700">
+              <span className="flex size-5 items-center justify-center rounded-full bg-emerald-500 text-white"><Check className="size-3" strokeWidth={3} /></span>
+              Address verified &amp; deliverable
+            </div>
+          )}
 
-                  <button
-                    ref={tourRefs?.confirmBtn}
-                    onClick={() => { setStep("done"); onConfirmed?.(); }}
-                    className="mt-5 w-full rounded-full py-3 text-[14px] font-semibold text-white transition-all hover:brightness-110"
-                    style={{ background: GOOGLE_BLUE }}
-                  >
-                    Use this address
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          {/* primary action — only before the check */}
+          {step === "edit" && (
+            <button
+              ref={tourRefs?.saveBtn}
+              onClick={() => { setStep("review"); onValidated?.(); }}
+              className="w-full rounded-xl py-3.5 text-[14px] font-semibold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
+              style={{ background: CTA_BLUE }}
+            >
+              Update Shipping Address
+            </button>
+          )}
         </div>
       </div>
     </div>
