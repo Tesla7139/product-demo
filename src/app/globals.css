@@ -276,3 +276,24 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* ------------------------------------------------------------------ */
+/* Demo page-1: scale the whole stage up proportionally on larger      */
+/* laptops/monitors so it fills the screen the same way it does on a    */
+/* 13" (which stays untouched below 1600px). `zoom` keeps the exact     */
+/* ratio of every component; the min-height is divided by the zoom so   */
+/* page 1 still fits in exactly one screen (no scrollbar). In Chromium  */
+/* getBoundingClientRect reflects zoom, so the body-level guided-tour   */
+/* overlay stays aligned.                                               */
+@media (min-width: 1600px) {
+  .demo-scale-root { zoom: 1.13; }
+  .demo-scale-root > .demo-scale-grid { min-height: calc(100svh / 1.13); }
+}
+@media (min-width: 1920px) {
+  .demo-scale-root { zoom: 1.25; }
+  .demo-scale-root > .demo-scale-grid { min-height: calc(100svh / 1.25); }
+}
+@media (min-width: 2400px) {
+  .demo-scale-root { zoom: 1.4; }
+  .demo-scale-root > .demo-scale-grid { min-height: calc(100svh / 1.4); }
+}
