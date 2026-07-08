@@ -76,7 +76,7 @@ export function CustomerLogos({ embedded = false }: { embedded?: boolean }) {
           <img
             src={logo.src}
             alt={logo.name}
-            className="max-h-12 max-w-[150px] object-contain brightness-0"
+            className={`object-contain brightness-0 ${logo.big ? "max-h-16 max-w-[210px]" : "max-h-12 max-w-[150px]"}`}
           />
         ) : (
           <span className="max-w-[170px] text-center text-[15px] font-extrabold uppercase leading-tight tracking-tight text-foreground">

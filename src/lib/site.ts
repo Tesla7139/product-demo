@@ -155,6 +155,7 @@ export type CustomerLogo = {
   review: string | null; // tap-to-open review (null until the real one is supplied)
   date?: string; // when the review was left (Shopify App Store export)
   badge?: string; // optional pill under the logo, e.g. "9-figure brand"
+  big?: boolean; // render the logo larger (for wide wordmarks that read small)
 };
 
 // International brands featured in the hero ribbon — each with a real review
@@ -224,6 +225,7 @@ export const customerLogos: CustomerLogo[] = [
     role: "E-commerce",
     review: reviewText("Westside Global"),
     date: "Feb 13, 2026",
+    big: true,
   },
   {
     src: "/customers/myborosil.png",
@@ -248,6 +250,7 @@ export const customerLogos: CustomerLogo[] = [
     role: "E-commerce",
     review: reviewText("Mars By GHC"),
     date: "Jan 8, 2026",
+    big: true,
   },
   {
     src: "/customers/amrutam.png",
