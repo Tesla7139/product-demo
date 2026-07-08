@@ -77,7 +77,7 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({ position, review, han
       </div>
 
       <h3 className={cn(
-        "text-[15px] font-medium leading-snug sm:text-[17px]",
+        "text-[14px] font-medium leading-snug sm:text-[15.5px]",
         isCenter ? "text-primary-foreground" : "text-foreground"
       )}>
         &ldquo;{review.review}&rdquo;
@@ -94,7 +94,7 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({ position, review, han
 };
 
 export const StaggerTestimonials: React.FC = () => {
-  const [cardSize, setCardSize] = useState(365);
+  const [cardSize, setCardSize] = useState(440);
   const [list, setList] = useState(REVIEWS);
 
   const handleMove = useCallback((steps: number) => {
@@ -126,7 +126,7 @@ export const StaggerTestimonials: React.FC = () => {
   useEffect(() => {
     const updateSize = () => {
       const { matches } = window.matchMedia("(min-width: 640px)");
-      setCardSize(matches ? 365 : 290);
+      setCardSize(matches ? 440 : 330);
     };
     updateSize();
     window.addEventListener("resize", updateSize);
@@ -134,7 +134,7 @@ export const StaggerTestimonials: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative w-full overflow-hidden bg-background-muted/40" style={{ height: 600 }}>
+    <div className="relative w-full overflow-hidden bg-background-muted/40" style={{ height: 720 }}>
       {list.map((review, index) => {
         const position = list.length % 2
           ? index - (list.length + 1) / 2
