@@ -131,8 +131,7 @@ export function CustomerLogos({ embedded = false }: { embedded?: boolean }) {
                 )}
               </div>
               <div className="mt-4">
-                <div className="font-bold text-foreground">{popover.logo.reviewer}</div>
-                <div className="text-sm text-muted-foreground">{popover.logo.role}</div>
+                <div className="font-bold text-foreground">{popover.logo.reviewer.replace(/\s*Team$/i, "")}</div>
               </div>
               <div className="absolute left-1/2 top-full size-0 -translate-x-1/2 border-x-8 border-t-8 border-x-transparent border-t-white" />
             </div>
