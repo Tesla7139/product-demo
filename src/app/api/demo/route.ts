@@ -399,6 +399,28 @@ function absolutize(href: string | null, base: URL): string | null {
   }
 }
 
+/**
+ * Upgrade a logo/image URL to a crisp, larger version. Shopify (and many other
+ * CDNs) accept a `width`/`height` query param — favicons/apple-touch-icons come
+ * back tiny (e.g. 180×180), which looks pixelated/blurry when shown large. Bump
+ * the width and drop height/crop so it scales up sharp with the aspect preserved.
+ */
+function upscaleImage(url: string | null): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    if (u.searchParams.has("width") || u.searchParams.has("height")) {
+      u.searchParams.set("width", "600");
+      u.searchParams.delete("height");
+      u.searchParams.delete("crop");
+      return u.toString();
+    }
+    return url;
+  } catch {
+    return url;
+  }
+}
+
 // Site metadata sometimes yields a useless "brand" (a page title like "Home",
 // or literally "Me") — fall back to the domain name in those cases.
 const GENERIC_NAMES = new Set(["me", "home", "shop", "store", "index", "welcome", "page", "cart"]);
@@ -443,7 +465,7 @@ function parseBranding(html: string, base: URL): Omit<Branding, "products" | "cu
   return {
     brandName: siteName ? capitalize(siteName) : null,
     brandColor,
-    logo: absolutize(iconHref, base),
+    logo: upscaleImage(absolutize(iconHref, base)),
   };
 }
 

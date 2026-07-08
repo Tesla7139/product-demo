@@ -244,7 +244,7 @@ function WelcomeView({ store, brand, name, onContinue }: { store: DemoStore; bra
         </span>
         {store.logo && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={store.logo} alt="" aria-hidden className="pointer-events-none absolute max-h-[55vh] max-w-[70vw] object-contain opacity-70 blur-[5px]" onError={(e) => (e.currentTarget.style.display = "none")} />
+          <img src={store.logo} alt="" aria-hidden className="pointer-events-none absolute max-h-[62vh] max-w-[72vw] object-contain opacity-80 blur-[1px]" onError={(e) => (e.currentTarget.style.display = "none")} />
         )}
         <div className="relative z-10 flex flex-col items-center text-center text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.35)]">
           <span className="font-serif text-2xl font-light tracking-wide opacity-90">Welcome</span>
