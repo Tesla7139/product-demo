@@ -134,7 +134,7 @@ export const StaggerTestimonials: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative w-full overflow-hidden bg-background-muted/40" style={{ height: 720 }}>
+    <div className="relative w-full overflow-hidden" style={{ height: 720 }}>
       {list.map((review, index) => {
         const position = list.length % 2
           ? index - (list.length + 1) / 2

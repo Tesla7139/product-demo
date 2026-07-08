@@ -271,9 +271,10 @@ function EditingView({ store }: { store: DemoStore }) {
         <GuidedEditor store={store} />
       </div>
 
-      {/* page 2 — moving brand strip + stagger review carousel + footer */}
-      <CustomerLogos />
-      <section className="border-t border-border/60 bg-background pt-14 pb-4">
+      {/* page 2 — moving brand strip + stagger review carousel + footer (one bg) */}
+      <div className="bg-background">
+        <CustomerLogos />
+        <section className="border-t border-border/60 pt-14 pb-4">
         <div className="mx-auto max-w-3xl px-4 text-center">
           <h2 className="font-serif text-3xl font-bold tracking-tight text-foreground md:text-4xl" style={{ fontFamily: "var(--font-fraunces), serif" }}>
             Loved by fast-growing brands
@@ -292,7 +293,8 @@ function EditingView({ store }: { store: DemoStore }) {
             <ArrowRight className="size-4" />
           </a>
         </div>
-      </section>
+        </section>
+      </div>
       <Footer />
     </motion.div>
   );
