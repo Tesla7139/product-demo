@@ -12,6 +12,7 @@ const REVIEWS = customerLogos
   .filter((c) => c.review)
   .map((c, i) => ({ tempId: i, name: c.name, review: c.review as string, src: c.src }));
 
+
 interface TestimonialCardProps {
   position: number;
   review: (typeof REVIEWS)[number];
@@ -49,14 +50,25 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({ position, review, han
         style={{ right: -2, top: 48, width: SQRT_5000, height: 2 }}
       />
 
-      {/* brand logo + 5-star rating */}
+      {/* brand logo (image or styled wordmark) + 5-star rating */}
       <div className="mb-4 flex items-center justify-between gap-3">
-        {/* eslint-disable-next-line @next/next/no-img-element -- local customer logo assets */}
-        <img
-          src={review.src}
-          alt={review.name}
-          className={cn("max-h-8 max-w-[150px] object-contain", isCenter ? "brightness-0 invert" : "brightness-0")}
-        />
+        {review.src ? (
+          // eslint-disable-next-line @next/next/no-img-element -- local customer logo assets
+          <img
+            src={review.src}
+            alt={review.name}
+            className={cn("max-h-8 max-w-[150px] object-contain", isCenter ? "brightness-0 invert" : "brightness-0")}
+          />
+        ) : (
+          <span
+            className={cn(
+              "max-w-[170px] truncate text-[18px] font-extrabold uppercase tracking-tight",
+              isCenter ? "text-primary-foreground" : "text-foreground"
+            )}
+          >
+            {review.name}
+          </span>
+        )}
         <div className="flex shrink-0 items-center gap-0.5">
           {Array.from({ length: 5 }).map((_, i) => (
             <Star key={i} className={cn("size-3.5", isCenter ? "fill-amber-300 text-amber-300" : "fill-amber-400 text-amber-400")} />

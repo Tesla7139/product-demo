@@ -141,7 +141,7 @@ export const integrationNames: string[] = integrations.map((i) => i.name);
 //   2. Add an entry below: { src: "/customers/<filename>", name: "<Brand>" }.
 // Until at least one entry exists, blank placeholder marks are shown instead.
 export type CustomerLogo = {
-  src: string;
+  src?: string; // logo image; when omitted the brand renders as a styled wordmark
   name: string;
   reviewer: string;
   role: string;
@@ -205,6 +205,57 @@ export const customerLogos: CustomerLogo[] = [
     review:
       "Installed Clickpost recently and it works great. Customers can edit their orders and even add extra items, which is a nice bonus.",
     date: "May 17, 2024",
+  },
+  // Notable brands from the Shopify App Store export — no logo file on hand, so
+  // these render as a styled wordmark in the strip + carousel. Reviews are real
+  // (faithfully condensed from the full export).
+  {
+    name: "Westside",
+    reviewer: "Westside Team",
+    role: "E-commerce",
+    review:
+      "The order editing feature is exactly what we needed — customers always want to change something after checkout. Setup was way easier than I expected and everything worked right out of the box.",
+    date: "Feb 13, 2026",
+  },
+  {
+    name: "MyBorosil",
+    reviewer: "MyBorosil Team",
+    role: "E-commerce",
+    review:
+      "Easy to install with a super responsive support team. It has reduced our support tickets and just made our life easier. Loving it!",
+    date: "Oct 14, 2025",
+  },
+  {
+    name: "Wellbeing Nutrition",
+    reviewer: "Wellbeing Nutrition Team",
+    role: "E-commerce",
+    review:
+      "Customers can now edit their orders without contacting support. Their upsells are a cherry on top and have increased our AOV — real value for money.",
+    date: "Sep 17, 2025",
+  },
+  {
+    name: "Mars by GHC",
+    reviewer: "Mars by GHC Team",
+    role: "E-commerce",
+    review:
+      "Customers can handle order edits themselves, and the post-purchase upsells have been a solid bonus for incremental revenue. Setup was straightforward and support has been great.",
+    date: "Jan 8, 2026",
+  },
+  {
+    name: "Amrutam",
+    reviewer: "Amrutam Team",
+    role: "E-commerce",
+    review:
+      "If your support team is spending 20%+ of their time fixing order typos or swapping sizes, this is an essential ROI tool. It pays for itself in saved labor hours almost immediately.",
+    date: "Feb 4, 2026",
+  },
+  {
+    name: "V-Guard",
+    reviewer: "V-Guard Industries Team",
+    role: "E-commerce",
+    review:
+      "Earlier our support inbox was full of simple edit requests, but now most customers handle those changes themselves. Definitely helped streamline things for our team.",
+    date: "Jun 2, 2026",
   },
 ];
 

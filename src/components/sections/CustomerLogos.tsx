@@ -57,7 +57,7 @@ export function CustomerLogos({ embedded = false }: { embedded?: boolean }) {
 
   const items = customerLogos.map((logo) => (
     <button
-      key={logo.src}
+      key={logo.src ?? logo.name}
       onMouseEnter={(e) => {
         hovered.current = { logo, el: e.currentTarget };
         // if already paused/open, switch instantly to this brand
@@ -71,12 +71,18 @@ export function CustomerLogos({ embedded = false }: { embedded?: boolean }) {
       className="group flex flex-col items-center"
     >
       <span className="flex h-16 w-44 items-center justify-center transition-transform duration-300 group-hover:-translate-y-0.5">
-        {/* eslint-disable-next-line @next/next/no-img-element -- local customer logo assets */}
-        <img
-          src={logo.src}
-          alt={logo.name}
-          className="max-h-12 max-w-[150px] object-contain brightness-0"
-        />
+        {logo.src ? (
+          // eslint-disable-next-line @next/next/no-img-element -- local customer logo assets
+          <img
+            src={logo.src}
+            alt={logo.name}
+            className="max-h-12 max-w-[150px] object-contain brightness-0"
+          />
+        ) : (
+          <span className="max-w-[160px] text-center text-[19px] font-extrabold uppercase leading-none tracking-tight text-foreground">
+            {logo.name}
+          </span>
+        )}
       </span>
       <span className="mt-1.5 text-[13px] font-normal text-muted-foreground/80 transition-colors group-hover:text-foreground">
         Read review
