@@ -707,10 +707,10 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
         <div className="relative z-10 flex flex-col gap-6 px-3 pb-6 lg:items-center lg:justify-between lg:py-12 lg:pl-5 lg:pr-4">
           {/* heading + feature buttons */}
           <div className="w-full max-w-sm">
-            <h3 className="mb-4 font-serif text-[1.3rem] font-bold italic leading-tight tracking-tight text-foreground">
+            <h3 className="mb-5 font-serif text-[1.3rem] font-bold italic leading-tight tracking-tight text-foreground">
               Click a feature to run it live.
             </h3>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4">
             {NAV_FEATURES.map((n) => {
               const active = tab === n.key;
               return (
@@ -718,7 +718,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                   key={n.key}
                   ref={cardRefs[n.key]}
                   onClick={() => selectFeature(n.key)}
-                  className={`group flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-left text-[16px] font-semibold transition-all ${
+                  className={`group flex w-full items-center gap-3 rounded-2xl px-5 py-6 text-left text-[16px] font-semibold transition-all ${
                     active
                       ? "bg-neutral-900 text-white shadow-[0_12px_30px_-12px_rgba(0,0,0,0.55)]"
                       : "bg-white text-neutral-800 ring-1 ring-neutral-200 hover:-translate-y-0.5 hover:ring-neutral-300 hover:shadow-md"

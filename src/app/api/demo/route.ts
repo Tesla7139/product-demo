@@ -5,6 +5,7 @@ import { promisify } from "util";
 const execFileP = promisify(execFile);
 
 export const runtime = "nodejs";
+export const maxDuration = 30; // the Jina fallback (Cloudflare bypass) can take a few seconds
 
 type DemoProductOut = {
   id: string;
@@ -140,15 +141,54 @@ async function curlFetch(url: string, accept: string): Promise<string | null> {
   }
 }
 
+/**
+ * Fallback via Jina AI Reader (r.jina.ai) — a public reader that fetches with a
+ * real headless browser, so it bypasses Cloudflare from ANY server (works on
+ * Vercel where `curl` isn't available / the datacenter IP is blocked).
+ * `format: "html"` returns raw HTML (for branding); default returns text/markdown
+ * (the JSON body is embedded, so callers extract it).
+ */
+async function jinaFetch(url: string, format?: "html"): Promise<string | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT + 12000);
+  try {
+    const headers: Record<string, string> = { "User-Agent": BROWSER_HEADERS["User-Agent"] };
+    if (format) headers["X-Return-Format"] = format;
+    const res = await fetch(`https://r.jina.ai/${url}`, { signal: controller.signal, headers });
+    if (!res.ok) return null;
+    const text = await res.text();
+    if (!text || isChallenge(text)) return null;
+    return text;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** Pull the JSON object out of a raw/wrapped response (Jina embeds it in markdown). */
+function extractJson(raw: string): string {
+  const start = raw.indexOf("{");
+  const end = raw.lastIndexOf("}");
+  return start >= 0 && end > start ? raw.slice(start, end + 1) : raw;
+}
+
 async function fetchText(url: string): Promise<string | null> {
-  return (await tryFetch(url, "text/html,application/xhtml+xml", true)) ?? (await curlFetch(url, "text/html,application/xhtml+xml"));
+  return (
+    (await tryFetch(url, "text/html,application/xhtml+xml", true)) ??
+    (await curlFetch(url, "text/html,application/xhtml+xml")) ??
+    (await jinaFetch(url, "html"))
+  );
 }
 
 async function fetchJson(url: string): Promise<unknown | null> {
-  const raw = (await tryFetch(url, "application/json", false)) ?? (await curlFetch(url, "application/json"));
+  const raw =
+    (await tryFetch(url, "application/json", false)) ??
+    (await curlFetch(url, "application/json")) ??
+    (await jinaFetch(url));
   if (!raw) return null;
   try {
-    return JSON.parse(raw);
+    return JSON.parse(extractJson(raw));
   } catch {
     return null;
   }
