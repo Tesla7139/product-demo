@@ -173,9 +173,9 @@ function extractJson(raw: string): string {
   return start >= 0 && end > start ? raw.slice(start, end + 1) : raw;
 }
 
-async function fetchText(url: string): Promise<string | null> {
+async function fetchText(url: string, htmlHead = true): Promise<string | null> {
   return (
-    (await tryFetch(url, "text/html,application/xhtml+xml", true)) ??
+    (await tryFetch(url, "text/html,application/xhtml+xml", htmlHead)) ??
     (await curlFetch(url, "text/html,application/xhtml+xml")) ??
     (await jinaFetch(url, "html"))
   );
@@ -233,6 +233,122 @@ function parseProducts(json: unknown): DemoProductOut[] {
     .filter((p) => p.title && p.title !== "Product");
 }
 
+// --- JSON-LD / schema.org product parsing --------------------------------
+// Non-Shopify stores (WooCommerce, BigCommerce, custom) don't expose
+// /products.json, but many embed schema.org Product / ItemList markup in
+// <script type="application/ld+json"> on the homepage. Parse that as a fallback
+// so the demo shows real products for those stores too.
+
+/** Collect every JSON-LD node in the HTML, flattening arrays and @graph containers. */
+function collectJsonLdNodes(html: string): Record<string, unknown>[] {
+  const out: Record<string, unknown>[] = [];
+  const re = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html))) {
+    const raw = m[1].trim();
+    if (!raw) continue;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      continue; // ignore malformed block
+    }
+    const nodes = Array.isArray(parsed) ? parsed : [parsed];
+    for (const n of nodes) {
+      if (!n || typeof n !== "object") continue;
+      const node = n as Record<string, unknown>;
+      const graph = node["@graph"];
+      if (Array.isArray(graph)) {
+        for (const g of graph) if (g && typeof g === "object") out.push(g as Record<string, unknown>);
+      } else {
+        out.push(node);
+      }
+    }
+  }
+  return out;
+}
+
+function typeMatches(t: unknown, name: string): boolean {
+  const target = name.toLowerCase();
+  if (typeof t === "string") return t.toLowerCase().endsWith(target);
+  if (Array.isArray(t)) return t.some((x) => typeof x === "string" && x.toLowerCase().endsWith(target));
+  return false;
+}
+
+function jsonLdImage(node: Record<string, unknown>, base: URL): string | null {
+  const img = node.image;
+  let raw: string | null = null;
+  if (typeof img === "string") raw = img;
+  else if (Array.isArray(img) && img.length) {
+    raw = typeof img[0] === "string" ? img[0] : ((img[0] as Record<string, unknown>)?.url as string) ?? null;
+  } else if (img && typeof img === "object") {
+    raw = ((img as Record<string, unknown>).url as string) ?? null;
+  }
+  return absolutize(raw, base);
+}
+
+function jsonLdPrice(node: Record<string, unknown>): number {
+  const offers = node.offers;
+  const offer = Array.isArray(offers) ? offers[0] : offers;
+  if (offer && typeof offer === "object") {
+    const o = offer as Record<string, unknown>;
+    const p = o.price ?? o.lowPrice ?? (o.priceSpecification as Record<string, unknown> | undefined)?.price;
+    return Math.round(Number(p)) || 0;
+  }
+  return 0;
+}
+
+function jsonLdToProduct(node: Record<string, unknown>, base: URL): DemoProductOut | null {
+  const name = typeof node.name === "string" ? decodeHtml(node.name.trim()) : "";
+  if (!name) return null;
+  const id =
+    (typeof node.sku === "string" && node.sku) ||
+    (typeof node.url === "string" && node.url) ||
+    name;
+  return {
+    id: String(id),
+    title: name,
+    variant: "",
+    price: jsonLdPrice(node),
+    qty: 1,
+    image: jsonLdImage(node, base),
+    variants: [],
+  };
+}
+
+function parseJsonLdProducts(html: string, base: URL): DemoProductOut[] {
+  const nodes = collectJsonLdNodes(html);
+  const products: DemoProductOut[] = [];
+  for (const node of nodes) {
+    const t = node["@type"];
+    if (typeMatches(t, "Product")) {
+      const p = jsonLdToProduct(node, base);
+      if (p) products.push(p);
+    } else if (typeMatches(t, "ItemList")) {
+      const items = node.itemListElement;
+      if (!Array.isArray(items)) continue;
+      for (const it of items) {
+        if (!it || typeof it !== "object") continue;
+        const item = ((it as Record<string, unknown>).item ?? it) as Record<string, unknown>;
+        if (typeMatches(item["@type"], "Product")) {
+          const p = jsonLdToProduct(item, base);
+          if (p) products.push(p);
+        }
+      }
+    }
+  }
+  // dedupe by title, cap at 8
+  const seen = new Set<string>();
+  return products
+    .filter((p) => {
+      const k = p.title.toLowerCase();
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    })
+    .slice(0, 8);
+}
+
 function metaContent(html: string, patterns: RegExp[]): string | null {
   for (const re of patterns) {
     const m = html.match(re);
@@ -259,14 +375,25 @@ function absolutize(href: string | null, base: URL): string | null {
   }
 }
 
+// Site metadata sometimes yields a useless "brand" (a page title like "Home",
+// or literally "Me") — fall back to the domain name in those cases.
+const GENERIC_NAMES = new Set(["me", "home", "shop", "store", "index", "welcome", "page", "cart"]);
+function isUsableName(s: string | null | undefined): s is string {
+  if (!s) return false;
+  const t = s.trim();
+  return t.length >= 2 && !GENERIC_NAMES.has(t.toLowerCase());
+}
+
 function parseBranding(html: string, base: URL): Omit<Branding, "products" | "currency"> {
-  const siteName =
+  const metaName =
     metaContent(html, [
       /<meta[^>]+property=["']og:site_name["'][^>]+content=["']([^"']+)["']/i,
       /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:site_name["']/i,
     ]) ||
-    metaContent(html, [/<title[^>]*>([^<]+)<\/title>/i])?.split(/[|–—-]/)[0]?.trim() ||
-    base.hostname.replace(/^www\./, "").split(".")[0];
+    metaContent(html, [/<title[^>]*>([^<]+)<\/title>/i])?.split(/[|–—-]/)[0]?.trim();
+  const siteName = isUsableName(metaName)
+    ? metaName
+    : base.hostname.replace(/^www\./, "").split(".")[0];
 
   const themeColor = metaContent(html, [
     /<meta[^>]+name=["']theme-color["'][^>]+content=["']([^"']+)["']/i,
@@ -326,14 +453,24 @@ export async function POST(req: Request) {
     return NextResponse.json(hit.data);
   }
 
-  // Fetch branding (homepage <head>), products, and cart currency together.
+  // Fetch branding (full homepage — JSON-LD products live below </head>),
+  // Shopify products, and cart currency together.
   const [html, productsJson, cartJson] = await Promise.all([
-    fetchText(url.toString()),
+    fetchText(url.toString(), false),
     fetchJson(`${url.origin}/products.json?limit=8`),
     fetchJson(`${url.origin}/cart.js`),
   ]);
 
-  const products = parseProducts(productsJson);
+  let products = parseProducts(productsJson);
+  // Secondary Shopify path — some stores 404 /products.json but expose collections.
+  if (products.length === 0) {
+    const alt = await fetchJson(`${url.origin}/collections/all/products.json?limit=8`);
+    products = parseProducts(alt);
+  }
+  // Non-Shopify stores — pull schema.org/JSON-LD products from the homepage.
+  if (products.length === 0 && html) {
+    products = parseJsonLdProducts(html, url);
+  }
   const currency = parseCurrency(cartJson);
 
   if (!html && products.length === 0) {

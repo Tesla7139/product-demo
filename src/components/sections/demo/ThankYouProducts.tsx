@@ -49,11 +49,11 @@ export function ThankYouProducts({
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {products.map((p, i) => (
-              <div key={i} className="rounded-xl border border-border p-2.5">
+              <div key={i} className="flex flex-col rounded-xl border border-border p-2.5">
                 <div className="aspect-square w-full overflow-hidden rounded-lg border border-border bg-neutral-50">
                   <ProductImg src={p.image} alt={p.title} />
                 </div>
-                <div className="mt-2 line-clamp-2 text-[12.5px] font-medium text-neutral-800">{p.title}</div>
+                <div className="mt-2 line-clamp-2 text-[12.5px] font-medium leading-tight text-neutral-800" style={{ minHeight: "2.5em" }}>{p.title}</div>
                 <div className="mt-0.5 flex items-baseline gap-1.5 text-xs">
                   <span className="text-neutral-400 line-through">{fmt(p.price)}</span>
                   <span className="font-bold text-emerald-600">{fmt(deal(p.price))}</span>
@@ -61,7 +61,7 @@ export function ThankYouProducts({
                 <button
                   ref={i === 0 ? addBtnRef : undefined}
                   onClick={() => onAdd(p)}
-                  className="mt-2 w-full rounded-md py-1.5 text-xs font-semibold text-white transition-all hover:brightness-110"
+                  className="mt-auto w-full rounded-md py-1.5 text-xs font-semibold text-white transition-all hover:brightness-110"
                   style={{ background: brand }}
                 >
                   Add · {fmt(deal(p.price))}
@@ -92,21 +92,21 @@ export function ThankYouProducts({
   return (
     <div ref={gridRef} className="rounded-xl border border-border p-3">
       <h4 className="mb-2 text-sm font-bold text-neutral-900">You may also like these products</h4>
-      <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
+      <div className="-mx-1 flex items-stretch gap-3 overflow-x-auto px-1 pb-1">
         {products.map((p, i) => (
-          <div key={i} className="w-28 shrink-0">
+          <div key={i} className="flex w-28 shrink-0 flex-col">
             <div className="aspect-square w-full overflow-hidden rounded-lg border border-border bg-neutral-50">
               <ProductImg src={p.image} alt={p.title} />
             </div>
-            <div className="mt-1.5 line-clamp-2 text-xs font-medium text-neutral-800">{p.title}</div>
-            <div className="flex items-baseline gap-1 text-xs">
+            <div className="mt-1.5 line-clamp-2 text-xs font-medium leading-tight text-neutral-800" style={{ minHeight: "2.5em" }}>{p.title}</div>
+            <div className="mt-0.5 flex items-baseline gap-1 text-xs">
               <span className="text-neutral-400 line-through">{fmt(p.price)}</span>
               <span className="font-bold text-emerald-600">{fmt(deal(p.price))}</span>
             </div>
             <button
               ref={i === 0 ? addBtnRef : undefined}
               onClick={() => onAdd(p)}
-              className="mt-1.5 w-full rounded-md py-1.5 text-xs font-semibold text-white"
+              className="mt-auto w-full rounded-md py-1.5 text-xs font-semibold text-white"
               style={{ background: brand }}
             >
               Add · {fmt(deal(p.price))}

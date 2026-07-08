@@ -25,15 +25,6 @@ function ClickpostMark({ className }: { className?: string }) {
   );
 }
 
-// brands shown as a static collage at the bottom of the final window
-const FINAL_BRAND_LOGOS = [
-  "/customers/doonails.svg",
-  "/customers/hautesauce.png",
-  "/customers/curlwarehouse.png",
-  "/customers/modomu.png",
-  "/customers/mateina.png",
-];
-
 /** Types `text` out character by character; restarts whenever `text` changes. */
 function Typewriter({ text, className }: { text: string; className?: string }) {
   const [n, setN] = useState(0);
@@ -239,22 +230,6 @@ export function TourOverlay({
                 )}
               </div>
 
-              {/* review button → wall of love */}
-              <Link href="/reviews" className="group mt-3.5 inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#155FFF] transition-colors hover:text-[#0d47cc]">
-                Read our wall of love — 50+ five-star reviews
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="transition-transform group-hover:translate-x-0.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-              </Link>
-
-              {/* static brand collage */}
-              <div className="mt-6 w-full border-t border-neutral-200/80 pt-4">
-                <p className="mb-3 text-[9.5px] font-semibold uppercase tracking-[0.14em] text-neutral-400">Trusted by fast-growing brands</p>
-                <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
-                  {FINAL_BRAND_LOGOS.map((src) => (
-                    // eslint-disable-next-line @next/next/no-img-element -- brand logo from /public
-                    <img key={src} src={src} alt="" className="h-5 w-auto max-w-[74px] object-contain opacity-55 brightness-0" />
-                  ))}
-                </div>
-              </div>
             </div>
             </div>
            </motion.div>

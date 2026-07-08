@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUpRight, CalendarDays, ChevronRight, Globe, MapPin, Pencil, Play, ShieldCheck, Sparkles, Star, TrendingUp } from "lucide-react";
+import { ArrowUpRight, ChevronRight, Globe, MapPin, Pencil, Play, ShieldCheck, Sparkles, Star, TrendingUp } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
 import type { Addr } from "./DemoMock";
 import { DemoMock } from "./DemoMock";
@@ -704,13 +703,13 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     <div ref={rootRef} className="scroll-mt-6">
       <div className="grid grid-cols-1 items-stretch gap-6 lg:min-h-[100svh] lg:grid-cols-[minmax(0,0.52fr)_minmax(0,1.48fr)] lg:gap-0">
         {/* LEFT: feature buttons + the "ready to try" box */}
-        <div className="relative z-10 flex flex-col gap-6 px-3 pb-6 lg:items-center lg:justify-between lg:py-12 lg:pl-5 lg:pr-4">
+        <div className="relative z-10 flex flex-col gap-6 px-3 pb-6 lg:items-center lg:justify-start lg:px-4 lg:pt-8 lg:pb-12">
           {/* heading + feature buttons */}
           <div className="w-full max-w-sm">
             <h3 className="mb-5 font-serif text-[1.3rem] font-bold italic leading-tight tracking-tight text-foreground">
               Click a feature to run it live.
             </h3>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
             {NAV_FEATURES.map((n) => {
               const active = tab === n.key;
               return (
@@ -718,19 +717,12 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                   key={n.key}
                   ref={cardRefs[n.key]}
                   onClick={() => selectFeature(n.key)}
-                  className={`group flex w-full items-center gap-3 rounded-2xl px-5 py-6 text-left text-[16px] font-semibold transition-all ${
+                  className={`group flex w-full items-center gap-3 rounded-2xl px-5 py-3 text-left text-[15px] font-semibold transition-all ${
                     active
                       ? "bg-neutral-900 text-white shadow-[0_12px_30px_-12px_rgba(0,0,0,0.55)]"
                       : "bg-white text-neutral-800 ring-1 ring-neutral-200 hover:-translate-y-0.5 hover:ring-neutral-300 hover:shadow-md"
                   }`}
                 >
-                  <span
-                    className={`flex size-9 shrink-0 items-center justify-center rounded-xl transition-colors ${
-                      active ? "bg-white/15 text-white" : "bg-neutral-100 text-neutral-600 group-hover:bg-[#155FFF]/10 group-hover:text-[#155FFF]"
-                    }`}
-                  >
-                    <n.icon className="size-[18px]" />
-                  </span>
                   <span className="flex-1">{n.label}</span>
                   <ChevronRight
                     className={`size-4 shrink-0 transition-transform ${
@@ -772,13 +764,15 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
               </div>
               <ArrowUpRight className="size-4 shrink-0 text-neutral-400 transition-colors group-hover:text-[#155FFF]" />
             </a>
-            <Link
-              href="/#contact"
+            <a
+              href={APP_URL}
+              target="_blank"
+              rel="noreferrer"
               className="flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
               style={{ background: "#155FFF" }}
             >
-              <CalendarDays className="size-4 shrink-0" /> Book a free demo
-            </Link>
+              Start free trial <ArrowUpRight className="size-4 shrink-0" />
+            </a>
           </div>
         </div>
 
@@ -809,6 +803,26 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
               <span className="relative z-10">Start tour</span>
             </button>
 
+            {/* Upsell sub-tabs — in the top bar (Upsell feature only) */}
+            {tab === "upsell" && (
+              <div ref={upsellToggleRef} className="flex shrink-0 items-center gap-1 rounded-full bg-white/70 p-1 shadow-soft-md ring-1 ring-neutral-200">
+                {([["onetap", "One tap upsell"], ["thankyou", "Order status page"]] as const).map(([key, label]) => {
+                  const active = upsellView === key;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setUpsellView(key)}
+                      className={`whitespace-nowrap rounded-full px-4 py-1.5 text-[12px] font-semibold transition-colors ${
+                        active ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             <a
               href={APP_URL}
               target="_blank"
@@ -820,30 +834,11 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
             </a>
           </div>
 
-          {/* paired sub-row — contextual sub-views + the guided tour */}
-          <div className="relative z-10 flex flex-wrap items-center justify-center gap-2">
-            {tab === "upsell" && (
-              <div ref={upsellToggleRef} className="flex items-center gap-1">
-                {([["onetap", "One tap upsell"], ["thankyou", "Order status page"]] as const).map(([key, label]) => {
-                  const active = upsellView === key;
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => setUpsellView(key)}
-                      className={`rounded-full px-4 py-1.5 text-[12px] font-semibold transition-colors ${
-                        active ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-500 hover:text-neutral-800"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-            {/* Start tour — mobile only (desktop has it left of the strip) */}
+          {/* sub-row — mobile-only Start tour (desktop has everything in the top bar) */}
+          <div className="relative z-10 flex flex-wrap items-center justify-center gap-2 lg:hidden">
             <button
               onClick={launchTour}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-[12px] font-semibold text-neutral-700 shadow-sm ring-1 ring-neutral-200 transition-all hover:bg-neutral-50 lg:hidden"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-[12px] font-semibold text-neutral-700 shadow-sm ring-1 ring-neutral-200 transition-all hover:bg-neutral-50"
             >
               <Play className="size-3.5 fill-current" />
               Start tour

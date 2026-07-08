@@ -406,17 +406,21 @@ export type DemoStore = {
   products: DemoProduct[];
 };
 
+// Category-neutral sample catalog — used when a store's real products can't be
+// read (non-Shopify sites, blocked endpoints). Generic names + variants read as a
+// plausible sample for any vertical (wellness, beauty, food, apparel) instead of
+// showing wrong-category apparel for, say, a supplements brand.
 export const mockStore: DemoStore = {
   brandName: "Northwind Goods",
   brandColor: "#1f7a5a",
   currency: "USD",
   products: [
-    { id: "p1", title: "Merino Wool Crew", variant: "Charcoal / M", price: 89, qty: 1 },
-    { id: "p2", title: "Everyday Tote", variant: "Sand", price: 64, qty: 1 },
-    { id: "p3", title: "Trail Runner 2.0", variant: "Black / 10", price: 128, qty: 1 },
-    { id: "p4", title: "Linen Overshirt", variant: "Ivory / M", price: 72, qty: 1 },
-    { id: "p5", title: "Ribbed Wool Beanie", variant: "Heather Grey", price: 28, qty: 1 },
-    { id: "p6", title: "Canvas Low Sneaker", variant: "White / 9", price: 95, qty: 1 },
+    { id: "p1", title: "Signature Bundle", variant: "Full size", price: 89, qty: 1 },
+    { id: "p2", title: "Best Seller", variant: "Original", price: 64, qty: 1 },
+    { id: "p3", title: "Starter Kit", variant: "3-piece", price: 128, qty: 1 },
+    { id: "p4", title: "Refill Pack", variant: "2-month", price: 72, qty: 1 },
+    { id: "p5", title: "Travel Size", variant: "Mini", price: 28, qty: 1 },
+    { id: "p6", title: "Gift Set", variant: "Deluxe", price: 95, qty: 1 },
   ],
 };
 
