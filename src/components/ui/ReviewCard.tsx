@@ -37,7 +37,7 @@ export function ReviewCard({ review }: { review: Review }) {
       <div className="mt-5 flex items-center justify-between gap-3 border-t border-black/5 pt-3">
         {logo ? (
           // eslint-disable-next-line @next/next/no-img-element -- local customer logo assets
-          <img src={logo} alt={name} className="max-h-6 max-w-[140px] object-contain brightness-0" />
+          <img src={logo} alt={name} className="max-h-5 max-w-[110px] object-contain object-left brightness-0" />
         ) : (
           <span className="text-[13px] font-bold text-black">{name}</span>
         )}
