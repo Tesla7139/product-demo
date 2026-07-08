@@ -5,7 +5,7 @@ import { promisify } from "util";
 const execFileP = promisify(execFile);
 
 export const runtime = "nodejs";
-export const maxDuration = 30; // the Jina fallback (Cloudflare bypass) can take a few seconds
+export const maxDuration = 60; // sequential Jina fallbacks (Cloudflare bypass) can take a while
 
 type DemoProductOut = {
   id: string;
@@ -148,12 +148,18 @@ async function curlFetch(url: string, accept: string): Promise<string | null> {
  * `format: "html"` returns raw HTML (for branding); default returns text/markdown
  * (the JSON body is embedded, so callers extract it).
  */
+// Optional Jina API key — unauthenticated r.jina.ai is rate-limited per IP, which
+// Vercel's shared datacenter IPs hit quickly (causing WAF-protected stores to fall
+// back to the sample). A free key (jina.ai/reader) raises the limit dramatically.
+const JINA_KEY = process.env.JINA_API_KEY;
+
 async function jinaFetch(url: string, format?: "html"): Promise<string | null> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT + 12000);
   try {
     const headers: Record<string, string> = { "User-Agent": BROWSER_HEADERS["User-Agent"] };
     if (format) headers["X-Return-Format"] = format;
+    if (JINA_KEY) headers["Authorization"] = `Bearer ${JINA_KEY}`;
     const res = await fetch(`https://r.jina.ai/${url}`, { signal: controller.signal, headers });
     if (!res.ok) return null;
     const text = await res.text();
@@ -173,19 +179,7 @@ function extractJson(raw: string): string {
   return start >= 0 && end > start ? raw.slice(start, end + 1) : raw;
 }
 
-async function fetchText(url: string, htmlHead = true): Promise<string | null> {
-  return (
-    (await tryFetch(url, "text/html,application/xhtml+xml", htmlHead)) ??
-    (await curlFetch(url, "text/html,application/xhtml+xml")) ??
-    (await jinaFetch(url, "html"))
-  );
-}
-
-async function fetchJson(url: string): Promise<unknown | null> {
-  const raw =
-    (await tryFetch(url, "application/json", false)) ??
-    (await curlFetch(url, "application/json")) ??
-    (await jinaFetch(url));
+function safeJson(raw: string | null): unknown | null {
   if (!raw) return null;
   try {
     return JSON.parse(extractJson(raw));
@@ -194,13 +188,43 @@ async function fetchJson(url: string): Promise<unknown | null> {
   }
 }
 
+/** Fast path only (Node + curl) — no Jina, so these can safely run concurrently. */
+async function directText(url: string, htmlHead = true): Promise<string | null> {
+  return (
+    (await tryFetch(url, "text/html,application/xhtml+xml", htmlHead)) ??
+    (await curlFetch(url, "text/html,application/xhtml+xml"))
+  );
+}
+
+async function directJson(url: string): Promise<unknown | null> {
+  return safeJson(
+    (await tryFetch(url, "application/json", false)) ?? (await curlFetch(url, "application/json"))
+  );
+}
+
+/** Jina-only (headless browser proxy) — used sequentially as a last resort. */
+async function jinaJson(url: string): Promise<unknown | null> {
+  return safeJson(await jinaFetch(url));
+}
+
 type ShopifyProduct = {
   id?: number | string;
   handle?: string;
   title?: string;
+  vendor?: string;
   variants?: { title?: string; price?: string | number }[];
   images?: { src?: string }[];
 };
+
+/** Brand name from a products.json vendor field — fallback when the homepage is unreadable. */
+function vendorFrom(json: unknown): string | null {
+  const arr =
+    json && typeof json === "object" && Array.isArray((json as { products?: unknown }).products)
+      ? (json as { products: ShopifyProduct[] }).products
+      : [];
+  const v = arr.find((p) => p.vendor && p.vendor.trim())?.vendor?.trim();
+  return v || null;
+}
 
 function parseProducts(json: unknown): DemoProductOut[] {
   const arr =
@@ -453,24 +477,46 @@ export async function POST(req: Request) {
     return NextResponse.json(hit.data);
   }
 
-  // Fetch branding (full homepage — JSON-LD products live below </head>),
-  // Shopify products, and cart currency together.
-  const [html, productsJson, cartJson] = await Promise.all([
-    fetchText(url.toString(), false),
-    fetchJson(`${url.origin}/products.json?limit=8`),
-    fetchJson(`${url.origin}/cart.js`),
+  const productsUrl = `${url.origin}/products.json?limit=8`;
+  const collectionsUrl = `${url.origin}/collections/all/products.json?limit=8`;
+
+  // Phase 1 — fast path (Node + curl), concurrent, NO Jina. Handles every store
+  // that isn't behind a Node-blocking WAF, with zero rate-limited requests.
+  const [directHtml, directPj, cartJson] = await Promise.all([
+    directText(url.toString(), false),
+    directJson(productsUrl),
+    directJson(`${url.origin}/cart.js`),
   ]);
+  let html = directHtml;
+  let productsJson = directPj;
 
   let products = parseProducts(productsJson);
-  // Secondary Shopify path — some stores 404 /products.json but expose collections.
+  // Secondary Shopify path (still fast/direct) — some stores 404 /products.json.
   if (products.length === 0) {
-    const alt = await fetchJson(`${url.origin}/collections/all/products.json?limit=8`);
+    const alt = await directJson(collectionsUrl);
     products = parseProducts(alt);
+    if (products.length > 0) productsJson = alt;
+  }
+
+  // Phase 2 — Jina fallback (WAF-protected stores). Sequential + products FIRST so
+  // the important call isn't starved by a concurrent branding call under rate limits.
+  if (products.length === 0) {
+    productsJson = await jinaJson(productsUrl);
+    products = parseProducts(productsJson);
+  }
+  if (products.length === 0) {
+    const alt = await jinaJson(collectionsUrl);
+    products = parseProducts(alt);
+    if (products.length > 0) productsJson = alt;
+  }
+  if (!html) {
+    html = await jinaFetch(url.toString(), "html");
   }
   // Non-Shopify stores — pull schema.org/JSON-LD products from the homepage.
   if (products.length === 0 && html) {
     products = parseJsonLdProducts(html, url);
   }
+
   const currency = parseCurrency(cartJson);
 
   if (!html && products.length === 0) {
@@ -480,7 +526,9 @@ export async function POST(req: Request) {
   const branding = html
     ? parseBranding(html, url)
     : {
-        brandName: capitalize(url.hostname.replace(/^www\./, "").split(".")[0]),
+        // No homepage: use the products' vendor, else the domain name.
+        brandName:
+          vendorFrom(productsJson) || capitalize(url.hostname.replace(/^www\./, "").split(".")[0]),
         brandColor: null,
         logo: null,
       };
