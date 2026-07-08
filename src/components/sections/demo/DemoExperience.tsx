@@ -7,7 +7,6 @@ import type { DemoStore } from "@/lib/site";
 import { GuidedEditor } from "./GuidedEditor";
 import { CustomerLogos } from "@/components/sections/CustomerLogos";
 import { StaggerTestimonials } from "@/components/ui/stagger-testimonials";
-import { ReviewMarquee } from "@/components/sections/demo/ReviewMarquee";
 import { Footer } from "@/components/layout/Footer";
 
 type Status = "idle" | "loading" | "ready";
@@ -284,11 +283,7 @@ function EditingView({ store }: { store: DemoStore }) {
         <div className="mt-6">
           <StaggerTestimonials />
         </div>
-        {/* second strip — 25 real reviews scrolling the opposite way */}
-        <div className="mt-8">
-          <ReviewMarquee />
-        </div>
-        <div className="mt-8 flex justify-center">
+        <div className="mt-6 flex justify-center">
           <a
             href="/reviews"
             className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-6 py-3 text-sm font-semibold text-foreground shadow-soft-md transition-colors hover:bg-neutral-50"
