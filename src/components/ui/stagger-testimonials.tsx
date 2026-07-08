@@ -10,7 +10,7 @@ const SQRT_5000 = Math.sqrt(5000);
 // Real Clickpost reviews only (the ones that have a written review + brand logo).
 const REVIEWS = customerLogos
   .filter((c) => c.review)
-  .map((c, i) => ({ tempId: i, name: c.name, review: c.review as string, src: c.src, big: c.big }));
+  .map((c, i) => ({ tempId: i, name: c.name, review: c.review as string, src: c.src }));
 
 
 interface TestimonialCardProps {
@@ -57,11 +57,7 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({ position, review, han
           <img
             src={review.src}
             alt={review.name}
-            className={cn(
-              "object-contain",
-              review.big ? "max-h-12 max-w-[210px]" : "max-h-8 max-w-[150px]",
-              isCenter ? "brightness-0 invert" : "brightness-0"
-            )}
+            className={cn("max-h-8 max-w-[150px] object-contain", isCenter ? "brightness-0 invert" : "brightness-0")}
           />
         ) : (
           <span
