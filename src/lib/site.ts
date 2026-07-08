@@ -213,10 +213,12 @@ export const customerLogos: CustomerLogo[] = [
       "Installed Clickpost recently and it works great. Customers can edit their orders and even add extra items, which is a nice bonus.",
     date: "May 17, 2024",
   },
-  // Notable brands from the Shopify App Store export — no logo file on hand, so
-  // these render as a styled wordmark in the strip + carousel. Review text is the
-  // EXACT content from reviews.ts (pulled by store name, no rewording).
+  // More brands from the Shopify App Store export. Real brand logos (transparent
+  // PNGs pulled from each store) render like the others; V-Guard has no
+  // transparent logo available so it falls back to a styled wordmark. Review text
+  // is the EXACT content from reviews.ts (pulled by store name, no rewording).
   {
+    src: "/customers/westside.png",
     name: "Westside Global",
     reviewer: "Westside Global Team",
     role: "E-commerce",
@@ -224,6 +226,7 @@ export const customerLogos: CustomerLogo[] = [
     date: "Feb 13, 2026",
   },
   {
+    src: "/customers/myborosil.png",
     name: "MyBorosil",
     reviewer: "MyBorosil Team",
     role: "E-commerce",
@@ -231,6 +234,7 @@ export const customerLogos: CustomerLogo[] = [
     date: "Oct 14, 2025",
   },
   {
+    src: "/customers/wellbeingnutrition.png",
     name: "Wellbeing Nutrition",
     reviewer: "Wellbeing Nutrition Team",
     role: "E-commerce",
@@ -238,6 +242,7 @@ export const customerLogos: CustomerLogo[] = [
     date: "Sep 17, 2025",
   },
   {
+    src: "/customers/marsbyghc.png",
     name: "Mars By GHC",
     reviewer: "Mars By GHC Team",
     role: "E-commerce",
@@ -245,6 +250,7 @@ export const customerLogos: CustomerLogo[] = [
     date: "Jan 8, 2026",
   },
   {
+    src: "/customers/amrutam.png",
     name: "Amrutam",
     reviewer: "Amrutam Team",
     role: "E-commerce",
