@@ -7,11 +7,21 @@ import { motion } from "framer-motion";
 
 const TOUR_ACCENT = "#155FFF";
 
-/** Clickpost app icon — real logo from the Shopify listing. */
+/** Clickpost app icon (vector). */
 function ClickpostMark({ className }: { className?: string }) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element -- local brand asset
-    <img src="/clickpost-logo.png" alt="Clickpost" className={`object-contain ${className ?? ""}`} />
+    <svg viewBox="0 0 100 100" className={className} role="img" aria-label="Clickpost" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" rx="22" fill="#1668FF" />
+      <g fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M42 33 L20 45 L20 71 L42 83 L64 71 L64 45 Z" />
+        <path d="M20 45 L42 57 L64 45" />
+        <path d="M42 57 L42 83" />
+        <path d="M48 86 L77 57" strokeWidth="6" />
+        <circle cx="71" cy="30" r="13" fill="#1668FF" />
+        <path d="M80 39 L88 47" />
+        <path d="M66 25 L76 35 M76 25 L66 35" strokeWidth="3" />
+      </g>
+    </svg>
   );
 }
 
