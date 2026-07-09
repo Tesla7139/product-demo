@@ -862,9 +862,9 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
               {/* store logo — in place of the traffic-light dots */}
               {store.logo ? (
                 // eslint-disable-next-line @next/next/no-img-element -- store favicon/logo
-                <img src={store.logo} alt="" className="size-6 shrink-0 rounded-md object-contain" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = "none")} />
+                <img src={store.logo} alt="" className="size-9 shrink-0 rounded-md object-contain" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = "none")} />
               ) : (
-                <Globe className="size-6 shrink-0 text-neutral-400" />
+                <Globe className="size-9 shrink-0 text-neutral-400" />
               )}
               <div className="mx-auto flex items-center gap-2 rounded-md bg-white px-4 py-1.5 text-[15px] font-extrabold text-neutral-900 ring-1 ring-neutral-200">
                 {domain}

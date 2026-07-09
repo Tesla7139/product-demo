@@ -267,9 +267,9 @@ function WelcomeView({ store, brand, name, domain, onContinue }: { store: DemoSt
               <div className="flex items-center gap-2 border-b border-neutral-200 bg-neutral-50 px-3 py-2">
                 {store.logo ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={store.logo} alt="" className="size-5 shrink-0 rounded object-contain" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = "none")} />
+                  <img src={store.logo} alt="" className="size-[30px] shrink-0 rounded object-contain" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = "none")} />
                 ) : (
-                  <Globe className="size-5 shrink-0 text-neutral-400" />
+                  <Globe className="size-[30px] shrink-0 text-neutral-400" />
                 )}
                 <span className="mx-auto flex max-w-[70%] items-center truncate rounded-md bg-white px-3 py-1 text-[12.5px] font-medium text-neutral-700 ring-1 ring-neutral-200">
                   <span className="truncate">{dom}</span>
