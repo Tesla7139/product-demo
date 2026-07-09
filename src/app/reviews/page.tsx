@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Star } from "lucide-react";
 import { Container } from "@/components/primitives/Container";
+import { BrandStrip } from "@/components/sections/BrandStrip";
 import { ReviewCard } from "@/components/ui/ReviewCard";
 import { reviews, type Review } from "@/lib/reviews";
 import { Button } from "@/components/ui/button";
@@ -160,7 +161,15 @@ export default function ReviewsPage() {
         </Container>
       </section>
 
-      {/* 2. Wall of Love Section */}
+      {/* 2. Brand strip — every customer logo, marching across the top of the wall */}
+      <section className="mt-10 md:mt-14 border-t border-black/5 pt-10 md:pt-12">
+        <p className="mb-6 text-center text-xs font-semibold uppercase tracking-[0.18em] text-black/40">
+          Trusted by leading Shopify brands
+        </p>
+        <BrandStrip />
+      </section>
+
+      {/* 3. Wall of Love Section */}
       <section className="mt-10 md:mt-16 pt-10 md:pt-14 pb-6 border-t border-black/5">
         <Container>
           {/* Section Subheading */}
