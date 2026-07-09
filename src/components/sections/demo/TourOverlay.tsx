@@ -65,6 +65,7 @@ export function TourOverlay({
   showFinger = false,
   dotRect,
   hideCard = false,
+  cardAbove = false,
   outcome = false,
   outcomeHref,
   outcomeHeadline,
@@ -90,6 +91,8 @@ export function TourOverlay({
   dotRect?: TourRect | null;
   /** Hide the tooltip card (e.g. when the highlighted element is self-explanatory). */
   hideCard?: boolean;
+  /** Force the card above the spotlight (steps where below would cover content). */
+  cardAbove?: boolean;
   /** Hide the Next button (user advances by tapping the highlighted element). */
   hideCta?: boolean;
   /** Render the end-of-feature conversion overlay: blurred backdrop + centered CTA. */
@@ -262,7 +265,7 @@ export function TourOverlay({
   } else {
     const spaceBelow = window.innerHeight - (sl.top + sl.height);
     const spaceAbove = sl.top;
-    tooltipBelow = spaceBelow >= cardH + GAP || spaceAbove < cardH + GAP;
+    tooltipBelow = cardAbove ? false : spaceBelow >= cardH + GAP || spaceAbove < cardH + GAP;
     tooltipTop = clampTop(tooltipBelow ? sl.top + sl.height + GAP : sl.top - cardH - GAP);
     tooltipLeft = Math.min(Math.max(sl.left, 12), window.innerWidth - cardW - 12);
   }

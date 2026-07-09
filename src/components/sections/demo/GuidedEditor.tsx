@@ -64,6 +64,8 @@ type TourStepDef = {
   hideCta?: boolean;
   /** keep the current scroll position (don't scroll the target into view) */
   noScroll?: boolean;
+  /** force the callout card above the spotlight (for steps where below covers content) */
+  cardAbove?: boolean;
   /** id of an element to programmatically "click" on step-enter so its animation
    *  plays automatically (Next-driven tour — no tapping required) */
   autoClickId?: string;
@@ -167,6 +169,7 @@ const UPSELL_TOUR_STEPS: TourStepDef[] = [
     spotlightId: "ty-grid",
     dotId: "ty-add",
     autoClickId: "ty-add", // tap Add → adds the item
+    cardAbove: true, // below covers the "Explore all products" button
   },
   {
     // transition: highlight the Address feature button; tap to open it
@@ -629,7 +632,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     const timers: ReturnType<typeof setTimeout>[] = [];
     // capture the spotlight + dot rects from the (now-settled) DOM
     const measureDemo = () => {
-      if (!demoFrameRef.current) return;
+      if (!s.outcome || !demoFrameRef.current) return;
       const d = demoFrameRef.current.getBoundingClientRect();
       setDemoRect({ top: d.top, left: d.left, width: d.width, height: d.height });
     };
@@ -946,6 +949,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
           dotRect={dotRect}
           hideCard={curStep.hideCard}
           hideCta={curStep.hideCta}
+          cardAbove={curStep.cardAbove}
           outcome={curStep.outcome}
           outcomeHeadline={curStep.outcomeHeadline}
           outcomeButton={curStep.outcomeButton}
