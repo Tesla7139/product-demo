@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUpRight, ChevronRight, Globe, MapPin, Pencil, Play, ShieldCheck, Sparkles, Star, TrendingUp } from "lucide-react";
-import type { DemoStore } from "@/lib/site";
+import type { DemoStore, DemoProduct } from "@/lib/site";
 import type { Addr } from "./DemoMock";
 import { DemoMock } from "./DemoMock";
 import { OneTapUpsellMock } from "./OneTapUpsellMock";
@@ -340,6 +340,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
   const [tab, setTab] = useState<Tab>("editing");
   const [activePill, setActivePill] = useState<ActionPill["key"]>("tour");
   const [upsellView, setUpsellView] = useState<"thankyou" | "onetap">("onetap");
+  const [upsellExtras, setUpsellExtras] = useState<DemoProduct[]>([]); // offers accepted on the one-tap page
 
   // lifted tour state
   const [activeTour, setActiveTour] = useState<Tour | null>(null);
@@ -517,7 +518,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
   function goToTour(next: Tour) {
     setActiveTour(null);
     setSpotlightRect(null);
-    if (next === "upsell") setUpsellView("onetap");
+    if (next === "upsell") { setUpsellView("onetap"); setUpsellExtras([]); }
     if (next === "address") setAddrResetKey((k) => k + 1); // fresh address window on handoff
     if (next === "eu-withdrawal") setEuResetKey((k) => k + 1); // fresh EU page on handoff
     setTab(next);
@@ -600,7 +601,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     setActivePill("tour");
     setTourForcedOpen(null);
     // tapping the Upsell feature always opens the One-tap view first
-    if (k === "upsell") setUpsellView("onetap");
+    if (k === "upsell") { setUpsellView("onetap"); setUpsellExtras([]); }
     setTab(k);
   }
 
@@ -811,7 +812,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                   return (
                     <button
                       key={key}
-                      onClick={() => setUpsellView(key)}
+                      onClick={() => { setUpsellView(key); if (key === "onetap") setUpsellExtras([]); }}
                       className={`whitespace-nowrap rounded-full px-4 py-1.5 text-[12px] font-semibold transition-colors ${
                         active ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800"
                       }`}
@@ -887,6 +888,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                       initialOpen={null}
                       maxHeight={560}
                       upsellFirst
+                      extraItems={upsellExtras}
                       tourRefs={{ upsellRow: tyGridRef, upsellAddBtn: tyAddBtnRef }}
                     />
                   ) : (
@@ -895,8 +897,8 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                       store={store}
                       addBtnRef={upsellAddBtnRef}
                       offerRef={upsellOfferRef}
-                      onComplete={() => setUpsellView("thankyou")}
-                      onViewOrder={() => setUpsellView("thankyou")}
+                      onComplete={(added) => { setUpsellExtras(added); setUpsellView("thankyou"); }}
+                      onViewOrder={() => { setUpsellExtras([]); setUpsellView("thankyou"); }}
                     />
                   )
                 )}

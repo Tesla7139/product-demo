@@ -55,6 +55,7 @@ export function DemoMock({
   maxHeight,
   forceOneTap = false,
   extraItem,
+  extraItems,
   tourRefs,
   addressOverride,
   onShippingSaved,
@@ -72,6 +73,8 @@ export function DemoMock({
   maxHeight?: number;
   forceOneTap?: boolean;
   extraItem?: DemoProduct;
+  /** Post-purchase upsells added on the one-tap page — appear in the order as an unpaid balance. */
+  extraItems?: DemoProduct[];
   /** Address-validation mode: shipping opens with a flagged address that validates on save. */
   addressValidation?: boolean;
   /** External refs (owned by a parent tour controller) attached to key elements. */
@@ -120,7 +123,10 @@ export function DemoMock({
   const upsellPool = rest.length ? rest : usable.slice(1).length ? usable.slice(1) : usable;
 
   const [items, setItems] = useState<LineItem[]>(() => {
-    const all = extraItem ? [...cartProducts, extraItem] : cartProducts;
+    // never duplicate a cart item with an added upsell of the same title
+    const cartTitles = new Set(cartProducts.map((p) => (p.title || "").toLowerCase()));
+    const cleanExtras = (extraItems ?? []).filter((e) => !cartTitles.has((e.title || "").toLowerCase()));
+    const all = [...cartProducts, ...(extraItem ? [extraItem] : []), ...cleanExtras];
     return all.map((p) => ({ ...p, uid: uid() }));
   });
   const [open, setOpen] = useState<Section | null>(initialOpen);
@@ -576,8 +582,8 @@ export function DemoMock({
               </div>
             )}
 
-            {/* balance due — quantity bumps & in-page upsells are charged here
-                (one-tap upsell is charged to the card on file, so it never appears) */}
+            {/* balance due — quantity bumps, in-page upsells, and accepted
+                one-tap post-purchase offers are charged here */}
             {due > 0 && (
               <div ref={tourRefs?.payPanel} className="mt-3 rounded-xl bg-amber-50 p-3">
                 <div className="flex items-baseline justify-between text-[13px]">

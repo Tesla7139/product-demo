@@ -1,24 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Check, ChevronDown } from "lucide-react";
-import type { DemoStore } from "@/lib/site";
+import type { DemoStore, DemoProduct } from "@/lib/site";
 import { readableBrand, dedupeByTitle } from "@/lib/utils";
 import { DemoImg } from "./DemoImg";
 
 const money = (n: number, currency = "USD") =>
   new Intl.NumberFormat("en", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
 
-export function OneTapUpsellMock({ store, onComplete, onViewOrder, accentColor, addBtnRef, offerRef, onAdded }: { store: DemoStore; onComplete?: (wasAdded: boolean) => void; onViewOrder?: () => void; accentColor?: string; addBtnRef?: React.RefObject<HTMLButtonElement | null>; offerRef?: React.RefObject<HTMLDivElement | null>; onAdded?: () => void }) {
+export function OneTapUpsellMock({ store, onComplete, onViewOrder, accentColor, addBtnRef, offerRef, onAdded }: { store: DemoStore; onComplete?: (added: DemoProduct[]) => void; onViewOrder?: () => void; accentColor?: string; addBtnRef?: React.RefObject<HTMLButtonElement | null>; offerRef?: React.RefObject<HTMLDivElement | null>; onAdded?: () => void }) {
   const brand = readableBrand(store.brandColor || accentColor);
   const currency = store.currency || "USD";
   const fmt = (n: number) => money(n, currency);
   const priced = store.products.filter((p) => (p.price ?? 0) > 0);
   const pool = dedupeByTitle(priced.length ? priced : store.products);
-  // Up to 3 DISTINCT offers (skip the first "purchased" item when we can).
-  const rest = pool.slice(1);
-  const offers = (rest.length ? rest : pool).slice(0, 3);
+  // Up to 3 DISTINCT offers. Skip the first 2 products (those show as the
+  // "purchased" order on the status page) so an added offer never duplicates a
+  // cart item; fall back for small catalogs.
+  const afterCart = pool.slice(2);
+  const offers = (afterCart.length ? afterCart : pool.slice(1).length ? pool.slice(1) : pool).slice(0, 3);
 
   const [offerIdx, setOfferIdx] = useState(0);
   const total = offers.length;
@@ -46,6 +48,7 @@ export function OneTapUpsellMock({ store, onComplete, onViewOrder, accentColor, 
   const timer = `${Math.floor(secs / 60)}:${(secs % 60).toString().padStart(2, "0")}`;
 
   const [justAdded, setJustAdded] = useState(false);
+  const addedRef = useRef<DemoProduct[]>([]); // offers the shopper accepted (charged to the order)
 
   const goNext = () => {
     setJustAdded(false);
@@ -55,15 +58,21 @@ export function OneTapUpsellMock({ store, onComplete, onViewOrder, accentColor, 
   };
   const handleAdd = () => {
     onAdded?.();
+    if (offer) {
+      addedRef.current = [
+        ...addedRef.current,
+        { ...offer, price: deal, qty: 1, variant: selectedVariant?.title ?? offer.variant ?? "" },
+      ];
+    }
     setJustAdded(true);
     setTimeout(() => {
       if (!isLast) goNext();
-      else onComplete?.(true);
+      else onComplete?.(addedRef.current);
     }, 950);
   };
   const handleDecline = () => {
     if (!isLast) goNext();
-    else onComplete?.(false);
+    else onComplete?.(addedRef.current);
   };
   const declineLabel = "Skip Offer";
 
