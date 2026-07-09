@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Check, ChevronDown } from "lucide-react";
 import type { DemoStore, DemoProduct } from "@/lib/site";
-import { readableBrand, dedupeByTitle } from "@/lib/utils";
+import { readableBrand, dedupeExactTitle } from "@/lib/utils";
 import { DemoImg } from "./DemoImg";
 
 const money = (n: number, currency = "USD") =>
@@ -15,10 +15,10 @@ export function OneTapUpsellMock({ store, onComplete, onViewOrder, accentColor, 
   const currency = store.currency || "USD";
   const fmt = (n: number) => money(n, currency);
   const priced = store.products.filter((p) => (p.price ?? 0) > 0);
-  const pool = dedupeByTitle(priced.length ? priced : store.products);
-  // Up to 3 DISTINCT offers. Skip the first 2 products (those show as the
-  // "purchased" order on the status page) so an added offer never duplicates a
-  // cart item; fall back for small catalogs.
+  // keep colour variants so there's enough variety for 3 distinct offers
+  const pool = dedupeExactTitle(priced.length ? priced : store.products);
+  // Up to 3 offers. Skip the first 2 products (those show as the "purchased" order
+  // on the status page) so an added offer never duplicates a cart item.
   const afterCart = pool.slice(2);
   const offers = (afterCart.length ? afterCart : pool.slice(1).length ? pool.slice(1) : pool).slice(0, 3);
 

@@ -16,7 +16,7 @@ import {
   X,
 } from "lucide-react";
 import type { DemoStore, DemoProduct } from "@/lib/site";
-import { readableBrand, dedupeByTitle } from "@/lib/utils";
+import { readableBrand, dedupeByTitle, dedupeExactTitle } from "@/lib/utils";
 import { DemoImg } from "./DemoImg";
 import { ThankYouMap } from "./ThankYouMap";
 import { OrderDetails } from "./OrderDetails";
@@ -117,10 +117,14 @@ export function DemoMock({
   // remaining products become the in-page cross-sell suggestions.
   // Only real, priced products — skip €0 / SKU-placeholder entries in the store feed.
   const priced = store.products.filter((p) => (p.price ?? 0) > 0);
-  const usable = dedupeByTitle(priced.length ? priced : store.products);
+  const source = priced.length ? priced : store.products;
+  // cart: distinct products (base name) so it never shows the same item twice
+  const usable = dedupeByTitle(source);
   const cartProducts = usable.slice(0, 2);
   const cartIds = new Set(cartProducts.map((p) => p.id));
-  const rest = usable.filter((p) => !cartIds.has(p.id));
+  // cross-sell: keep colour/size variants for variety (4-5+ suggestions), minus cart
+  const variety = dedupeExactTitle(source);
+  const rest = variety.filter((p) => !cartIds.has(p.id));
   const upsellPool = rest.length ? rest : usable.slice(1).length ? usable.slice(1) : usable;
 
   const [items, setItems] = useState<LineItem[]>(() => {
