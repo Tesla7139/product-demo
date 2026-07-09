@@ -131,29 +131,21 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
     dotId: "pay-btn", // dot on the Pay button
   },
   {
+    // transition: highlight the Upsell feature button (screen stays on editing);
+    // tapping it opens the upsell screen and continues the tour there.
     id: "to-upsell",
-    title: "Fewer support tickets, automatically",
-    desc: "Every self-serve edit is a ticket your team never has to touch.",
+    title: "Every edit is an upsell opportunity",
+    desc: "Turn every edit into extra revenue with one-tap add-ons. Tap Post-purchase upsell to see it.",
     cta: "Next",
-    measureDelayMs: 360,
-    outcome: true,
-    outcomeHeadline: "Fewer support tickets",
-    outcomeButton: "Reduce my store's support tickets now",
+    measureDelayMs: 260,
+    spotlightId: "feature-upsell",
+    dotId: "feature-upsell",
     nextTour: "upsell",
     nextLabel: "Post-purchase upsell",
   },
 ];
 
 const UPSELL_TOUR_STEPS: TourStepDef[] = [
-  {
-    id: "upsell-toggle",
-    title: "Every edit is an upsell opportunity",
-    desc: "Turn every edit and checkout into extra revenue — lift your AOV with one-tap add-ons, right after the order or on the order status page.",
-    cta: "Show me",
-    measureDelayMs: 280,
-    spotlightId: "feature-upsell", // highlight the Upsell feature, not the sub-tab
-    dotId: "feature-upsell",
-  },
   {
     id: "upsell-offer",
     title: "An irresistible offer",
@@ -191,28 +183,20 @@ const UPSELL_TOUR_STEPS: TourStepDef[] = [
     autoClickId: "ty-add",
   },
   {
+    // transition: highlight the Address feature button; tap to open it
     id: "to-address",
-    title: "More revenue per order",
-    desc: "One-tap add-ons at the perfect moment lift your average order value.",
+    title: "Catch bad addresses",
+    desc: "Stop undeliverable orders before they ship. Tap Address validation to see it.",
     cta: "Next",
-    measureDelayMs: 360,
-    outcome: true,
-    outcomeHeadline: "Higher average order value",
-    outcomeButton: "Increase my store's AOV now",
+    measureDelayMs: 260,
+    spotlightId: "feature-address",
+    dotId: "feature-address",
     nextTour: "address",
     nextLabel: "Address validation",
   },
 ];
 
 const ADDRESS_TOUR_STEPS: TourStepDef[] = [
-  {
-    id: "addr-feature",
-    title: "Address validation",
-    desc: "Catch undeliverable addresses before the order ships.",
-    cta: "Next",
-    measureDelayMs: 240,
-    spotlightId: "feature-address",
-  },
   {
     id: "addr-flagged",
     title: "We catch bad addresses",
@@ -231,28 +215,20 @@ const ADDRESS_TOUR_STEPS: TourStepDef[] = [
     autoClickId: "addr-validate", // click Update → the address is validated (turns green)
   },
   {
+    // transition: highlight the EU withdrawal feature button; tap to open it
     id: "addr-finish",
-    title: "No more wrong-address returns",
-    desc: "Every address is validated up front, so fewer parcels come back.",
+    title: "EU withdrawal, built in",
+    desc: "A compliant withdrawal flow for EU shoppers. Tap EU withdrawal to see it.",
     cta: "Next",
-    measureDelayMs: 360,
-    outcome: true,
-    outcomeHeadline: "Zero wrong-address orders",
-    outcomeButton: "Prevent wrong-address orders for my store now",
+    measureDelayMs: 260,
+    spotlightId: "feature-eu",
+    dotId: "feature-eu",
     nextTour: "eu-withdrawal",
     nextLabel: "EU withdrawal",
   },
 ];
 
 const EU_WITHDRAWAL_TOUR_STEPS: TourStepDef[] = [
-  {
-    id: "eu-feature",
-    title: "EU withdrawal",
-    desc: "A compliant, built-in withdrawal function for EU shoppers.",
-    cta: "Next",
-    measureDelayMs: 240,
-    spotlightId: "feature-eu",
-  },
   {
     id: "eu-card",
     title: "EU withdrawal, built in",
@@ -588,22 +564,18 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     if (!activeTour) return;
     const list = TOUR_STEPS[activeTour];
     const cur = list[tourStep];
-    // an outcome step is the end of a feature's tour
-    if (cur?.outcome) {
-      // In single-tour mode, always finish here (don't chain to next feature)
-      if (singleTourMode || !cur.nextTour) { closeTour(); return; }
-      // In complete-tour mode, hand off to the next feature
+    // finale step (end of the whole chain) — just close
+    if (cur?.outcome) { closeTour(); return; }
+    // transition step: the next-feature button is highlighted; tapping it opens
+    // that feature NOW (the screen only switches on this tap).
+    if (cur?.nextTour) {
+      if (singleTourMode) { closeTour(); return; }
       goToTour(cur.nextTour);
       return;
     }
-    // Individual (single-feature) tours finish WITHOUT the white finale screen —
-    // that's reserved for the end of the complete tour. Close and leave the feature
-    // at the final step where it ended (re-starting the tour resets it fresh).
+    // Single-feature tours stop before the transition/finale step.
     const next = list[tourStep + 1];
-    if (singleTourMode && next?.outcome) { closeTour(); return; }
-    // Skip the in-between "result" card — hand straight off to the next feature and
-    // highlight it (the full finale box only shows on the final step).
-    if (next?.outcome && !next.finalStep && next.nextTour) { goToTour(next.nextTour); return; }
+    if (singleTourMode && (next?.nextTour || next?.outcome)) { closeTour(); return; }
     if (tourStep >= list.length - 1) {
       setActiveTour(null); setSpotlightRect(null); scrollDemoTop();
     } else {
