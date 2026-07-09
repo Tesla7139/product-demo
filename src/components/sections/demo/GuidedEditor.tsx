@@ -337,6 +337,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
   const [demoRect, setDemoRect] = useState<TourRect | null>(null); // editing-window bounds (blurred on outcome steps)
   const [pendingTour, setPendingTour] = useState<Tour | null>(null); // start this tour once its tab mounts
   const [singleTourMode, setSingleTourMode] = useState(false); // true = don't chain to the next feature's tour
+  const [revealScreen, setRevealScreen] = useState(false); // after an action tap: drop the highlight to show the clean screen + toast
 
   // controlled bits during the tour
   const [tourForcedOpen, setTourForcedOpen] = useState<Section | null>(null);
@@ -574,6 +575,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     setActiveTour(null);
     setSpotlightRect(null);
     setPendingTour(null);
+    setRevealScreen(false);
     scrollDemoTop();
   }
 
@@ -645,6 +647,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
       setDotRect({ top: dr.top, left: dr.left, width: dr.width, height: dr.height });
       measureDemo();
       setMeasuredStep(tourStep);
+      setRevealScreen(false); // next step is framed → bring the highlight back
     };
     const run = (attempt: number) => {
       if (cancelled) return;
@@ -653,7 +656,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
       // wait until both the spotlight and (if any) the dot target have mounted
       if (!el || (s.dotId && !dotEl)) {
         // an outcome step with no card to highlight → full-screen blurred CTA
-        if (s.outcome) { setSpotlightRect(null); measureDemo(); setMeasuredStep(tourStep); return; }
+        if (s.outcome) { setSpotlightRect(null); measureDemo(); setMeasuredStep(tourStep); setRevealScreen(false); return; }
         if (attempt < 10) timers.push(setTimeout(() => run(attempt + 1), 120));
         return;
       }
@@ -677,6 +680,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
         const onClick = () => {
           if (advanced || cancelled) return;
           advanced = true;
+          setRevealScreen(true); // drop the highlight so the clean screen + toast are visible
           timers.push(setTimeout(() => { if (!cancelled) advanceTour(); }, 1400));
         };
         host.addEventListener("click", onClick);
@@ -928,7 +932,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
       </div>
 
       {/* lifted guided-tour overlay (portals to body; can target any element) */}
-      {activeTour && curStep && (curStep.outcome || spotlightRect) && (
+      {activeTour && curStep && !revealScreen && (curStep.outcome || spotlightRect) && (
         <TourOverlay
           step={tourStep}
           total={steps.length}
