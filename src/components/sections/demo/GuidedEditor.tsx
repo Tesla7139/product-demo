@@ -860,8 +860,13 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                 <span className="size-2.5 rounded-full bg-[#febc2e]" />
                 <span className="size-2.5 rounded-full bg-[#28c840]" />
               </div>
-              <div className="mx-auto flex items-center gap-1.5 rounded-md bg-white px-4 py-1 text-[12.5px] font-bold text-neutral-800 ring-1 ring-neutral-200">
-                <Globe className="size-3.5 text-neutral-400" />
+              <div className="mx-auto flex items-center gap-2 rounded-md bg-white px-4 py-1.5 text-[15px] font-extrabold text-neutral-900 ring-1 ring-neutral-200">
+                {store.logo ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- store favicon/logo
+                  <img src={store.logo} alt="" className="size-4 shrink-0 rounded object-contain" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = "none")} />
+                ) : (
+                  <Globe className="size-4 text-neutral-400" />
+                )}
                 {domain}
               </div>
             </div>
