@@ -566,6 +566,9 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     // at the final step where it ended (re-starting the tour resets it fresh).
     const next = list[tourStep + 1];
     if (singleTourMode && next?.outcome) { closeTour(); return; }
+    // Skip the in-between "result" card — hand straight off to the next feature and
+    // highlight it (the full finale box only shows on the final step).
+    if (next?.outcome && !next.finalStep && next.nextTour) { goToTour(next.nextTour); return; }
     if (tourStep >= list.length - 1) {
       setActiveTour(null); setSpotlightRect(null); scrollDemoTop();
     } else {

@@ -124,55 +124,8 @@ export function TourOverlay({
   if (typeof window === "undefined") return null;
 
   // ---- Outcome overlay ----
-  // In-between hops: a minimal "result → continue" card (no logo/reviews/CTA).
-  // The full conversion box (with Start free trial) shows ONLY on the final step.
-  if (outcome && !finalStep) {
-    const swallow = (e: React.SyntheticEvent) => { e.preventDefault(); e.stopPropagation(); };
-    return createPortal(
-      <div className="pointer-events-none fixed inset-0 z-[500]">
-        <div
-          className="pointer-events-auto absolute inset-0 bg-[rgba(15,23,42,0.28)] backdrop-blur-[2px]"
-          onClickCapture={swallow}
-          onPointerDownCapture={swallow}
-          onTouchStartCapture={swallow}
-        />
-        <motion.div
-          key={`hop-${step}`}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-          className="pointer-events-none absolute inset-0 flex items-center justify-center p-4"
-        >
-          <div className="pointer-events-auto relative w-full max-w-xs rounded-2xl border border-neutral-200 bg-[#faf8f4] px-6 py-6 text-center shadow-2xl">
-            <button
-              onClick={onClose}
-              aria-label="Close"
-              className="absolute right-3 top-3 flex size-7 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-200/70 hover:text-neutral-700"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
-            </button>
-            <span className="mx-auto mb-3 flex size-9 items-center justify-center rounded-full bg-[#155FFF]/10 text-[#155FFF]">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
-            </span>
-            <h2 className="font-sans text-[18px] font-extrabold leading-tight tracking-tight text-neutral-900">
-              {outcomeHeadline ?? "You've seen it in action"}
-            </h2>
-            <button
-              onClick={onAdvance}
-              className="mt-5 flex w-full items-center justify-center gap-1.5 rounded-lg py-3 text-[14px] font-bold text-white transition-all hover:brightness-110 active:scale-[0.99]"
-              style={{ background: "linear-gradient(135deg, #3b7cff, #155FFF 55%, #7c3aed)" }}
-            >
-              Continue to {nextLabel ?? "next"}
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-            </button>
-          </div>
-        </motion.div>
-      </div>,
-      document.body
-    );
-  }
-
-  // Final step (end of the chain): the full centered conversion window.
+  // Only the final step shows a card (the full conversion box). In-between feature
+  // hops are skipped by the controller — it hands straight off to the next feature.
   if (outcome) {
     const swallow = (e: React.SyntheticEvent) => { e.preventDefault(); e.stopPropagation(); };
     const headline = finalStep
