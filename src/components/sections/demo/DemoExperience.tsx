@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Check, X } from "lucide-react";
+import { ArrowRight, Check, Globe, X } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
 import { GuidedEditor } from "./GuidedEditor";
 import { CustomerLogos } from "@/components/sections/CustomerLogos";
@@ -68,7 +68,7 @@ export function DemoExperience({
           {status === "ready" && store && (
             <AnimatePresence mode="wait">
               {step === "welcome" && (
-                <WelcomeView key="welcome" store={store} brand={brand} name={name} onContinue={() => setStep("editing")} />
+                <WelcomeView key="welcome" store={store} brand={brand} name={name} domain={domain} onContinue={() => setStep("editing")} />
               )}
               {step === "editing" && (
                 <EditingView key="editing" store={store} />
@@ -232,46 +232,70 @@ const TICKETS = [
 ];
 
 /* ----------------------------- Welcome ----------------------------- */
-function WelcomeView({ store, brand, name, onContinue }: { store: DemoStore; brand: string; name: string; onContinue: () => void }) {
+function WelcomeView({ store, brand, name, domain, onContinue }: { store: DemoStore; brand: string; name: string; domain: string; onContinue: () => void }) {
   // full-res image: a product photo if we have one, else the store's hero/logo
   const heroImg = store.products.find((p) => p.image)?.image || store.logo || null;
+  const dom = domain || `${name.toLowerCase().replace(/[^a-z0-9]+/g, "")}.com`;
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="min-h-screen"
     >
-      <button onClick={onContinue} className="relative flex min-h-screen w-full cursor-pointer items-center overflow-hidden">
-        {/* image — crisp, centered, full-bleed */}
-        {heroImg ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={heroImg}
-            alt={name}
-            className="absolute inset-0 h-full w-full object-cover"
-            referrerPolicy="no-referrer"
-            onError={(e) => (e.currentTarget.style.display = "none")}
-          />
-        ) : (
-          <div aria-hidden className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${brand}, #0f172a)` }} />
-        )}
-
-        {/* left scrim so the side text stays readable over the picture */}
-        <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 to-transparent" />
-
+      <button onClick={onContinue} className="relative flex min-h-screen w-full cursor-pointer flex-col items-center justify-center gap-10 px-6 py-14 lg:flex-row lg:gap-16 lg:px-16">
         {/* text — on the side (left) */}
-        <div className="relative z-10 flex max-w-xl flex-col justify-center px-8 py-14 text-left text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.4)] sm:px-12 lg:px-16">
-          <span className="text-lg font-light tracking-wide text-white/85 sm:text-xl">Welcome to</span>
-          <span className="mt-1 text-5xl font-extrabold tracking-tight md:text-6xl xl:text-7xl" style={{ letterSpacing: "-0.02em" }}>
+        <div className="w-full max-w-md text-center lg:text-left">
+          <span className="text-lg font-light tracking-wide text-muted-foreground sm:text-xl">Welcome to</span>
+          <div className="mt-1 text-5xl font-extrabold tracking-tight text-foreground md:text-6xl" style={{ letterSpacing: "-0.02em" }}>
             {name}
-          </span>
-          <span className="mt-2 text-base font-light tracking-wide text-white/85 sm:text-lg">your branded preview</span>
+          </div>
+          <p className="mt-2 text-base font-light tracking-wide text-muted-foreground sm:text-lg">your branded preview</p>
           <span
-            className="mt-8 inline-flex w-fit items-center gap-2 rounded-full px-7 py-3.5 text-base font-semibold text-white shadow-lg transition-transform hover:-translate-y-0.5"
+            className="mt-7 inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-base font-semibold text-white shadow-lg transition-transform hover:-translate-y-0.5"
             style={{ background: ACCENT }}
           >
             Click anywhere to explore
             <ArrowRight className="size-4" />
           </span>
+        </div>
+
+        {/* laptop mockup — the store previewed in a browser */}
+        <div className="w-full max-w-2xl">
+          {/* screen */}
+          <div className="rounded-t-2xl border border-b-0 border-neutral-800 bg-neutral-900 p-2.5 shadow-2xl sm:p-3">
+            <div className="overflow-hidden rounded-lg bg-white">
+              {/* browser bar with the store's logo + domain */}
+              <div className="flex items-center gap-2 border-b border-neutral-200 bg-neutral-50 px-3 py-2">
+                <span className="flex shrink-0 gap-1.5">
+                  <span className="size-2.5 rounded-full bg-red-400" />
+                  <span className="size-2.5 rounded-full bg-amber-400" />
+                  <span className="size-2.5 rounded-full bg-green-400" />
+                </span>
+                <span className="mx-auto flex max-w-[70%] items-center gap-1.5 truncate rounded-md bg-white px-3 py-1 text-[12.5px] font-medium text-neutral-700 ring-1 ring-neutral-200">
+                  {store.logo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={store.logo} alt="" className="size-3.5 shrink-0 rounded object-contain" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = "none")} />
+                  ) : (
+                    <Globe className="size-3.5 shrink-0 text-neutral-400" />
+                  )}
+                  <span className="truncate">{dom}</span>
+                </span>
+              </div>
+              {/* the picture, inside the laptop screen */}
+              <div className="relative aspect-[16/10] w-full overflow-hidden bg-neutral-100">
+                {heroImg ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={heroImg} alt={name} className="absolute inset-0 h-full w-full object-cover" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = "none")} />
+                ) : (
+                  <div aria-hidden className="absolute inset-0 flex items-center justify-center text-white" style={{ background: `linear-gradient(135deg, ${brand}, #0f172a)` }}>
+                    <span className="text-6xl font-extrabold opacity-90">{name.charAt(0).toUpperCase()}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          {/* laptop base / deck (wider than the screen) */}
+          <div className="relative left-1/2 h-3 w-[112%] -translate-x-1/2 rounded-b-xl bg-gradient-to-b from-neutral-300 to-neutral-400 shadow-lg" />
+          <div className="relative left-1/2 mx-auto h-1 w-[46%] -translate-x-1/2 rounded-b-md bg-neutral-400/70" />
         </div>
       </button>
     </motion.div>
