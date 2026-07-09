@@ -151,6 +151,8 @@ const UPSELL_TOUR_STEPS: TourStepDef[] = [
     desc: "Turn every edit and checkout into extra revenue — lift your AOV with one-tap add-ons, right after the order or on the order status page.",
     cta: "Show me",
     measureDelayMs: 280,
+    spotlightId: "feature-upsell", // highlight the Upsell feature, not the sub-tab
+    dotId: "feature-upsell",
   },
   {
     id: "upsell-offer",
@@ -204,6 +206,14 @@ const UPSELL_TOUR_STEPS: TourStepDef[] = [
 
 const ADDRESS_TOUR_STEPS: TourStepDef[] = [
   {
+    id: "addr-feature",
+    title: "Address validation",
+    desc: "Catch undeliverable addresses before the order ships.",
+    cta: "Next",
+    measureDelayMs: 240,
+    spotlightId: "feature-address",
+  },
+  {
     id: "addr-flagged",
     title: "We catch bad addresses",
     desc: "Undeliverable or incomplete addresses are flagged before the order ships.",
@@ -235,6 +245,14 @@ const ADDRESS_TOUR_STEPS: TourStepDef[] = [
 ];
 
 const EU_WITHDRAWAL_TOUR_STEPS: TourStepDef[] = [
+  {
+    id: "eu-feature",
+    title: "EU withdrawal",
+    desc: "A compliant, built-in withdrawal function for EU shoppers.",
+    cta: "Next",
+    measureDelayMs: 240,
+    spotlightId: "feature-eu",
+  },
   {
     id: "eu-card",
     title: "EU withdrawal, built in",
@@ -435,6 +453,9 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
       case "others": return sectionsRef.current;
       case "to-upsell": return upsellCardRef.current;
       case "to-address": return addressCardRef.current;
+      case "feature-upsell": return upsellCardRef.current;
+      case "feature-address": return addressCardRef.current;
+      case "feature-eu": return euWithdrawalCardRef.current;
       case "upsell-toggle": return upsellToggleRef.current;
       case "upsell-offer": return upsellOfferRef.current;
       case "upsell-add": return upsellAddBtnRef.current;
