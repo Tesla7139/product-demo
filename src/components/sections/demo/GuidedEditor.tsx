@@ -859,18 +859,14 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
           <div className="relative z-10 w-full overflow-hidden rounded-2xl bg-white shadow-soft-xl" style={{ border: "1.5px solid #1f2430" }}>
             {/* browser bezel with the store URL */}
             <div className="flex items-center gap-2 border-b border-neutral-200 bg-neutral-50 px-4 py-2.5">
-              <div className="flex gap-1.5">
-                <span className="size-2.5 rounded-full bg-[#ff5f57]" />
-                <span className="size-2.5 rounded-full bg-[#febc2e]" />
-                <span className="size-2.5 rounded-full bg-[#28c840]" />
-              </div>
+              {/* store logo — in place of the traffic-light dots */}
+              {store.logo ? (
+                // eslint-disable-next-line @next/next/no-img-element -- store favicon/logo
+                <img src={store.logo} alt="" className="size-6 shrink-0 rounded-md object-contain" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = "none")} />
+              ) : (
+                <Globe className="size-6 shrink-0 text-neutral-400" />
+              )}
               <div className="mx-auto flex items-center gap-2 rounded-md bg-white px-4 py-1.5 text-[15px] font-extrabold text-neutral-900 ring-1 ring-neutral-200">
-                {store.logo ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- store favicon/logo
-                  <img src={store.logo} alt="" className="size-4 shrink-0 rounded object-contain" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = "none")} />
-                ) : (
-                  <Globe className="size-4 text-neutral-400" />
-                )}
                 {domain}
               </div>
             </div>

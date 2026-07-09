@@ -263,20 +263,15 @@ function WelcomeView({ store, brand, name, domain, onContinue }: { store: DemoSt
           {/* screen */}
           <div className="rounded-t-2xl border border-b-0 border-neutral-800 bg-neutral-900 p-2.5 shadow-2xl sm:p-3">
             <div className="overflow-hidden rounded-lg bg-white">
-              {/* browser bar with the store's logo + domain */}
+              {/* browser bar — store logo (in place of the traffic dots) + domain */}
               <div className="flex items-center gap-2 border-b border-neutral-200 bg-neutral-50 px-3 py-2">
-                <span className="flex shrink-0 gap-1.5">
-                  <span className="size-2.5 rounded-full bg-red-400" />
-                  <span className="size-2.5 rounded-full bg-amber-400" />
-                  <span className="size-2.5 rounded-full bg-green-400" />
-                </span>
-                <span className="mx-auto flex max-w-[70%] items-center gap-1.5 truncate rounded-md bg-white px-3 py-1 text-[12.5px] font-medium text-neutral-700 ring-1 ring-neutral-200">
-                  {store.logo ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={store.logo} alt="" className="size-3.5 shrink-0 rounded object-contain" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = "none")} />
-                  ) : (
-                    <Globe className="size-3.5 shrink-0 text-neutral-400" />
-                  )}
+                {store.logo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={store.logo} alt="" className="size-5 shrink-0 rounded object-contain" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = "none")} />
+                ) : (
+                  <Globe className="size-5 shrink-0 text-neutral-400" />
+                )}
+                <span className="mx-auto flex max-w-[70%] items-center truncate rounded-md bg-white px-3 py-1 text-[12.5px] font-medium text-neutral-700 ring-1 ring-neutral-200">
                   <span className="truncate">{dom}</span>
                 </span>
               </div>
