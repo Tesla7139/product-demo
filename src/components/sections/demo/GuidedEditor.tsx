@@ -329,6 +329,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
   const [tab, setTab] = useState<Tab>("editing");
   const [activePill, setActivePill] = useState<ActionPill["key"]>("tour");
   const [upsellView, setUpsellView] = useState<"thankyou" | "onetap">("onetap");
+  const [editView, setEditView] = useState<"thankyou" | "orderstatus">("thankyou"); // order-edit surface
   const [upsellExtras, setUpsellExtras] = useState<DemoProduct[]>([]); // offers accepted on the one-tap page
 
   // lifted tour state
@@ -813,6 +814,26 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
               <span className="relative z-10">Start tour</span>
             </button>
 
+            {/* Order-edit sub-tabs — Thank you page / Order status page */}
+            {tab === "editing" && (
+              <div className="flex shrink-0 items-center gap-1 rounded-full bg-white/70 p-1 shadow-soft-md ring-1 ring-neutral-200">
+                {([["thankyou", "Thank you page"], ["orderstatus", "Order status page"]] as const).map(([key, label]) => {
+                  const active = editView === key;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setEditView(key)}
+                      className={`whitespace-nowrap rounded-full px-4 py-1.5 text-[12px] font-semibold transition-colors ${
+                        active ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Upsell sub-tabs — in the top bar (Upsell feature only) */}
             {tab === "upsell" && (
               <div ref={upsellToggleRef} className="flex shrink-0 items-center gap-1 rounded-full bg-white/70 p-1 shadow-soft-md ring-1 ring-neutral-200">
@@ -872,7 +893,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
             </div>
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
-                key={tab === "upsell" ? `upsell-${upsellView}` : tab}
+                key={tab === "upsell" ? `upsell-${upsellView}` : tab === "editing" ? `editing-${editView}` : tab}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -880,10 +901,11 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
               >
                 {tab === "editing" && (
                   <DemoMock
-                    key={`demo-${demoResetKey}`}
+                    key={`demo-${demoResetKey}-${editView}`}
                     store={store}
                     initialOpen={null}
                     forceOpen={editingForceOpen}
+                    pageContext={editView}
                     maxHeight={560}
                     tourRefs={{ countdown: countdownRef, shippingRow: shippingRowRef, addressForm: addressFormRef, addressBlock: addressBlockRef, saveBtn: saveBtnRef, orderRow: orderRowRef, orderBtn: orderBtnRef, orderPlusBtn: orderPlusBtnRef, payPanel: payPanelRef, payBtn: payBtnRef, sections: sectionsRef }}
                     addressOverride={addrOverride}

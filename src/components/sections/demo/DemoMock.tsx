@@ -55,6 +55,7 @@ export function DemoMock({
   forceOpen,
   maxHeight,
   forceOneTap = false,
+  pageContext = "thankyou",
   extraItem,
   extraItems,
   tourRefs,
@@ -73,6 +74,8 @@ export function DemoMock({
   forceOpen?: Section | null;
   maxHeight?: number;
   forceOneTap?: boolean;
+  /** Which surface the editor is shown on — sets the header (thank-you vs order status). */
+  pageContext?: "thankyou" | "orderstatus";
   extraItem?: DemoProduct;
   /** Post-purchase upsells added on the one-tap page — appear in the order as an unpaid balance. */
   extraItems?: DemoProduct[];
@@ -316,8 +319,12 @@ export function DemoMock({
                 <Check className="size-4" strokeWidth={3} />
               </span>
               <div>
-                <div className="text-xs text-neutral-500">Confirmation #JDTNH5Z6N</div>
-                <div className="text-lg font-bold text-neutral-900">Thank you, Tucker!</div>
+                <div className="text-xs text-neutral-500">
+                  {pageContext === "orderstatus" ? "Order #JDTNH5Z6N" : "Confirmation #JDTNH5Z6N"}
+                </div>
+                <div className="text-lg font-bold text-neutral-900">
+                  {pageContext === "orderstatus" ? "Your order status" : "Thank you, Tucker!"}
+                </div>
               </div>
             </div>
             {/* cross-sell (thank-you page style) */}
