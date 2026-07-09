@@ -257,6 +257,14 @@ export const customerLogos: CustomerLogo[] = [
     review: reviewText("V-Guard Industries Limited"),
     date: "Jun 2, 2026",
   },
+  {
+    src: "/customers/vanillapura.png",
+    name: "VanillaPura",
+    reviewer: "VanillaPura Team",
+    role: "E-commerce",
+    review: reviewText("VanillaPura"),
+    date: "Aug 27, 2025",
+  },
 ];
 
 // number of blank placeholder marks to show while `customerLogos` is empty
