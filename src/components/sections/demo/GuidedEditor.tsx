@@ -159,6 +159,7 @@ const UPSELL_TOUR_STEPS: TourStepDef[] = [
     cta: "Next",
     measureDelayMs: 320,
     spotlightId: "upsell-offer",
+    dotId: "upsell-add", // dot on the Add button, not the Size dropdown
   },
   {
     id: "upsell-add",
@@ -176,6 +177,7 @@ const UPSELL_TOUR_STEPS: TourStepDef[] = [
     cta: "Next",
     measureDelayMs: 380,
     spotlightId: "ty-grid",
+    dotId: "ty-add", // dot on the Add button
   },
   {
     id: "ty-add",
