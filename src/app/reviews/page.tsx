@@ -27,7 +27,6 @@ const BIG_STORES = new Set([
   "Samoh International",
   "Starquik",
   "Bacca Bucci",
-  "Amrutam",
   "Wellbeing Nutrition",
   "Doonails",
   "Renue By Science",

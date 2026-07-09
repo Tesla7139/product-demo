@@ -8,13 +8,15 @@ const LOGOS = [
   ...Object.entries(extraReviewLogos).map(([name, src]) => ({ name: name.toLowerCase(), src })),
 ];
 
-/** Find a strip logo for a review's store name (exact, then a safe loose match). */
+/**
+ * Find a logo for a review's store name — EXACT match only.
+ * Loose/substring matching made different brands (e.g. "Westside" vs
+ * "Westside Global") share one logo, so it looked like the same brand
+ * repeated. If there's no exact logo, the card falls back to the text name.
+ */
 function findLogo(name: string): string | undefined {
   const n = name.toLowerCase().trim();
-  const exact = LOGOS.find((l) => l.name === n);
-  if (exact) return exact.src;
-  const loose = LOGOS.find((l) => n.length >= 5 && (l.name.includes(n) || n.includes(l.name)));
-  return loose?.src;
+  return LOGOS.find((l) => l.name === n)?.src;
 }
 
 export function ReviewCard({ review }: { review: Review }) {
