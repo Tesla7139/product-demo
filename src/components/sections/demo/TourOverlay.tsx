@@ -71,6 +71,7 @@ export function TourOverlay({
   outcomeHeadline,
   nextLabel,
   finalStep = false,
+  blurRect,
   tapAt,
   onAdvance,
   onClose,
@@ -290,16 +291,29 @@ export function TourOverlay({
   const PAD = 10;
   const GAP = 14;
   const sl = { top: rect.top - PAD, left: rect.left - PAD, width: rect.width + PAD * 2, height: rect.height + PAD * 2 };
-  const spaceBelow = window.innerHeight - (sl.top + sl.height);
-  const spaceAbove = sl.top;
-  // place below if it fits; else above if that fits; measured height keeps the
-  // clamp from pulling the card up into the spotlight (which caused overlap).
-  const fitsBelow = spaceBelow >= cardH + GAP;
-  const fitsAbove = spaceAbove >= cardH + GAP;
-  const tooltipBelow = fitsBelow || !fitsAbove;
-  const rawTop = tooltipBelow ? sl.top + sl.height + GAP : sl.top - cardH - GAP;
-  const clampedTop = Math.min(Math.max(rawTop, 8), Math.max(8, window.innerHeight - cardH - 8));
-  const tooltipLeft = Math.min(Math.max(sl.left, 12), window.innerWidth - 296);
+  const cardW = Math.min(280, window.innerWidth - 24);
+  const clampTop = (t: number) => Math.min(Math.max(t, 8), Math.max(8, window.innerHeight - cardH - 8));
+
+  // Keep the card OFF the demo window: place it to the LEFT of the window (the
+  // rail area) so it never covers the content it's pointing at. Only when there's
+  // no room there (mobile / full-width window) fall back to below/above.
+  const leftSlot = blurRect ? blurRect.left - cardW - GAP : -1;
+  let tooltipLeft: number;
+  let tooltipTop: number;
+  let tooltipBelow = true;
+  if (leftSlot >= 10) {
+    tooltipLeft = leftSlot;
+    tooltipTop = clampTop(sl.top + sl.height / 2 - cardH / 2);
+    tooltipBelow = false;
+  } else {
+    const spaceBelow = window.innerHeight - (sl.top + sl.height);
+    const spaceAbove = sl.top;
+    const fitsBelow = spaceBelow >= cardH + GAP;
+    const fitsAbove = spaceAbove >= cardH + GAP;
+    tooltipBelow = fitsBelow || !fitsAbove;
+    tooltipTop = clampTop(tooltipBelow ? sl.top + sl.height + GAP : sl.top - cardH - GAP);
+    tooltipLeft = Math.min(Math.max(sl.left, 12), window.innerWidth - cardW - 12);
+  }
 
   return createPortal(
     <div className="pointer-events-none fixed inset-0 z-[500]">
@@ -380,7 +394,7 @@ export function TourOverlay({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
         className="pointer-events-auto absolute w-[min(280px,calc(100vw-24px))] overflow-hidden rounded-2xl bg-white shadow-2xl"
-        style={{ top: clampedTop, left: tooltipLeft, transition: "top 0.15s ease-out" }}
+        style={{ top: tooltipTop, left: tooltipLeft, transition: "top 0.15s ease-out, left 0.15s ease-out" }}
       >
         <div className="h-[3px] w-full" style={{ background: `linear-gradient(90deg, ${TOUR_ACCENT}, #7c3aed)` }} />
         <div className="p-5">
