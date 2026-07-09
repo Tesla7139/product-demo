@@ -263,16 +263,6 @@ export const reviews: Review[] = [
     logoType: null,
   },
   {
-    id: "2066661",
-    name: "Amrutam",
-    date: "FEBRUARY 4, 2026",
-    rating: 5,
-    content: "If you are scaling and find your support team is spending 20%+ of their time fixing order typos or swapping sizes, Order Edit by Clickpost is an essential ROI tool. It pays for itself in saved labor hours almost immediately.",
-    color: "orange",
-    font: "sans",
-    logoType: null,
-  },
-  {
     id: "2056577",
     name: "Bacca Bucci",
     date: "JANUARY 28, 2026",

@@ -250,14 +250,6 @@ export const customerLogos: CustomerLogo[] = [
     date: "Jan 8, 2026",
   },
   {
-    src: "/customers/amrutam.png",
-    name: "Amrutam",
-    reviewer: "Amrutam Team",
-    role: "E-commerce",
-    review: reviewText("Amrutam"),
-    date: "Feb 4, 2026",
-  },
-  {
     src: "/customers/vguard.png",
     name: "V-Guard Industries Limited",
     reviewer: "V-Guard Industries Team",
