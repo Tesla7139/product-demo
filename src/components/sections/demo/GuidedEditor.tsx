@@ -101,6 +101,7 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
     measureDelayMs: 1450, // let the address finish auto-filling before we frame it
     noScroll: true,
     spotlightId: "addr-block",
+    dotId: "addr-save", // dot sits on the Update button (not floating on a field)
   },
   {
     id: "order-save",
@@ -118,6 +119,7 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
     cta: "Next",
     measureDelayMs: 360,
     spotlightId: "pay-panel",
+    dotId: "pay-btn", // dot on the Pay button
   },
   {
     id: "to-upsell",
@@ -641,7 +643,9 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     const capture = (doScroll: boolean) => {
       if (cancelled) return;
       const el = getStepTarget(s.spotlightId ?? s.id);
-      const dotEl = getStepTarget(s.dotId ?? s.spotlightId ?? s.id);
+      // the red dot points at the actionable element: an explicit dotId, else the
+      // button the step taps (autoClickId), else the spotlight.
+      const dotEl = getStepTarget(s.dotId ?? s.autoClickId ?? s.spotlightId ?? s.id);
       if (!el || (s.dotId && !dotEl)) return;
       if (doScroll && !s.noScroll) scrollInnerIntoView(dotEl ?? el);
       const r = el.getBoundingClientRect();
