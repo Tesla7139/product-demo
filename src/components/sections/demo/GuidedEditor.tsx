@@ -703,7 +703,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     <div ref={rootRef} className="demo-scale-root scroll-mt-6">
       <div className="demo-scale-grid grid grid-cols-1 items-stretch gap-6 lg:min-h-[100svh] lg:grid-cols-[minmax(0,0.52fr)_minmax(0,1.48fr)] lg:gap-0">
         {/* LEFT: feature buttons + the "ready to try" box */}
-        <div className="relative z-10 flex flex-col gap-6 px-3 pb-6 lg:items-center lg:justify-start lg:px-4 lg:pt-8 lg:pb-12">
+        <div className="relative z-10 flex flex-col gap-6 px-3 pb-6 lg:items-center lg:justify-start lg:pl-0 lg:pr-8 lg:pt-8 lg:pb-12">
           {/* heading + feature buttons */}
           <div className="w-full max-w-sm">
             <h3 className="mb-5 font-serif text-[1.3rem] font-bold italic leading-tight tracking-tight text-foreground">
