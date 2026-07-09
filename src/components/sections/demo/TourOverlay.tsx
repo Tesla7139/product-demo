@@ -71,7 +71,6 @@ export function TourOverlay({
   nextLabel,
   finalStep = false,
   blurRect,
-  tapAt,
   onAdvance,
   onClose,
 }: {
@@ -104,8 +103,6 @@ export function TourOverlay({
   finalStep?: boolean;
   /** The editing/demo window rect — outcome steps blur only this region. */
   blurRect?: TourRect | null;
-  /** Viewport point where the tour just auto-tapped a button — shows a ripple. */
-  tapAt?: { top: number; left: number } | null;
   onAdvance: () => void;
   onClose: () => void;
 }) {
@@ -310,16 +307,6 @@ export function TourOverlay({
         style={{ top: sl.top, left: sl.left, width: sl.width, height: sl.height }}
         onClick={clickThrough ? undefined : onAdvance}
       />
-
-      {/* Tap ripple — shown when the tour auto-taps a button (Next-driven action) */}
-      {tapAt && (
-        <span className="pointer-events-none absolute z-10" style={{ top: tapAt.top, left: tapAt.left }} aria-hidden>
-          <span className="relative flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full" style={{ background: "rgba(21,95,255,0.55)" }} />
-            <span className="relative inline-flex size-5 rounded-full ring-2 ring-white" style={{ background: TOUR_ACCENT }} />
-          </span>
-        </span>
-      )}
 
       {/* Red ripple tap indicator — only on steps you tap the highlighted element */}
       {showDot && (

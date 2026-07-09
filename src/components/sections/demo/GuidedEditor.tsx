@@ -335,8 +335,6 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
   const [dotRect, setDotRect] = useState<TourRect | null>(null); // where the red dot points (may differ from spotlight)
   const [measuredStep, setMeasuredStep] = useState(-1); // which step the current rect belongs to
   const [demoRect, setDemoRect] = useState<TourRect | null>(null); // editing-window bounds (blurred on outcome steps)
-  const [tapAt, setTapAt] = useState<{ top: number; left: number } | null>(null); // ripple where the tour auto-taps
-  const tapActionDone = useRef(false); // guards the per-step action so a tap performs it once
   const [pendingTour, setPendingTour] = useState<Tour | null>(null); // start this tour once its tab mounts
   const [singleTourMode, setSingleTourMode] = useState(false); // true = don't chain to the next feature's tour
 
@@ -570,29 +568,6 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     }
   }
 
-  // User tapped the highlighted spot. If the step has an action button, perform it
-  // now (with a visible tap), let the result show briefly, then advance. Otherwise
-  // just advance.
-  function tapAdvance() {
-    const s = curStep;
-    if (s?.autoClickId && !tapActionDone.current) {
-      const el = getStepTarget(s.autoClickId) as HTMLElement | null;
-      if (el) {
-        tapActionDone.current = true;
-        // some targets wrap the real button in a div — click the actual button
-        const clickTarget = (el.tagName === "BUTTON" ? el : el.querySelector("button")) ?? el;
-        const r = el.getBoundingClientRect();
-        setTapAt({ top: r.top + r.height / 2, left: r.left + r.width / 2 });
-        el.style.transition = "transform 0.12s ease";
-        el.style.transform = "scale(0.95)";
-        setTimeout(() => { el.style.transform = ""; (clickTarget as HTMLElement).click(); }, 150);
-        setTimeout(() => setTapAt(null), 750);
-        setTimeout(() => advanceTour(), 1000); // let the result (qty/green/confirm) show
-        return;
-      }
-    }
-    advanceTour();
-  }
 
   function closeTour() {
     if (pauseTimer.current) clearTimeout(pauseTimer.current);
@@ -687,9 +662,31 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
       // spotlight + dot lock onto the target's FINAL position (no re-scroll jump).
       timers.push(setTimeout(() => capture(false), 300));
     };
-    tapActionDone.current = false; // fresh step: its action hasn't run yet
     timers.push(setTimeout(() => run(0), s.measureDelayMs ?? 80));
-    return () => { cancelled = true; timers.forEach(clearTimeout); };
+
+    // Interactive: the presenter actually TAPS the highlighted action button. Its
+    // real onClick fires (the action + toast); we then advance after a beat so the
+    // result is visible. No auto-clicking, no ripple — they control the pace.
+    let cleanupClick: (() => void) | null = null;
+    let advanced = false;
+    if (s.autoClickId && !s.outcome) {
+      const attach = (attempt: number) => {
+        if (cancelled) return;
+        const host = getStepTarget(s.autoClickId!);
+        if (!host) { if (attempt < 25) timers.push(setTimeout(() => attach(attempt + 1), 120)); return; }
+        const onClick = () => {
+          if (advanced || cancelled) return;
+          advanced = true;
+          timers.push(setTimeout(() => { if (!cancelled) advanceTour(); }, 1400));
+        };
+        host.addEventListener("click", onClick);
+        cleanupClick = () => host.removeEventListener("click", onClick);
+      };
+      timers.push(setTimeout(() => attach(0), (s.measureDelayMs ?? 80) + 120));
+    }
+
+    return () => { cancelled = true; timers.forEach(clearTimeout); cleanupClick?.(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTour, tourStep]);
 
   // editing-window open state: tour-controlled during the tour, pill-controlled otherwise
@@ -939,7 +936,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
           title={curStep.title}
           desc={curStep.desc}
           cta={curStep.cta}
-          clickThrough={curStep.clickThrough}
+          clickThrough={!!curStep.clickThrough || !!curStep.autoClickId}
           showDot={!curStep.outcome && measuredStep === tourStep}
           showFinger={tourStep === 0 && !curStep.outcome}
           dotRect={dotRect}
@@ -951,9 +948,8 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
           outcomeHref={APP_URL}
           nextLabel={curStep.nextLabel}
           finalStep={curStep.finalStep}
-          tapAt={tapAt}
           blurRect={demoRect}
-          onAdvance={tapAdvance}
+          onAdvance={advanceTour}
           onClose={closeTour}
         />
       )}
