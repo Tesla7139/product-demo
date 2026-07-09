@@ -555,6 +555,14 @@ export async function POST(req: Request) {
         logo: null,
       };
 
+  // Always have a logo: when we couldn't extract the apple-touch-icon (e.g. a
+  // Cloudflare store whose homepage HTML we couldn't read on this request), fall
+  // back to DuckDuckGo's icon service, which fetches the site's real favicon from
+  // any host — so the browser bar shows the brand icon, never a globe.
+  if (!branding.logo) {
+    branding.logo = `https://icons.duckduckgo.com/ip3/${url.hostname.replace(/^www\./, "")}.ico`;
+  }
+
   const data: Branding = { ...branding, currency, products };
   cache.set(key, { data, at: Date.now() });
   return NextResponse.json(data);
