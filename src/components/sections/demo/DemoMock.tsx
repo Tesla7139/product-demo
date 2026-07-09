@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Check,
@@ -629,20 +630,24 @@ export function DemoMock({
         )}
       </AnimatePresence>
 
-      {/* Toast */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            className="absolute -bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-neutral-900 px-4 py-2 text-xs font-medium text-white shadow-soft-md"
-          >
-            <Check className="size-3.5" style={{ color: "#6ee7b7" }} />
-            {toast}
-          </motion.div>
+      {/* Toast — portaled to body so it shows ABOVE the guided-tour scrim */}
+      {typeof document !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {toast && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 12 }}
+                className="fixed bottom-8 left-1/2 z-[600] flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-neutral-900 px-5 py-2.5 text-[13px] font-medium text-white shadow-2xl ring-1 ring-white/10"
+              >
+                <Check className="size-3.5" style={{ color: "#6ee7b7" }} />
+                {toast}
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
         )}
-      </AnimatePresence>
     </div>
   );
 }
