@@ -83,7 +83,7 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
   {
     id: "window",
     title: "Your edit window",
-    desc: "Customers can edit for as long as you allow. You set it.",
+    desc: "Customers can edit their order for a window you control.",
     cta: "Next",
   },
   {
@@ -103,17 +103,9 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
     spotlightId: "addr-block",
   },
   {
-    id: "order-row",
-    title: "Add or change items",
-    desc: "Add one more, swap, or remove — the total updates live.",
-    cta: "Next",
-    measureDelayMs: 600,
-    spotlightId: "order-row",
-  },
-  {
     id: "order-save",
-    title: "Update the order",
-    desc: "Tap + to add one more — the balance updates automatically.",
+    title: "Add or change items",
+    desc: "Add one more, swap, or remove — the balance updates live.",
     cta: "Next",
     measureDelayMs: 700,
     spotlightId: "order-row",
@@ -168,16 +160,16 @@ const UPSELL_TOUR_STEPS: TourStepDef[] = [
   },
   {
     id: "ty-show",
-    title: "Order status page upsell",
-    desc: "Recommend add-ons right on the order status page, above the edit options.",
+    title: "And again on the order status page",
+    desc: "Recommend add-ons right above the edit options, every time they check on their order.",
     cta: "Next",
     measureDelayMs: 380,
     spotlightId: "ty-grid",
   },
   {
     id: "ty-add",
-    title: "One tap to add",
-    desc: "Charged to the card on file. No re-checkout.",
+    title: "Same one tap to add",
+    desc: "Add-ons here are charged to the card on file too — no re-checkout.",
     cta: "Next",
     measureDelayMs: 320,
     spotlightId: "ty-grid",
@@ -250,7 +242,7 @@ const EU_WITHDRAWAL_TOUR_STEPS: TourStepDef[] = [
   {
     id: "eu-submit",
     title: "Two-step submission",
-    desc: "Complete the request, then confirm with one clearly-labeled button — acknowledged instantly by email.",
+    desc: "The request is filled in and confirmed with one clearly labeled button — acknowledged instantly by email.",
     cta: "Next",
     measureDelayMs: 520,
     spotlightId: "eu-withdraw-row", // the form area — stays framed as it becomes the confirmation
