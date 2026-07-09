@@ -106,11 +106,20 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
   {
     id: "order-save",
     title: "Add or change items",
-    desc: "Add one more, swap, or remove — the balance updates live.",
+    desc: "Add one more, swap, or remove — tap + to bump the quantity.",
     cta: "Next",
     measureDelayMs: 700,
     spotlightId: "order-row",
     autoClickId: "order-plus", // tap the + button (shows the tap effect) → quantity increases
+  },
+  {
+    id: "order-update",
+    title: "Apply the change",
+    desc: "Tap Update your order to save it — the new total is applied instantly.",
+    cta: "Next",
+    measureDelayMs: 340,
+    spotlightId: "order-btn",
+    autoClickId: "order-btn", // tap "Update your order" → confirms the change
   },
   {
     id: "pay",
@@ -588,11 +597,13 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
       const el = getStepTarget(s.autoClickId) as HTMLElement | null;
       if (el) {
         tapActionDone.current = true;
+        // some targets wrap the real button in a div — click the actual button
+        const clickTarget = (el.tagName === "BUTTON" ? el : el.querySelector("button")) ?? el;
         const r = el.getBoundingClientRect();
         setTapAt({ top: r.top + r.height / 2, left: r.left + r.width / 2 });
         el.style.transition = "transform 0.12s ease";
         el.style.transform = "scale(0.95)";
-        setTimeout(() => { el.style.transform = ""; el.click(); }, 150);
+        setTimeout(() => { el.style.transform = ""; (clickTarget as HTMLElement).click(); }, 150);
         setTimeout(() => setTapAt(null), 750);
         setTimeout(() => advanceTour(), 1000); // let the result (qty/green/confirm) show
         return;
