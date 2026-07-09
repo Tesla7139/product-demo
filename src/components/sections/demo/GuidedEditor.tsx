@@ -712,7 +712,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
           {/* heading + feature buttons */}
           <div className="w-full max-w-sm">
             <div className="mb-4">
-              <span className="text-[22px] font-extrabold tracking-tight text-neutral-900">Clickpost</span>
+              <span className="text-[22px] font-extrabold uppercase tracking-tight" style={{ color: "#155FFF" }}>Clickpost</span>
             </div>
             <h3 className="mb-5 font-serif text-[1.3rem] font-bold italic leading-tight tracking-tight text-foreground">
               Click a feature to run it live.
