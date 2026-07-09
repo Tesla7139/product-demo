@@ -711,6 +711,10 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
         <div className="relative z-10 flex flex-col gap-6 px-3 pb-6 lg:items-center lg:justify-start lg:pl-0 lg:pr-8 lg:pt-8 lg:pb-12">
           {/* heading + feature buttons */}
           <div className="w-full max-w-sm">
+            <div className="mb-4 flex items-center gap-2">
+              <ClickpostMark className="size-8 rounded-[8px] shadow-sm" />
+              <span className="text-[18px] font-extrabold tracking-tight text-neutral-900">Clickpost</span>
+            </div>
             <h3 className="mb-5 font-serif text-[1.3rem] font-bold italic leading-tight tracking-tight text-foreground">
               Click a feature to run it live.
             </h3>
