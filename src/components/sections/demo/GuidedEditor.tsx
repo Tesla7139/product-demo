@@ -96,12 +96,13 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
   {
     id: "addr-save",
     title: "Saved in one tap",
-    desc: "Watch the fix drop in — it syncs to your store instantly.",
+    desc: "The fix drops in — tap Update Shipping Address to sync it to your store.",
     cta: "Next",
     measureDelayMs: 1450, // let the address finish auto-filling before we frame it
     noScroll: true,
     spotlightId: "addr-block",
-    dotId: "addr-save", // dot sits on the Update button (not floating on a field)
+    dotId: "addr-save",
+    autoClickId: "addr-save", // tap Update → saves the corrected address
   },
   {
     id: "order-save",
@@ -128,7 +129,8 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
     cta: "Next",
     measureDelayMs: 360,
     spotlightId: "pay-panel",
-    dotId: "pay-btn", // dot on the Pay button
+    dotId: "pay-btn",
+    autoClickId: "pay-btn", // tapping Pay actually charges the balance
   },
   {
     // transition: highlight the Upsell feature button (screen stays on editing);
@@ -148,39 +150,23 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
 const UPSELL_TOUR_STEPS: TourStepDef[] = [
   {
     id: "upsell-offer",
-    title: "An irresistible offer",
-    desc: "A one-time deal shown the instant they pay. Pick the product, discount and timer.",
-    cta: "Next",
-    measureDelayMs: 320,
-    spotlightId: "upsell-offer",
-    dotId: "upsell-add", // dot on the Add button, not the Size dropdown
-  },
-  {
-    id: "upsell-add",
     title: "One tap to add",
-    desc: "No re-checkout, charged to the card on file.",
+    desc: "A one-time deal the instant they pay — tap Add and it's charged to the card on file, no re-checkout.",
     cta: "Next",
     measureDelayMs: 320,
     spotlightId: "upsell-offer",
-    autoClickId: "upsell-add",
+    dotId: "upsell-add",
+    autoClickId: "upsell-add", // tap Add → adds the offer
   },
   {
     id: "ty-show",
     title: "And again on the order status page",
-    desc: "Recommend add-ons right above the edit options, every time they check on their order.",
+    desc: "Recommend add-ons above the edit options — tap Add and it's charged to the card on file.",
     cta: "Next",
     measureDelayMs: 380,
     spotlightId: "ty-grid",
-    dotId: "ty-add", // dot on the Add button
-  },
-  {
-    id: "ty-add",
-    title: "Same one tap to add",
-    desc: "Add-ons here are charged to the card on file too — no re-checkout.",
-    cta: "Next",
-    measureDelayMs: 320,
-    spotlightId: "ty-grid",
-    autoClickId: "ty-add",
+    dotId: "ty-add",
+    autoClickId: "ty-add", // tap Add → adds the item
   },
   {
     // transition: highlight the Address feature button; tap to open it
@@ -215,16 +201,17 @@ const ADDRESS_TOUR_STEPS: TourStepDef[] = [
     autoClickId: "addr-validate", // click Update → the address is validated (turns green)
   },
   {
-    // transition: highlight the EU withdrawal feature button; tap to open it
+    // final step of the whole tour — the conversion box
     id: "addr-finish",
-    title: "EU withdrawal, built in",
-    desc: "A compliant withdrawal flow for EU shoppers. Tap EU withdrawal to see it.",
-    cta: "Next",
-    measureDelayMs: 260,
-    spotlightId: "feature-eu",
-    dotId: "feature-eu",
-    nextTour: "eu-withdrawal",
-    nextLabel: "EU withdrawal",
+    title: "No more wrong-address returns",
+    desc: "Every address is validated up front, so fewer parcels come back.",
+    cta: "Finish",
+    measureDelayMs: 360,
+    outcome: true,
+    outcomeHeadline: "Zero wrong-address orders",
+    outcomeButton: "Prevent wrong-address orders for my store now",
+    nextTour: null,
+    finalStep: true,
   },
 ];
 
