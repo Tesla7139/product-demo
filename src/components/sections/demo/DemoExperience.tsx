@@ -276,7 +276,7 @@ function EditingView({ store }: { store: DemoStore }) {
         <CustomerLogos />
         <section className="border-t border-border/60 pt-14 pb-4">
         <div className="mx-auto max-w-3xl px-4 text-center">
-          <h2 className="font-serif text-3xl font-bold tracking-tight text-foreground md:text-4xl" style={{ fontFamily: "var(--font-fraunces), serif" }}>
+          <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
             Loved by fast-growing brands
           </h2>
           <p className="mt-2 text-[15px] text-muted-foreground">What Shopify merchants say about Clickpost.</p>
