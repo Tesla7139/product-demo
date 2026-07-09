@@ -6,6 +6,21 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * Drop products that repeat the same title — store feeds often return each color/
+ * variant of one product as a separate entry, which would show the same item
+ * twice in the cart/upsell. Keeps the first occurrence, preserves order.
+ */
+export function dedupeByTitle<T extends { title?: string }>(items: T[]): T[] {
+  const seen = new Set<string>();
+  return items.filter((p) => {
+    const t = (p.title || "").toLowerCase().trim();
+    if (!t || seen.has(t)) return false;
+    seen.add(t);
+    return true;
+  });
+}
+
+/**
  * A brand color safe to use as a button/fill background on a white surface.
  * If the store's brand is missing or too light (would be white-on-white),
  * fall back to a dark, readable color.

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Check, ChevronDown } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
-import { readableBrand } from "@/lib/utils";
+import { readableBrand, dedupeByTitle } from "@/lib/utils";
 import { DemoImg } from "./DemoImg";
 
 const money = (n: number, currency = "USD") =>
@@ -19,7 +19,7 @@ export function OneTapUpsellMock({ store, onComplete, onViewOrder, accentColor, 
   const currency = store.currency || "USD";
   const fmt = (n: number) => money(n, currency);
   const priced = store.products.filter((p) => (p.price ?? 0) > 0);
-  const pool = priced.length ? priced : store.products;
+  const pool = dedupeByTitle(priced.length ? priced : store.products);
   const purchased = pool[0];
   const offer = pool[1] ?? pool[0];
 

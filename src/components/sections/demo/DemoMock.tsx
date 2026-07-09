@@ -15,7 +15,7 @@ import {
   X,
 } from "lucide-react";
 import type { DemoStore, DemoProduct } from "@/lib/site";
-import { readableBrand } from "@/lib/utils";
+import { readableBrand, dedupeByTitle } from "@/lib/utils";
 import { DemoImg } from "./DemoImg";
 import { ThankYouMap } from "./ThankYouMap";
 import { OrderDetails } from "./OrderDetails";
@@ -113,7 +113,7 @@ export function DemoMock({
   // remaining products become the in-page cross-sell suggestions.
   // Only real, priced products — skip €0 / SKU-placeholder entries in the store feed.
   const priced = store.products.filter((p) => (p.price ?? 0) > 0);
-  const usable = priced.length ? priced : store.products;
+  const usable = dedupeByTitle(priced.length ? priced : store.products);
   const cartProducts = usable.slice(0, 2);
   const cartIds = new Set(cartProducts.map((p) => p.id));
   const rest = usable.filter((p) => !cartIds.has(p.id));
@@ -794,7 +794,7 @@ function OneTapPanel({
   addBtnRef: React.RefObject<HTMLButtonElement | null>;
 }) {
   const priced = store.products.filter((p) => (p.price ?? 0) > 0);
-  const pool = priced.length ? priced : store.products;
+  const pool = dedupeByTitle(priced.length ? priced : store.products);
   const offer = pool[1] ?? pool[0];
   const full = offer?.price ?? 12;
   const deal = Math.max(1, Math.round(full * 0.5 * 100) / 100);
