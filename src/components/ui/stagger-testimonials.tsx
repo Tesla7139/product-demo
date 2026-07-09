@@ -29,12 +29,14 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({ position, review, han
       className={cn(
         "absolute left-1/2 top-1/2 cursor-pointer border-2 p-8 transition-all duration-[350ms] ease-in-out",
         isCenter
-          ? "z-10 border-primary bg-primary text-primary-foreground"
+          ? "z-10 border-[#a8c8ff] text-foreground"
           : "z-0 border-border bg-card text-card-foreground hover:border-primary/50"
       )}
       style={{
         width: cardSize,
         height: cardSize,
+        // center card uses page-1's light-blue backdrop
+        background: isCenter ? "linear-gradient(160deg, #eaf2ff 0%, #cfe0ff 55%, #bcd6ff 100%)" : undefined,
         clipPath: "polygon(50px 0%, calc(100% - 50px) 0%, 100% 50px, 100% 100%, calc(100% - 50px) 100%, 50px 100%, 0 100%, 0 0)",
         transform: `
           translate(-50%, -50%)
@@ -57,35 +59,29 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({ position, review, han
           <img
             src={review.src}
             alt={review.name}
-            className={cn("max-h-8 max-w-[150px] object-contain", isCenter ? "brightness-0 invert" : "brightness-0")}
+            className="max-h-8 max-w-[150px] object-contain brightness-0"
           />
         ) : (
           <span
-            className={cn(
-              "max-w-[195px] text-[15px] font-extrabold uppercase leading-tight tracking-tight",
-              isCenter ? "text-primary-foreground" : "text-foreground"
-            )}
+            className="max-w-[195px] text-[15px] font-extrabold uppercase leading-tight tracking-tight text-foreground"
           >
             {review.name}
           </span>
         )}
         <div className="flex shrink-0 items-center gap-0.5">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Star key={i} className={cn("size-3.5", isCenter ? "fill-amber-300 text-amber-300" : "fill-amber-400 text-amber-400")} />
+            <Star key={i} className="size-3.5 fill-amber-400 text-amber-400" />
           ))}
         </div>
       </div>
 
-      <h3 className={cn(
-        "text-[14px] font-medium leading-snug sm:text-[15.5px]",
-        isCenter ? "text-primary-foreground" : "text-foreground"
-      )}>
+      <h3 className="text-[14px] font-medium leading-snug text-foreground sm:text-[15.5px]">
         &ldquo;{review.review}&rdquo;
       </h3>
 
       <div className={cn(
         "absolute bottom-8 left-8 right-8 text-[13px] font-semibold",
-        isCenter ? "text-primary-foreground/80" : "text-muted-foreground"
+        isCenter ? "text-neutral-600" : "text-muted-foreground"
       )}>
         {review.name} · Verified Shopify review
       </div>
