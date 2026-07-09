@@ -378,12 +378,9 @@ export function TourOverlay({
           <div className="font-serif text-[19px] font-bold leading-tight tracking-tight text-neutral-900">{title}</div>
           <Typewriter key={`tw-${step}`} text={desc} className="mt-2 min-h-[2.6em] text-[13.5px] font-medium leading-relaxed text-neutral-500" />
           {!hideCta && (
-            <div className="mt-3 flex items-center gap-2 text-[12px] font-semibold text-neutral-400">
-              <span className="relative flex size-3">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-60" />
-                <span className="relative inline-flex size-3 rounded-full bg-red-500" />
-              </span>
+            <div className="mt-3 flex items-center gap-1.5 text-[12px] font-semibold text-neutral-400">
               Tap the highlighted spot to continue
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </div>
           )}
         </div>
