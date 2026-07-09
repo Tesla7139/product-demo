@@ -60,9 +60,9 @@ export function TourOverlay({
   rect,
   title,
   desc,
-  cta,
   clickThrough = false,
   showDot = false,
+  showFinger = false,
   dotRect,
   hideCard = false,
   hideCta = false,
@@ -86,6 +86,8 @@ export function TourOverlay({
   clickThrough?: boolean;
   /** Show the red "tap here" ripple dot (only on steps you tap the element). */
   showDot?: boolean;
+  /** Show a 👆 finger next to the dot (first step, to teach tap-to-continue). */
+  showFinger?: boolean;
   /** Where the dot points (defaults to the spotlight rect). */
   dotRect?: TourRect | null;
   /** Hide the tooltip card (e.g. when the highlighted element is self-explanatory). */
@@ -335,6 +337,15 @@ export function TourOverlay({
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
             <span className="relative inline-flex size-4 rounded-full bg-red-500 ring-2 ring-white" />
           </span>
+          {showFinger && (
+            <span
+              className="pointer-events-none absolute left-3 top-4 animate-bounce select-none text-2xl"
+              style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.35))" }}
+              aria-hidden
+            >
+              👆
+            </span>
+          )}
         </div>
       )}
 
@@ -367,18 +378,13 @@ export function TourOverlay({
           <div className="font-serif text-[19px] font-bold leading-tight tracking-tight text-neutral-900">{title}</div>
           <Typewriter key={`tw-${step}`} text={desc} className="mt-2 min-h-[2.6em] text-[13.5px] font-medium leading-relaxed text-neutral-500" />
           {!hideCta && (
-            <button
-              onClick={onAdvance}
-              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-[13px] font-semibold text-white transition-all hover:brightness-110"
-              style={{ background: TOUR_ACCENT }}
-            >
-              {cta}
-              {cta !== "Finish" && (
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-              )}
-            </button>
+            <div className="mt-3 flex items-center gap-2 text-[12px] font-semibold text-neutral-400">
+              <span className="relative flex size-3">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-60" />
+                <span className="relative inline-flex size-3 rounded-full bg-red-500" />
+              </span>
+              Tap the highlighted spot to continue
+            </div>
           )}
         </div>
       </motion.div>

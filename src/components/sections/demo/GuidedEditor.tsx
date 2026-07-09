@@ -934,7 +934,8 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
           desc={curStep.desc}
           cta={curStep.cta}
           clickThrough={curStep.clickThrough}
-          showDot={!!curStep.tapTarget && measuredStep === tourStep}
+          showDot={!curStep.outcome && measuredStep === tourStep}
+          showFinger={tourStep === 0 && !curStep.outcome}
           dotRect={dotRect}
           hideCard={curStep.hideCard}
           hideCta={curStep.hideCta}
