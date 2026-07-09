@@ -233,26 +233,50 @@ const TICKETS = [
 
 /* ----------------------------- Welcome ----------------------------- */
 function WelcomeView({ store, brand, name, onContinue }: { store: DemoStore; brand: string; name: string; onContinue: () => void }) {
+  // full-res image: a product photo if we have one, else the store's hero/logo
+  const heroImg = store.products.find((p) => p.image)?.image || store.logo || null;
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="flex min-h-screen flex-col"
+      className="min-h-screen"
     >
-      <button onClick={onContinue} className="relative flex flex-1 cursor-pointer items-center justify-center overflow-hidden">
-        <span aria-hidden className="pointer-events-none absolute select-none font-extrabold blur-[6px] opacity-80" style={{ color: brand, fontSize: "min(60vh, 60vw)", lineHeight: 1 }}>
-          {store.logo ? "" : name.charAt(0).toUpperCase()}
-        </span>
-        {store.logo && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={store.logo} alt="" aria-hidden className="pointer-events-none absolute max-h-[62vh] max-w-[72vw] object-contain opacity-80 blur-[1px]" onError={(e) => (e.currentTarget.style.display = "none")} />
-        )}
-        <div className="relative z-10 flex flex-col items-center text-center text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.35)]">
-          <span className="font-serif text-2xl font-light tracking-wide opacity-90">Welcome</span>
-          <span className="font-serif text-5xl font-bold tracking-tight md:text-6xl" style={{ letterSpacing: "-0.02em" }}>{name}</span>
-          <span className="mt-1 font-serif text-xl font-light tracking-wide opacity-90">to your brand preview</span>
-          <span className="mt-8 rounded-full px-7 py-3.5 text-base font-semibold text-white shadow-lg" style={{ background: ACCENT }}>
-            Click anywhere to explore
+      <button onClick={onContinue} className="flex min-h-screen w-full cursor-pointer flex-col lg:flex-row">
+        {/* text — on the side (left) */}
+        <div className="relative z-10 flex flex-1 flex-col justify-center px-8 py-14 text-left sm:px-12 lg:px-16">
+          <span className="text-lg font-light tracking-wide text-muted-foreground sm:text-xl">Welcome to</span>
+          <span className="mt-1 text-5xl font-extrabold tracking-tight text-foreground md:text-6xl xl:text-7xl" style={{ letterSpacing: "-0.02em" }}>
+            {name}
           </span>
+          <span className="mt-2 text-base font-light tracking-wide text-muted-foreground sm:text-lg">your branded preview</span>
+          <span
+            className="mt-8 inline-flex w-fit items-center gap-2 rounded-full px-7 py-3.5 text-base font-semibold text-white shadow-lg transition-transform hover:-translate-y-0.5"
+            style={{ background: ACCENT }}
+          >
+            Click anywhere to explore
+            <ArrowRight className="size-4" />
+          </span>
+        </div>
+
+        {/* image — crisp, full-bleed on the right (top on mobile) */}
+        <div className="relative min-h-[36vh] w-full flex-1 overflow-hidden lg:min-h-screen lg:w-1/2">
+          {heroImg ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={heroImg}
+              alt={name}
+              className="absolute inset-0 h-full w-full object-cover"
+              referrerPolicy="no-referrer"
+              onError={(e) => (e.currentTarget.style.display = "none")}
+            />
+          ) : (
+            <div
+              aria-hidden
+              className="absolute inset-0 flex items-center justify-center text-white"
+              style={{ background: `linear-gradient(135deg, ${brand}, #0f172a)` }}
+            >
+              <span className="text-[22vh] font-extrabold opacity-90">{name.charAt(0).toUpperCase()}</span>
+            </div>
+          )}
         </div>
       </button>
     </motion.div>
