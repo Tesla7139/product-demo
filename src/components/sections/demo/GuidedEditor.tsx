@@ -287,45 +287,41 @@ function ClickpostMark({ className }: { className?: string }) {
   );
 }
 
-/** Brand-result notes that type out and interchange in the CTA's top line. */
-type BrandNote = { name: string; stat: string };
-const RESULT_NOTES: BrandNote[] = [
-  { name: "Mars by GHC", stat: "lifted AOV 23% and added $18K in upsell this month using CP Order Editing." },
-  { name: "Doonails", stat: "deflected 58% of tickets and saved $12K this month using CP Order Editing." },
-  { name: "Haute Sauce", stat: "grew AOV by 15% and added $7K in upsell this month using CP Order Editing." },
-];
-
-function RotatingNote({ notes }: { notes: BrandNote[] }) {
-  const [i, setI] = useState(0);
-  const [text, setText] = useState("");
-  const [phase, setPhase] = useState<"type" | "hold" | "delete">("type");
-  useEffect(() => {
-    const full = notes[i].stat;
-    let t: ReturnType<typeof setTimeout>;
-    if (phase === "type") {
-      if (text.length < full.length) t = setTimeout(() => setText(full.slice(0, text.length + 1)), 30);
-      else t = setTimeout(() => setPhase("hold"), 1900);
-    } else if (phase === "hold") {
-      t = setTimeout(() => setPhase("delete"), 100);
-    } else {
-      if (text.length > 0) t = setTimeout(() => setText(text.slice(0, -1)), 14);
-      else { t = setTimeout(() => { setI((n) => (n + 1) % notes.length); setPhase("type"); }, 250); }
-    }
-    return () => clearTimeout(t);
-  }, [text, phase, i, notes]);
-  return (
-    <span>
-      <span className="font-sans text-[15px] font-extrabold not-italic tracking-tight text-neutral-900">{notes[i].name}</span>{" "}
-      {text}
-      <span className="ml-px inline-block w-[2px] animate-pulse text-[#155FFF]">▍</span>
-    </span>
-  );
-}
+/** Per-feature CTA copy: a store-specific headline verb + one real brand proof point. */
+const FINALE: Record<Tab, { action: string; brand: string; stat: string }> = {
+  editing: {
+    action: "cut support tickets",
+    brand: "Doonails",
+    stat: "deflected 58% of “where’s my order” tickets and saved $12K a month.",
+  },
+  upsell: {
+    action: "boost AOV",
+    brand: "Mars by GHC",
+    stat: "lifted AOV 23% and added $18K in post-purchase upsell this month.",
+  },
+  address: {
+    action: "stop failed deliveries",
+    brand: "World of Asaya",
+    stat: "cut RTO by 25% by fixing wrong addresses before they shipped.",
+  },
+  "eu-withdrawal": {
+    action: "stay EU-compliant",
+    brand: "French Accent",
+    stat: "automated EU withdrawal requests and stayed compliant with zero extra work.",
+  },
+  cancel: {
+    action: "handle cancellations",
+    brand: "Gladful",
+    stat: "saw far fewer cancelled orders once shoppers could self-edit instead.",
+  },
+};
 
 
 /* ----------------------------- guided editor ----------------------------- */
 export function GuidedEditor({ store }: { store: DemoStore }) {
   const domain = `${(store.brandName || "yourstore").toLowerCase().replace(/[^a-z0-9]+/g, "")}.com`;
+  // Label for the CTA headline — the store the visitor entered.
+  const storeLabel = (store.brandName || "").trim() || domain;
   const [tab, setTab] = useState<Tab>("editing");
   const [activePill, setActivePill] = useState<ActionPill["key"]>("tour");
   const [upsellView, setUpsellView] = useState<"thankyou" | "onetap">("onetap");
@@ -750,11 +746,21 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
           <div className="relative flex w-full max-w-sm flex-col gap-5 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-6 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md">
             <div>
               <h3 className="font-sans text-[22px] font-extrabold leading-[1.15] tracking-tight text-foreground">
-                Ready to try it on your Shopify store?
+                Ready to {FINALE[tab].action} on{" "}
+                <span className="text-[#155FFF]">{storeLabel}</span>?
               </h3>
-              <p className="mt-2.5 flex min-h-[3.4em] items-center justify-center font-serif text-[14px] font-medium italic leading-snug text-neutral-600">
-                <RotatingNote notes={RESULT_NOTES} />
+              <p className="mt-2.5 min-h-[3.4em] font-serif text-[14px] font-medium italic leading-snug text-neutral-600">
+                <span className="font-sans font-extrabold not-italic tracking-tight text-neutral-900">{FINALE[tab].brand}</span>{" "}
+                {FINALE[tab].stat}
               </p>
+            </div>
+
+            {/* social proof — bigger merchants */}
+            <div className="-mt-1 flex items-center justify-center">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#155FFF]/10 px-3 py-1 text-[11.5px] font-bold text-[#155FFF]">
+                <ShieldCheck className="size-3.5" />
+                Trusted by 7–8 figure Shopify brands
+              </span>
             </div>
             <a
               href={APP_URL}
