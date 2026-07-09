@@ -252,16 +252,17 @@ export function TourOverlay({
   let tooltipLeft: number;
   let tooltipTop: number;
   let tooltipBelow = true;
-  if (leftSlot >= 10) {
+  // Prefer the card to the LEFT of the window (beside it, off the content),
+  // vertically centered on the spotlight. Only fall back to below/above when
+  // there's genuinely no room to the left (very narrow / full-width window).
+  if (leftSlot >= 12) {
     tooltipLeft = leftSlot;
     tooltipTop = clampTop(sl.top + sl.height / 2 - cardH / 2);
     tooltipBelow = false;
   } else {
     const spaceBelow = window.innerHeight - (sl.top + sl.height);
     const spaceAbove = sl.top;
-    const fitsBelow = spaceBelow >= cardH + GAP;
-    const fitsAbove = spaceAbove >= cardH + GAP;
-    tooltipBelow = fitsBelow || !fitsAbove;
+    tooltipBelow = spaceBelow >= cardH + GAP || spaceAbove < cardH + GAP;
     tooltipTop = clampTop(tooltipBelow ? sl.top + sl.height + GAP : sl.top - cardH - GAP);
     tooltipLeft = Math.min(Math.max(sl.left, 12), window.innerWidth - cardW - 12);
   }

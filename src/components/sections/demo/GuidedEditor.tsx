@@ -629,7 +629,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     const timers: ReturnType<typeof setTimeout>[] = [];
     // capture the spotlight + dot rects from the (now-settled) DOM
     const measureDemo = () => {
-      if (!s.outcome || !demoFrameRef.current) return;
+      if (!demoFrameRef.current) return;
       const d = demoFrameRef.current.getBoundingClientRect();
       setDemoRect({ top: d.top, left: d.left, width: d.width, height: d.height });
     };
@@ -667,26 +667,26 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     };
     timers.push(setTimeout(() => run(0), s.measureDelayMs ?? 80));
 
-    // Interactive: the presenter actually TAPS the highlighted action button. Its
-    // real onClick fires (the action + toast); we then advance after a beat so the
-    // result is visible. No auto-clicking, no ripple — they control the pace.
+    // Interactive: the presenter actually TAPS the highlighted action button. We
+    // detect the tap at the document level (robust to re-renders) by checking the
+    // click lands within the action element's box. Its real onClick still fires
+    // (the action + toast); then we drop the highlight and advance after a beat.
     let cleanupClick: (() => void) | null = null;
     let advanced = false;
     if (s.autoClickId && !s.outcome) {
-      const attach = (attempt: number) => {
-        if (cancelled) return;
-        const host = getStepTarget(s.autoClickId!);
-        if (!host) { if (attempt < 25) timers.push(setTimeout(() => attach(attempt + 1), 120)); return; }
-        const onClick = () => {
-          if (advanced || cancelled) return;
-          advanced = true;
-          setRevealScreen(true); // drop the highlight so the clean screen + toast are visible
-          timers.push(setTimeout(() => { if (!cancelled) advanceTour(); }, 1400));
-        };
-        host.addEventListener("click", onClick);
-        cleanupClick = () => host.removeEventListener("click", onClick);
+      const onDocClick = (e: MouseEvent) => {
+        if (advanced || cancelled) return;
+        const host = getStepTarget(s.autoClickId!) ?? getStepTarget(s.spotlightId ?? s.id);
+        if (!host) return;
+        const r = host.getBoundingClientRect();
+        const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+        if (!inside) return;
+        advanced = true;
+        setRevealScreen(true); // highlight off → clean screen + toast
+        timers.push(setTimeout(() => { if (!cancelled) advanceTour(); }, 1400));
       };
-      timers.push(setTimeout(() => attach(0), (s.measureDelayMs ?? 80) + 120));
+      document.addEventListener("click", onDocClick, true);
+      cleanupClick = () => document.removeEventListener("click", onDocClick, true);
     }
 
     return () => { cancelled = true; timers.forEach(clearTimeout); cleanupClick?.(); };
