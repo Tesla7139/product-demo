@@ -725,16 +725,17 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                   key={n.key}
                   ref={cardRefs[n.key]}
                   onClick={() => selectFeature(n.key)}
+                  style={active ? { background: "linear-gradient(160deg, #eaf2ff 0%, #cfe0ff 55%, #bcd6ff 100%)" } : undefined}
                   className={`group flex w-full items-center gap-3 rounded-2xl px-5 py-3 text-left text-[15px] font-semibold transition-all ${
                     active
-                      ? "bg-neutral-900 text-white shadow-[0_12px_30px_-12px_rgba(0,0,0,0.55)]"
+                      ? "text-neutral-900 ring-1 ring-[#9cc0ff] shadow-[0_10px_24px_-14px_rgba(21,95,255,0.45)]"
                       : "bg-white text-neutral-800 ring-1 ring-neutral-200 hover:-translate-y-0.5 hover:ring-neutral-300 hover:shadow-md"
                   }`}
                 >
                   <span className="flex-1">{n.label}</span>
                   <ChevronRight
                     className={`size-4 shrink-0 transition-transform ${
-                      active ? "text-white/70" : "text-neutral-300 group-hover:translate-x-0.5 group-hover:text-[#155FFF]"
+                      active ? "text-[#155FFF]" : "text-neutral-300 group-hover:translate-x-0.5 group-hover:text-[#155FFF]"
                     }`}
                   />
                 </button>
