@@ -94,7 +94,7 @@ export function OneTapUpsellMock({ store, onComplete, onViewOrder, accentColor, 
               <div className="text-lg font-bold text-neutral-900">Thank you, Tucker!</div>
             </div>
           </div>
-          <button onClick={onViewOrder} className="mt-2 text-[12px] font-medium" style={{ color: brand }}>
+          <button onClick={onViewOrder} className="mt-2 text-[12px] font-medium text-neutral-900">
             View order confirmation &rsaquo;
           </button>
         </div>
