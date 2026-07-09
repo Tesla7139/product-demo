@@ -712,7 +712,8 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
           {/* heading + feature buttons */}
           <div className="w-full max-w-sm">
             <div className="mb-4">
-              <span className="text-[22px] font-extrabold uppercase tracking-tight" style={{ color: "#155FFF" }}>Clickpost</span>
+              {/* eslint-disable-next-line @next/next/no-img-element -- brand wordmark from clickpost.ai */}
+              <img src="/clickpost-wordmark.png" alt="Clickpost" className="h-6 w-auto" />
             </div>
             <h3 className="mb-5 font-serif text-[1.3rem] font-bold italic leading-tight tracking-tight text-foreground">
               Click a feature to run it live.
