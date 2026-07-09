@@ -240,14 +240,31 @@ function WelcomeView({ store, brand, name, onContinue }: { store: DemoStore; bra
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="min-h-screen"
     >
-      <button onClick={onContinue} className="flex min-h-screen w-full cursor-pointer flex-col lg:flex-row">
+      <button onClick={onContinue} className="relative flex min-h-screen w-full cursor-pointer items-center overflow-hidden">
+        {/* image — crisp, centered, full-bleed */}
+        {heroImg ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={heroImg}
+            alt={name}
+            className="absolute inset-0 h-full w-full object-cover"
+            referrerPolicy="no-referrer"
+            onError={(e) => (e.currentTarget.style.display = "none")}
+          />
+        ) : (
+          <div aria-hidden className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${brand}, #0f172a)` }} />
+        )}
+
+        {/* left scrim so the side text stays readable over the picture */}
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 to-transparent" />
+
         {/* text — on the side (left) */}
-        <div className="relative z-10 flex flex-1 flex-col justify-center px-8 py-14 text-left sm:px-12 lg:px-16">
-          <span className="text-lg font-light tracking-wide text-muted-foreground sm:text-xl">Welcome to</span>
-          <span className="mt-1 text-5xl font-extrabold tracking-tight text-foreground md:text-6xl xl:text-7xl" style={{ letterSpacing: "-0.02em" }}>
+        <div className="relative z-10 flex max-w-xl flex-col justify-center px-8 py-14 text-left text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.4)] sm:px-12 lg:px-16">
+          <span className="text-lg font-light tracking-wide text-white/85 sm:text-xl">Welcome to</span>
+          <span className="mt-1 text-5xl font-extrabold tracking-tight md:text-6xl xl:text-7xl" style={{ letterSpacing: "-0.02em" }}>
             {name}
           </span>
-          <span className="mt-2 text-base font-light tracking-wide text-muted-foreground sm:text-lg">your branded preview</span>
+          <span className="mt-2 text-base font-light tracking-wide text-white/85 sm:text-lg">your branded preview</span>
           <span
             className="mt-8 inline-flex w-fit items-center gap-2 rounded-full px-7 py-3.5 text-base font-semibold text-white shadow-lg transition-transform hover:-translate-y-0.5"
             style={{ background: ACCENT }}
@@ -255,28 +272,6 @@ function WelcomeView({ store, brand, name, onContinue }: { store: DemoStore; bra
             Click anywhere to explore
             <ArrowRight className="size-4" />
           </span>
-        </div>
-
-        {/* image — crisp, full-bleed on the right (top on mobile) */}
-        <div className="relative min-h-[36vh] w-full flex-1 overflow-hidden lg:min-h-screen lg:w-1/2">
-          {heroImg ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={heroImg}
-              alt={name}
-              className="absolute inset-0 h-full w-full object-cover"
-              referrerPolicy="no-referrer"
-              onError={(e) => (e.currentTarget.style.display = "none")}
-            />
-          ) : (
-            <div
-              aria-hidden
-              className="absolute inset-0 flex items-center justify-center text-white"
-              style={{ background: `linear-gradient(135deg, ${brand}, #0f172a)` }}
-            >
-              <span className="text-[22vh] font-extrabold opacity-90">{name.charAt(0).toUpperCase()}</span>
-            </div>
-          )}
         </div>
       </button>
     </motion.div>
