@@ -344,6 +344,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
   const [measuredStep, setMeasuredStep] = useState(-1); // which step the current rect belongs to
   const [demoRect, setDemoRect] = useState<TourRect | null>(null); // editing-window bounds (blurred on outcome steps)
   const [tapAt, setTapAt] = useState<{ top: number; left: number } | null>(null); // ripple where the tour auto-taps
+  const tapActionDone = useRef(false); // guards the per-step action so a tap performs it once
   const [pendingTour, setPendingTour] = useState<Tour | null>(null); // start this tour once its tab mounts
   const [singleTourMode, setSingleTourMode] = useState(false); // true = don't chain to the next feature's tour
 
@@ -578,6 +579,28 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     }
   }
 
+  // User tapped the highlighted spot. If the step has an action button, perform it
+  // now (with a visible tap), let the result show briefly, then advance. Otherwise
+  // just advance.
+  function tapAdvance() {
+    const s = curStep;
+    if (s?.autoClickId && !tapActionDone.current) {
+      const el = getStepTarget(s.autoClickId) as HTMLElement | null;
+      if (el) {
+        tapActionDone.current = true;
+        const r = el.getBoundingClientRect();
+        setTapAt({ top: r.top + r.height / 2, left: r.left + r.width / 2 });
+        el.style.transition = "transform 0.12s ease";
+        el.style.transform = "scale(0.95)";
+        setTimeout(() => { el.style.transform = ""; el.click(); }, 150);
+        setTimeout(() => setTapAt(null), 750);
+        setTimeout(() => advanceTour(), 1000); // let the result (qty/green/confirm) show
+        return;
+      }
+    }
+    advanceTour();
+  }
+
   function closeTour() {
     if (pauseTimer.current) clearTimeout(pauseTimer.current);
     setActiveTour(null);
@@ -671,23 +694,8 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
       // spotlight + dot lock onto the target's FINAL position (no re-scroll jump).
       timers.push(setTimeout(() => capture(false), 300));
     };
+    tapActionDone.current = false; // fresh step: its action hasn't run yet
     timers.push(setTimeout(() => run(0), s.measureDelayMs ?? 80));
-    // Next-driven tour: trigger the step's action so its animation plays automatically
-    // (no tapping) — e.g. save the address, add the upsell, submit the withdrawal.
-    if (s.autoClickId) {
-      timers.push(setTimeout(() => {
-        if (cancelled) return;
-        const el = getStepTarget(s.autoClickId!) as HTMLElement | null;
-        if (!el) return;
-        // show a visible tap: ripple over the button + a quick press-down
-        const r = el.getBoundingClientRect();
-        setTapAt({ top: r.top + r.height / 2, left: r.left + r.width / 2 });
-        el.style.transition = "transform 0.12s ease";
-        el.style.transform = "scale(0.95)";
-        timers.push(setTimeout(() => { if (cancelled) return; el.style.transform = ""; el.click(); }, 150));
-        timers.push(setTimeout(() => { if (!cancelled) setTapAt(null); }, 750));
-      }, (s.measureDelayMs ?? 80) + 550));
-    }
     return () => { cancelled = true; timers.forEach(clearTimeout); };
   }, [activeTour, tourStep]);
 
@@ -951,7 +959,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
           finalStep={curStep.finalStep}
           tapAt={tapAt}
           blurRect={demoRect}
-          onAdvance={advanceTour}
+          onAdvance={tapAdvance}
           onClose={closeTour}
         />
       )}
