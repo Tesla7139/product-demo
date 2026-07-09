@@ -6,16 +6,19 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Drop products that repeat the same title — store feeds often return each color/
- * variant of one product as a separate entry, which would show the same item
- * twice in the cart/upsell. Keeps the first occurrence, preserves order.
+ * Drop products that are really the same item — store feeds return each colour/
+ * variant as a separate entry (e.g. "Gully Number 001 – Baaz" and "… – Aaroh"),
+ * which would show the same product twice in the cart/upsell. Keys on the BASE
+ * name (the part before a " – "/" - "/" | "/": " variant suffix). Keeps the first
+ * occurrence, preserves order.
  */
 export function dedupeByTitle<T extends { title?: string }>(items: T[]): T[] {
   const seen = new Set<string>();
   return items.filter((p) => {
-    const t = (p.title || "").toLowerCase().trim();
-    if (!t || seen.has(t)) return false;
-    seen.add(t);
+    const full = (p.title || "").toLowerCase().trim();
+    const base = full.split(/\s+[–—|-]\s+|:\s+/)[0].trim() || full;
+    if (!base || seen.has(base)) return false;
+    seen.add(base);
     return true;
   });
 }
