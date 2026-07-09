@@ -65,11 +65,7 @@ export function OneTapUpsellMock({ store, onComplete, onViewOrder, accentColor, 
     if (!isLast) goNext();
     else onComplete?.(false);
   };
-  const declineLabel = isLast
-    ? "No thanks, continue to order"
-    : offerIdx === 0
-    ? "No thanks, show me another"
-    : "Maybe something else";
+  const declineLabel = "Skip Offer";
 
   return (
     <div className="mx-auto w-full bg-white">
