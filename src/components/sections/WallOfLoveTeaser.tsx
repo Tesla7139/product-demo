@@ -209,7 +209,7 @@ export function WallOfLoveTeaser() {
       <Container>
         <div className="mt-12 flex justify-center">
           <Button asChild size="lg" className="cursor-pointer rounded-full bg-black px-8 py-6 text-sm font-semibold text-white shadow-md transition-all hover:bg-black/90 active:scale-95">
-            <Link href="/reviews">See all 51 reviews in our Love Gallery →</Link>
+            <Link href="/reviews">See all 52 reviews in our Love Gallery →</Link>
           </Button>
         </div>
       </Container>

@@ -1,16 +1,20 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { Star } from "lucide-react";
 import { Container } from "@/components/primitives/Container";
-import { BrandStrip } from "@/components/sections/BrandStrip";
 import { ReviewCard } from "@/components/ui/ReviewCard";
 import { reviews, type Review } from "@/lib/reviews";
+import { customerLogos } from "@/lib/site";
 import { Button } from "@/components/ui/button";
+
+// Brands featured in the home brand strip — the popular ones. Their reviews are
+// pushed to the very top of the wall.
+const STRIP_BRANDS = new Set(customerLogos.map((c) => c.name.toLowerCase().trim()));
 
 const INITIAL_COUNT = 12;
 const INCREMENT_COUNT = 12;
-const MAX_REVIEWS_COUNT = 51;
+const MAX_REVIEWS_COUNT = 52;
 
 // ---- Review ranking --------------------------------------------------------
 // Rank by (1) store size / notability, (2) quantified impact, (3) detail.
@@ -87,14 +91,26 @@ const rankedReviews: Review[] = (() => {
       rest.push(r);
     }
   }
-  return [...top, ...rest];
+  const ordered = [...top, ...rest];
+  // Push the brand-strip (popular) brands to the very top, keeping their
+  // relative order; everything else follows.
+  const strip = ordered.filter((r) => STRIP_BRANDS.has(r.name.toLowerCase().trim()));
+  const others = ordered.filter((r) => !STRIP_BRANDS.has(r.name.toLowerCase().trim()));
+  return [...strip, ...others];
 })();
 
 const displayedReviews: Review[] = rankedReviews.slice(0, MAX_REVIEWS_COUNT);
 
+// How many top rows stay pinned in ranked order (the popular brand-strip names).
+const PINNED_ROWS = 3;
+const GAP = 24; // matches the flex `gap-6` between cards
+
 export default function ReviewsPage() {
   const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
   const [cols, setCols] = useState(3);
+  // Real, measured card heights (id -> px). Estimate is only a first-paint fallback.
+  const [heights, setHeights] = useState<Record<string, number>>({});
+  const cardEls = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const visible = displayedReviews.slice(0, visibleCount);
 
@@ -109,18 +125,47 @@ export default function ReviewsPage() {
     return () => window.removeEventListener("resize", calc);
   }, []);
 
-  // balanced masonry: place each card in the currently-shortest column
-  // (estimated by content length) so columns stay even with no big gaps.
+  // After render, measure the real height of every card so balancing is accurate
+  // (the content-length estimate misjudged some cards, leaving ragged columns).
+  // Card width only depends on `cols`, so heights are valid across arrangements.
+  useLayoutEffect(() => {
+    setHeights((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      cardEls.current.forEach((el, id) => {
+        const h = el.offsetHeight;
+        if (h && next[id] !== h) {
+          next[id] = h;
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [visible, cols]);
+
+  // Masonry layout:
+  //  1. keep the top PINNED_ROWS in ranked order, row-major (popular brands on top);
+  //  2. balance everything below with a tallest-first fill into the shortest column
+  //     (LPT scheduling), using MEASURED heights so columns end nearly even.
   const columns = useMemo(() => {
     const buckets = Array.from({ length: cols }, () => ({ items: [] as Review[], h: 0 }));
-    const estimate = (r: Review) => 150 + Math.ceil(r.content.length / 38) * 26;
-    for (const r of visible) {
+    const h = (r: Review) => heights[r.id] ?? 150 + Math.ceil(r.content.length / 38) * 26;
+    const place = (r: Review, b: (typeof buckets)[number]) => {
+      b.items.push(r);
+      b.h += h(r) + GAP;
+    };
+
+    const pinned = Math.min(PINNED_ROWS * cols, visible.length);
+    // 1) pinned top rows — one card per column per row, in ranked order
+    for (let i = 0; i < pinned; i++) place(visible[i], buckets[i % cols]);
+    // 2) remainder — tallest first, always into the currently-shortest column
+    const rest = visible.slice(pinned).sort((a, b) => h(b) - h(a));
+    for (const r of rest) {
       const shortest = buckets.reduce((a, b) => (b.h < a.h ? b : a));
-      shortest.items.push(r);
-      shortest.h += estimate(r) + 24;
+      place(r, shortest);
     }
     return buckets.map((b) => b.items);
-  }, [visible, cols]);
+  }, [visible, cols, heights]);
 
   const handleShowMore = () => {
     setVisibleCount((prev) => Math.min(prev + INCREMENT_COUNT, displayedReviews.length));
@@ -142,7 +187,7 @@ export default function ReviewsPage() {
             </h1>
             <p className="mx-auto mt-3 max-w-2xl text-base md:text-lg text-black/70 leading-relaxed font-medium">
               See what real store owners are saying about using Clickpost Order Editing to
-              streamline their post-purchase experience. 50+ reviews from the
+              streamline their post-purchase experience. 52 reviews from the
               Shopify App Store.
             </p>
 
@@ -161,15 +206,7 @@ export default function ReviewsPage() {
         </Container>
       </section>
 
-      {/* 2. Brand strip — every customer logo, marching across the top of the wall */}
-      <section className="mt-10 md:mt-14 border-t border-black/5 pt-10 md:pt-12">
-        <p className="mb-6 text-center text-xs font-semibold uppercase tracking-[0.18em] text-black/40">
-          Trusted by leading Shopify brands
-        </p>
-        <BrandStrip />
-      </section>
-
-      {/* 3. Wall of Love Section */}
+      {/* 2. Wall of Love Section */}
       <section className="mt-10 md:mt-16 pt-10 md:pt-14 pb-6 border-t border-black/5">
         <Container>
           {/* Section Subheading */}
@@ -181,7 +218,7 @@ export default function ReviewsPage() {
               Wall of love
             </h2>
             <p className="mt-2 text-sm text-black/50 font-medium">
-              {displayedReviews.length} five-star merchant reviews — synced from our public App Store listing.
+              52 five-star merchant reviews — synced from our public App Store listing.
             </p>
           </div>
 
@@ -190,7 +227,15 @@ export default function ReviewsPage() {
             {columns.map((col, i) => (
               <div key={i} className="flex flex-1 flex-col gap-6">
                 {col.map((review) => (
-                  <ReviewCard key={review.id} review={review} />
+                  <div
+                    key={review.id}
+                    ref={(el) => {
+                      if (el) cardEls.current.set(review.id, el);
+                      else cardEls.current.delete(review.id);
+                    }}
+                  >
+                    <ReviewCard review={review} />
+                  </div>
                 ))}
               </div>
             ))}

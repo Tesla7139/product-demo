@@ -22,7 +22,7 @@ const CORRECTED_ADDRESS: Partial<Addr> = { line1: "1820 Seacrest Blvd", city: "C
 /** Left-rail features, each with an icon. */
 const NAV_FEATURES: { key: Tab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { key: "editing", label: "Order editing", icon: Pencil },
-  { key: "upsell", label: "Upsell", icon: TrendingUp },
+  { key: "upsell", label: "Post-purchase upsell", icon: TrendingUp },
   { key: "address", label: "Address validation", icon: MapPin },
   { key: "eu-withdrawal", label: "EU withdrawal", icon: ShieldCheck },
 ];
@@ -85,54 +85,65 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
   {
     id: "window",
     title: "Your edit window",
-    desc: "Customers can edit their order for a window you control.",
+    desc: "Customers can edit their order for a window you control — no support ticket needed.",
     cta: "Next",
   },
+  // ---- Address: ONE box explains it; the whole address section (incl. the
+  // Update button) is spotlighted; the red dot points at the address as it
+  // auto-fills, then (no new box) moves to the Update button. ----
   {
-    id: "addr-row",
+    id: "addr-show",
     title: "Self-serve edits",
-    desc: "Change address, swap items, update contact info, and more in seconds.",
+    desc: "Change address, swap items, update contact info — all in seconds. Watch the shopper fix a wrong address, then tap Update to sync it.",
     cta: "Next",
-    measureDelayMs: 420,
+    measureDelayMs: 520,
+    spotlightId: "shipping-box", // whole address section, including the Update button
+    dotId: "addr-block", // point at the address strip as it fills in
   },
   {
-    id: "addr-save",
-    title: "Saved in one tap",
-    desc: "The fix drops in — tap Update Shipping Address to sync it to your store.",
+    id: "addr-update",
+    title: "",
+    desc: "",
     cta: "Next",
-    measureDelayMs: 1450, // let the address finish auto-filling before we frame it
+    measureDelayMs: 1250, // let the address finish auto-filling before pointing at Update
     noScroll: true,
-    spotlightId: "addr-block",
+    hideCard: true, // no new box — the dot just moves to the Update button
+    spotlightId: "shipping-box",
     dotId: "addr-save",
-    autoClickId: "addr-save", // tap Update → saves the corrected address
+    autoClickId: "addr-save",
   },
+  // ---- Order: ONE box; dot on + then (no new box) on Update your order. ----
   {
-    id: "order-save",
+    id: "order-add",
     title: "Add or change items",
-    desc: "Add one more, swap, or remove — tap + to bump the quantity.",
+    desc: "Add one more, swap, or remove. Tap + to bump the quantity, then Update your order to apply it — the new total is instant.",
     cta: "Next",
-    measureDelayMs: 700,
-    spotlightId: "order-row",
-    autoClickId: "order-plus", // tap the + button (shows the tap effect) → quantity increases
+    measureDelayMs: 640,
+    spotlightId: "order-row", // whole order section, including the Update button
+    dotId: "order-plus",
+    autoClickId: "order-plus",
   },
   {
-    id: "order-update",
-    title: "Apply the change",
-    desc: "Tap Update your order to save it — the new total is applied instantly.",
+    id: "order-apply",
+    title: "",
+    desc: "",
     cta: "Next",
     measureDelayMs: 340,
-    spotlightId: "order-btn",
-    autoClickId: "order-btn", // tap "Update your order" → confirms the change
+    hideCard: true,
+    spotlightId: "order-row",
+    dotId: "order-btn",
+    autoClickId: "order-btn",
   },
   {
     id: "pay",
-    title: "Confirm and pay",
-    desc: "The customer pays the difference to lock in the changes.",
+    title: "",
+    desc: "",
     cta: "Next",
     measureDelayMs: 360,
+    hideCard: true, // the balance-due panel explains itself — just point at Pay
     spotlightId: "pay-panel",
     dotId: "pay-btn",
-    autoClickId: "pay-btn", // tapping Pay actually charges the balance
+    autoClickId: "pay-btn",
   },
   {
     // transition: highlight the Upsell feature button (screen stays on editing);
@@ -189,32 +200,33 @@ const ADDRESS_TOUR_STEPS: TourStepDef[] = [
   {
     id: "addr-flagged",
     title: "We catch bad addresses",
-    desc: "Undeliverable or incomplete addresses are flagged before the order ships.",
+    desc: "Undeliverable or incomplete addresses are flagged before the order ships — the shopper accepts the corrected, deliverable address in one tap.",
     cta: "Next",
     measureDelayMs: 420,
     spotlightId: "addr-flagged",
   },
   {
     id: "addr-validate",
-    title: "Fixed & verified in one tap",
-    desc: "The customer accepts the corrected, deliverable address and the order is safe to ship.",
+    title: "",
+    desc: "",
     cta: "Next",
     measureDelayMs: 320,
-    spotlightId: "addr-validate",
+    hideCard: true, // no new box — the dot just moves to the validate button
+    spotlightId: "addr-flagged",
+    dotId: "addr-validate",
     autoClickId: "addr-validate", // click Update → the address is validated (turns green)
   },
   {
-    // final step of the whole tour — the conversion box
-    id: "addr-finish",
-    title: "No more wrong-address returns",
-    desc: "Every address is validated up front, so fewer parcels come back.",
-    cta: "Finish",
-    measureDelayMs: 360,
-    outcome: true,
-    outcomeHeadline: "Zero wrong-address orders",
-    outcomeButton: "Prevent wrong-address orders for my store now",
-    nextTour: null,
-    finalStep: true,
+    // transition to the last feature — EU withdrawal
+    id: "to-eu",
+    title: "One more: EU withdrawal",
+    desc: "New EU rules require a clear withdrawal function. Tap EU withdrawal to see it.",
+    cta: "Next",
+    measureDelayMs: 260,
+    spotlightId: "feature-eu",
+    dotId: "feature-eu",
+    nextTour: "eu-withdrawal",
+    nextLabel: "EU withdrawal",
   },
 ];
 
@@ -222,27 +234,31 @@ const EU_WITHDRAWAL_TOUR_STEPS: TourStepDef[] = [
   {
     id: "eu-card",
     title: "EU withdrawal, built in",
-    desc: "From 19 June 2026, EU shoppers need a clear withdrawal function — not a hidden support email.",
+    desc: "From 19 June 2026, EU shoppers need a clear withdrawal function. 'Withdraw from contract' sits right on the order status page — tap it, then confirm, and it's acknowledged by email instantly.",
     cta: "Next",
     measureDelayMs: 320,
     spotlightId: "eu-card",
   },
   {
     id: "eu-open",
-    title: "A clearly labeled path",
-    desc: "'Withdraw from contract' sits right on the order status page, through the 14-day cooling-off period.",
+    title: "",
+    desc: "",
     cta: "Next",
     measureDelayMs: 320,
+    hideCard: true, // no new box — dot points at the withdrawal row
     spotlightId: "eu-withdraw-row",
+    dotId: "eu-withdraw-row",
     autoClickId: "eu-withdraw-row", // open the withdrawal form
   },
   {
     id: "eu-submit",
-    title: "Two-step submission",
-    desc: "The request is filled in and confirmed with one clearly labeled button — acknowledged instantly by email.",
+    title: "",
+    desc: "",
     cta: "Next",
     measureDelayMs: 520,
+    hideCard: true, // no new box — dot moves to the submit button
     spotlightId: "eu-withdraw-row", // the form area — stays framed as it becomes the confirmation
+    dotId: "eu-withdraw-btn",
     autoClickId: "eu-withdraw-btn", // submit the request
   },
   {
@@ -316,12 +332,29 @@ const FINALE: Record<Tab, { action: string; brand: string; stat: string }> = {
   },
 };
 
+/** Official-style "Built for Shopify" badge — light-blue pill + cyan diamond. */
+function BuiltForShopifyBadge() {
+  return (
+    <div className="flex justify-center">
+      <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#d5ecf6] px-3 py-1.5 text-[13px] font-semibold text-neutral-900">
+        <svg viewBox="0 0 24 24" className="size-4 shrink-0" aria-hidden>
+          <path d="M8 3 L4 8 L9 8 Z" fill="#9fe3f2" />
+          <path d="M16 3 L20 8 L15 8 Z" fill="#9fe3f2" />
+          <path d="M8 3 L16 3 L15 8 L9 8 Z" fill="#6fd3ea" />
+          <path d="M4 8 L9 8 L12 21 Z" fill="#3fb4d6" />
+          <path d="M9 8 L15 8 L12 21 Z" fill="#4bbfe0" />
+          <path d="M15 8 L20 8 L12 21 Z" fill="#3fb4d6" />
+        </svg>
+        Built for Shopify
+      </span>
+    </div>
+  );
+}
+
 
 /* ----------------------------- guided editor ----------------------------- */
 export function GuidedEditor({ store }: { store: DemoStore }) {
   const domain = `${(store.brandName || "yourstore").toLowerCase().replace(/[^a-z0-9]+/g, "")}.com`;
-  // Label for the CTA headline — the store the visitor entered.
-  const storeLabel = (store.brandName || "").trim() || domain;
   const [tab, setTab] = useState<Tab>("editing");
   const [activePill, setActivePill] = useState<ActionPill["key"]>("tour");
   const [upsellView, setUpsellView] = useState<"thankyou" | "onetap">("onetap");
@@ -441,21 +474,21 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
       case "window":
         setTourForcedOpen(null);
         break;
-      case "addr-row":
-        // open the shipping box with the ORIGINAL address (no highlight yet)
-        setTourForcedOpen("shipping");
-        break;
-      case "addr-save":
-        // box stays open; now auto-fill the corrected address (highlighted)
+      case "addr-show":
+        // open the shipping section and auto-fill the corrected address while the box explains
         setTourForcedOpen("shipping");
         setAddrOverride(CORRECTED_ADDRESS);
         break;
-      case "order-row":
-        // open the order box with the original quantities
+      case "addr-update":
+        // stay open; the address is filled — dot moves to the Update button (no box)
+        setTourForcedOpen("shipping");
+        break;
+      case "order-add":
+        // open the order section with the original quantities
         setTourForcedOpen("order");
         break;
-      case "order-save":
-        // box stays open; the + button is auto-tapped (with tap effect) to add one more
+      case "order-apply":
+        // stay open; dot moves to Update your order (no box)
         setTourForcedOpen("order");
         break;
       case "pay":
@@ -703,6 +736,9 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
 
   return (
     <div ref={rootRef} className="demo-scale-root scroll-mt-6">
+      {/* During the tour, the left rail slides away and the demo centers so the
+          typewriter callouts have clean space to the side. Closing the tour
+          (cross / Esc → activeTour = null) restores the normal two-column view. */}
       <div className="demo-scale-grid grid grid-cols-1 items-stretch gap-6 lg:min-h-[100svh] lg:grid-cols-[minmax(0,0.52fr)_minmax(0,1.48fr)] lg:gap-0">
         {/* LEFT: feature buttons + the "ready to try" box */}
         <div className="relative z-10 flex flex-col gap-6 px-3 pb-6 lg:items-center lg:justify-start lg:pl-0 lg:pr-8 lg:pt-8 lg:pb-12">
@@ -747,20 +783,8 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
             <div>
               <h3 className="font-sans text-[22px] font-extrabold leading-[1.15] tracking-tight text-foreground">
                 Ready to {FINALE[tab].action} on{" "}
-                <span className="text-[#155FFF]">{storeLabel}</span>?
+                <span className="text-[#155FFF]">your store</span>?
               </h3>
-              <p className="mt-2.5 min-h-[3.4em] font-serif text-[14px] font-medium italic leading-snug text-neutral-600">
-                <span className="font-sans font-extrabold not-italic tracking-tight text-neutral-900">{FINALE[tab].brand}</span>{" "}
-                {FINALE[tab].stat}
-              </p>
-            </div>
-
-            {/* social proof — bigger merchants */}
-            <div className="-mt-1 flex items-center justify-center">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#155FFF]/10 px-3 py-1 text-[11.5px] font-bold text-[#155FFF]">
-                <ShieldCheck className="size-3.5" />
-                Trusted by 7–8 figure Shopify brands
-              </span>
             </div>
             <a
               href={APP_URL}
@@ -776,11 +800,12 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                   <img src="/shopify-icon.png" alt="Shopify" className="size-4 object-contain" />
                   <Star className="size-3.5 fill-amber-400 text-amber-400" />
                   <span className="font-bold text-neutral-900">5.0</span>
-                  <span>· 50+ reviews</span>
+                  <span>· 52 reviews</span>
                 </div>
               </div>
               <ArrowUpRight className="size-4 shrink-0 text-neutral-400 transition-colors group-hover:text-[#155FFF]" />
             </a>
+            <BuiltForShopifyBadge />
             <a
               href={APP_URL}
               target="_blank"

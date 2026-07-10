@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import Link from "next/link";
 import { motion } from "framer-motion";
 
 const TOUR_ACCENT = "#155FFF";
@@ -128,19 +127,16 @@ export function TourOverlay({
   // Only the final step shows a card (the full conversion box). In-between feature
   // hops are skipped by the controller — it hands straight off to the next feature.
   if (outcome) {
-    const swallow = (e: React.SyntheticEvent) => { e.preventDefault(); e.stopPropagation(); };
     const headline = finalStep
       ? "Ready to reduce support tickets and boost AOV using CP Order Editing?"
       : outcomeHeadline ?? "You've seen it in action — start your free trial now.";
 
     return createPortal(
       <div className="pointer-events-none fixed inset-0 z-[500]">
-        {/* dim + blur backdrop — no feature highlight */}
+        {/* dim backdrop (no blur) — hides what's behind; tap it (or the cross) to close */}
         <div
-          className="pointer-events-auto absolute inset-0 bg-[rgba(15,23,42,0.30)] backdrop-blur-[3px]"
-          onClickCapture={swallow}
-          onPointerDownCapture={swallow}
-          onTouchStartCapture={swallow}
+          className="pointer-events-auto absolute inset-0 bg-[rgba(15,23,42,0.55)]"
+          onClick={onClose}
         />
 
         {/* conversion box — the SAME box on in-between hops and the final step */}
@@ -151,13 +147,13 @@ export function TourOverlay({
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           className="pointer-events-none absolute inset-0 flex items-center justify-center p-3 sm:p-7"
         >
-           {/* thick blue→purple frame (~1cm) + pulsing side glow — compact, squarish card */}
+           {/* thick light-blue frame (~1cm) + pulsing side glow — compact, squarish card */}
            <motion.div
-             className="pointer-events-auto flex max-h-full w-full max-w-md rounded-[22px] bg-gradient-to-br from-[#4c86ff] via-[#155FFF] to-[#7c3aed] p-2.5 sm:rounded-[28px] sm:p-4"
+             className="pointer-events-auto flex max-h-full w-full max-w-md rounded-[22px] bg-gradient-to-br from-[#dcebff] via-[#bcd6ff] to-[#9cc0ff] p-2.5 sm:rounded-[28px] sm:p-4"
              animate={{ boxShadow: [
-               "0 0 44px -6px rgba(21,95,255,0.45), 0 0 100px -12px rgba(124,58,237,0.30)",
-               "0 0 78px -4px rgba(21,95,255,0.68), 0 0 150px -8px rgba(124,58,237,0.48)",
-               "0 0 44px -6px rgba(21,95,255,0.45), 0 0 100px -12px rgba(124,58,237,0.30)",
+               "0 0 44px -6px rgba(156,192,255,0.50), 0 0 100px -12px rgba(21,95,255,0.20)",
+               "0 0 78px -4px rgba(156,192,255,0.72), 0 0 150px -8px rgba(21,95,255,0.34)",
+               "0 0 44px -6px rgba(156,192,255,0.50), 0 0 100px -12px rgba(21,95,255,0.20)",
              ] }}
              transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
            >
@@ -186,7 +182,7 @@ export function TourOverlay({
                 <img src="/shopify-icon.png" alt="Shopify" className="size-3.5 object-contain" />
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24"><path d="M12 2l3 6.5 7 .6-5.3 4.6 1.6 6.8L12 17.3 5.7 20.5l1.6-6.8L2 9.1l7-.6z" /></svg>
                 <span className="font-bold text-neutral-900">5.0</span>
-                <span>· 50+ reviews</span>
+                <span>· 52 reviews</span>
               </div>
 
               {/* headline */}
@@ -210,7 +206,7 @@ export function TourOverlay({
                   target="_blank"
                   rel="noreferrer"
                   className="group relative flex flex-1 items-center justify-center gap-1.5 overflow-hidden rounded-lg py-2.5 text-[13px] font-bold text-white transition-all hover:brightness-110 active:scale-[0.99]"
-                  style={{ background: "linear-gradient(135deg, #3b7cff, #155FFF 55%, #7c3aed)", boxShadow: "0 10px 26px -8px rgba(21,95,255,0.7)" }}
+                  style={{ background: "#155FFF", boxShadow: "0 10px 26px -8px rgba(21,95,255,0.7)" }}
                 >
                   <motion.span
                     aria-hidden
@@ -222,14 +218,6 @@ export function TourOverlay({
                   <span className="relative">Start free trial</span>
                   <svg className="relative" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M7 17 17 7M9 7h8v8" /></svg>
                 </a>
-                {finalStep && (
-                  <Link
-                    href="/#contact"
-                    className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white py-2.5 text-[13px] font-semibold text-neutral-800 transition-colors hover:bg-neutral-50"
-                  >
-                    Book a demo
-                  </Link>
-                )}
               </div>
 
             </div>

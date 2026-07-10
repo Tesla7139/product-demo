@@ -11,6 +11,7 @@ import {
   Tag,
   Trash2,
   TriangleAlert,
+  Truck,
   UserRound,
   MapPin,
   X,
@@ -263,6 +264,15 @@ export function DemoMock({
     (flash as unknown as { _t?: number })._t = window.setTimeout(() => setToast(null), 2200);
   };
 
+  // Signature of the order (which lines + their quantities). Captured once at
+  // mount so "Update your order" only confirms when something actually changed.
+  const orderSig = (list: LineItem[]) => list.map((i) => `${i.uid}:${i.qty}`).sort().join("|");
+  const initialOrderSig = useRef<string>("");
+  useEffect(() => {
+    initialOrderSig.current = orderSig(items);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const setQty = (id: string, delta: number) =>
     setItems((prev) =>
       prev.map((i) => (i.uid === id ? { ...i, qty: Math.max(1, i.qty + delta) } : i))
@@ -327,6 +337,31 @@ export function DemoMock({
                 </div>
               </div>
             </div>
+            {/* shipment tracking timeline — order status page only */}
+            {pageContext === "orderstatus" && !cancelled && (
+              <div className="mb-4 rounded-xl border border-border p-4">
+                <div className="text-sm text-neutral-700">
+                  FedEx FIC <span className="font-medium underline">JAM8470GB72670273201</span>
+                </div>
+                <div className="mt-3 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <Truck className="mt-0.5 size-4 text-neutral-700" />
+                    <div>
+                      <div className="text-sm font-bold text-neutral-900">On its way</div>
+                      <div className="text-xs text-neutral-400">18 Jun</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 pl-[3px]">
+                    <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-neutral-400" />
+                    <div className="pl-[7px]">
+                      <div className="text-sm font-bold text-neutral-900">Confirmed</div>
+                      <div className="text-xs text-neutral-400">18 Jun</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* cross-sell (thank-you page style) */}
             {upsellFirst && !cancelled && (
               <div className="mb-4">
@@ -453,7 +488,13 @@ export function DemoMock({
                       ))}
                     </div>
                     <div ref={tourRefs?.orderBtn}>
-                      <PrimaryButton onClick={() => { flash("Order updated"); onOrderUpdated?.(); }}>
+                      <PrimaryButton onClick={() => {
+                        const changed = orderSig(items) !== initialOrderSig.current;
+                        if (!changed) { flash("No changes to your order yet"); return; }
+                        initialOrderSig.current = orderSig(items);
+                        flash("Order updated");
+                        onOrderUpdated?.();
+                      }}>
                         Update your order
                       </PrimaryButton>
                     </div>
@@ -517,8 +558,8 @@ export function DemoMock({
               </div>
             )}
 
-            {/* shipping map + order-confirmed (thank-you page style) */}
-            {!cancelled && (
+            {/* shipping map + order-confirmed (thank-you page only; order status shows tracking instead) */}
+            {!cancelled && pageContext !== "orderstatus" && (
               <div className="mt-3">
                 <ThankYouMap city={addr.city} region={addr.state} />
               </div>

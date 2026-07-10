@@ -236,19 +236,33 @@ function WelcomeView({ store, brand, name, domain, onContinue }: { store: DemoSt
   // full-res image: a product photo if we have one, else the store's hero/logo
   const heroImg = store.products.find((p) => p.image)?.image || store.logo || null;
   const dom = domain || `${name.toLowerCase().replace(/[^a-z0-9]+/g, "")}.com`;
+  // "dive into the laptop": on click, the laptop screen zooms up to fill the
+  // viewport, then we hand off to the editing scene.
+  const [entering, setEntering] = useState(false);
+  const enter = () => {
+    if (entering) return;
+    setEntering(true);
+    window.setTimeout(onContinue, 700);
+  };
+  const fraunces = "var(--font-fraunces), Georgia, serif";
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="min-h-screen"
+      transition={{ duration: 0.3 }}
+      className="relative min-h-screen overflow-hidden"
     >
-      <button onClick={onContinue} className="relative flex min-h-screen w-full cursor-pointer flex-col items-center justify-center gap-10 px-6 py-14 lg:flex-row lg:gap-16 lg:px-16">
+      <button onClick={enter} className="relative flex min-h-screen w-full cursor-pointer flex-col items-center justify-center gap-10 px-6 py-14 lg:flex-row lg:gap-16 lg:px-16">
         {/* text — on the side (left) */}
-        <div className="w-full max-w-md text-center lg:text-left">
-          <span className="text-lg font-light tracking-wide text-muted-foreground sm:text-xl">Welcome to</span>
-          <div className="mt-1 text-5xl font-extrabold tracking-tight text-foreground md:text-6xl" style={{ letterSpacing: "-0.02em" }}>
+        <motion.div
+          animate={entering ? { opacity: 0, y: -14 } : { opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+          className="w-full max-w-md text-center lg:text-left"
+        >
+          <span className="text-2xl italic tracking-wide text-muted-foreground sm:text-3xl" style={{ fontFamily: fraunces, fontWeight: 400 }}>Welcome to</span>
+          <div className="mt-1 text-6xl leading-[0.92] tracking-tight text-foreground md:text-7xl" style={{ fontFamily: fraunces, fontWeight: 900, fontStyle: "italic", letterSpacing: "-0.02em" }}>
             {name}
           </div>
-          <p className="mt-2 text-base font-light tracking-wide text-muted-foreground sm:text-lg">your branded preview</p>
+          <p className="mt-3 text-base font-light tracking-wide text-muted-foreground sm:text-lg">your branded preview</p>
           <span
             className="mt-7 inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-base font-semibold text-white shadow-lg transition-transform hover:-translate-y-0.5"
             style={{ background: ACCENT }}
@@ -256,10 +270,14 @@ function WelcomeView({ store, brand, name, domain, onContinue }: { store: DemoSt
             Click anywhere to explore
             <ArrowRight className="size-4" />
           </span>
-        </div>
+        </motion.div>
 
         {/* laptop mockup — the store previewed in a browser */}
-        <div className="w-full max-w-2xl">
+        <motion.div
+          animate={entering ? { scale: 9 } : { scale: 1 }}
+          transition={{ duration: 0.7, ease: [0.6, 0, 0.75, 0] }}
+          style={{ transformOrigin: "50% 42%" }}
+          className="w-full max-w-2xl">
           {/* screen */}
           <div className="rounded-t-2xl border border-b-0 border-neutral-800 bg-neutral-900 p-2.5 shadow-2xl sm:p-3">
             <div className="overflow-hidden rounded-lg bg-white">
@@ -291,7 +309,7 @@ function WelcomeView({ store, brand, name, domain, onContinue }: { store: DemoSt
           {/* laptop base / deck (wider than the screen) */}
           <div className="relative left-1/2 h-3 w-[112%] -translate-x-1/2 rounded-b-xl bg-gradient-to-b from-neutral-300 to-neutral-400 shadow-lg" />
           <div className="relative left-1/2 mx-auto h-1 w-[46%] -translate-x-1/2 rounded-b-md bg-neutral-400/70" />
-        </div>
+        </motion.div>
       </button>
     </motion.div>
   );
@@ -327,7 +345,7 @@ function EditingView({ store }: { store: DemoStore }) {
             href="/reviews"
             className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-6 py-3 text-sm font-semibold text-foreground shadow-soft-md transition-colors hover:bg-neutral-50"
           >
-            Show all 51 reviews
+            Show all 52 reviews
             <ArrowRight className="size-4" />
           </a>
         </div>

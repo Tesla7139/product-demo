@@ -45,7 +45,7 @@ export const mainNav: NavItem[] = [
     label: "Customer Love",
     href: "/reviews",
     items: [
-      { label: "Love Gallery", href: "/reviews", desc: "51 five-star merchant reviews" },
+      { label: "Love Gallery", href: "/reviews", desc: "52 five-star merchant reviews" },
     ],
   },
 ];
@@ -373,7 +373,7 @@ export const segments = [
 export const metrics = [
   { value: 42, suffix: "%", label: "Fewer support tickets", prefix: "" },
   { value: 18, suffix: "%", label: "Higher average order value", prefix: "+" },
-  { value: 5.0, suffix: "★", label: "Rated on Shopify (51 reviews)", prefix: "", decimals: 1 },
+  { value: 5.0, suffix: "★", label: "Rated on Shopify (52 reviews)", prefix: "", decimals: 1 },
 ];
 
 // ---- Pricing tiers ----
