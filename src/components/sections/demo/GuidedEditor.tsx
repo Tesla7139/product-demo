@@ -10,6 +10,7 @@ import { OneTapUpsellMock } from "./OneTapUpsellMock";
 import { EUWithdrawalMock } from "./EUWithdrawalMock";
 import { TourOverlay, type TourRect } from "./TourOverlay";
 import { ShopifyAppStoreBadge } from "./ShopifyAppStoreBadge";
+import { BuiltForShopifyBadge } from "./BuiltForShopifyBadge";
 
 const APP_URL = "https://apps.shopify.com/clickpost-order-edit-cancel";
 
@@ -242,19 +243,9 @@ const ADDRESS_TOUR_STEPS: TourStepDef[] = [
     cta: "Next",
     measureDelayMs: 420,
     spotlightId: "addr-flagged",
+    dotId: "addr-validate", // one red dot only — straight on the validate button
+    autoClickId: "addr-validate", // tap → the address is validated (turns green)
     scrollAlignTop: true, // keep the tall address block inside the window (don't spill over the top bar)
-  },
-  {
-    id: "addr-validate",
-    title: "",
-    desc: "",
-    cta: "Next",
-    measureDelayMs: 320,
-    hideCard: true, // no new box — the dot just moves to the validate button
-    spotlightId: "addr-flagged",
-    dotId: "addr-validate",
-    autoClickId: "addr-validate", // click Update → the address is validated (turns green)
-    scrollAlignTop: true,
   },
   {
     // transition to the last feature — EU withdrawal
@@ -278,17 +269,10 @@ const EU_WITHDRAWAL_TOUR_STEPS: TourStepDef[] = [
     cta: "Next",
     measureDelayMs: 320,
     spotlightId: "eu-card",
-  },
-  {
-    id: "eu-open",
-    title: "",
-    desc: "",
-    cta: "Next",
-    measureDelayMs: 320,
-    hideCard: true, // no new box — dot points at the withdrawal row
-    spotlightId: "eu-withdraw-row",
-    dotId: "eu-withdraw-row",
-    autoClickId: "eu-withdraw-row", // open the withdrawal form (empty)
+    dotId: "eu-withdraw-row", // one red dot — opens the withdrawal form (empty)
+    autoClickId: "eu-withdraw-row",
+    seamless: true, // keep the highlight while the form opens, then advance to the fill
+    advanceDelayMs: 700,
   },
   {
     // details type themselves in (empty → filled), then auto-advance to Send
@@ -370,57 +354,6 @@ const FINALE: Record<Tab, { action: string; brand: string; stat: string }> = {
     stat: "saw far fewer cancelled orders once shoppers could self-edit instead.",
   },
 };
-
-// The varying middle of the CTA headline, cycled in a typewriter effect.
-const ROTATING_ACTIONS = NAV_FEATURES.map((n) => FINALE[n.key].action);
-
-/** Types the CTA action phrases in a loop. Freezes on `staticText` when paused (during the tour). */
-function RotatingAction({ paused, staticText }: { paused: boolean; staticText: string }) {
-  const [i, setI] = useState(0);
-  const [text, setText] = useState("");
-  const [phase, setPhase] = useState<"type" | "hold" | "delete">("type");
-  useEffect(() => {
-    if (paused) return;
-    const full = ROTATING_ACTIONS[i] ?? "";
-    let t: ReturnType<typeof setTimeout>;
-    if (phase === "type") {
-      if (text.length < full.length) t = setTimeout(() => setText(full.slice(0, text.length + 1)), 50);
-      else t = setTimeout(() => setPhase("hold"), 3400); // ~5s per phrase incl. type/delete
-    } else if (phase === "hold") {
-      t = setTimeout(() => setPhase("delete"), 100);
-    } else {
-      if (text.length > 0) t = setTimeout(() => setText(text.slice(0, -1)), 25);
-      else t = setTimeout(() => { setI((n) => (n + 1) % ROTATING_ACTIONS.length); setPhase("type"); }, 250);
-    }
-    return () => clearTimeout(t);
-  }, [text, phase, i, paused]);
-  if (paused) return <>{staticText}</>;
-  return (
-    <>
-      {text}
-      <span className="ml-0.5 inline-block w-[2px] animate-pulse text-[#155FFF]">|</span>
-    </>
-  );
-}
-
-/** Official-style "Built for Shopify" badge — light-blue pill + cyan diamond. */
-function BuiltForShopifyBadge() {
-  return (
-    <div className="flex justify-center">
-      <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#d5ecf6] px-3 py-1.5 text-[13px] font-semibold text-neutral-900">
-        <svg viewBox="0 0 24 24" className="size-4 shrink-0" aria-hidden>
-          <path d="M8 3 L4 8 L9 8 Z" fill="#9fe3f2" />
-          <path d="M16 3 L20 8 L15 8 Z" fill="#9fe3f2" />
-          <path d="M8 3 L16 3 L15 8 L9 8 Z" fill="#6fd3ea" />
-          <path d="M4 8 L9 8 L12 21 Z" fill="#3fb4d6" />
-          <path d="M9 8 L15 8 L12 21 Z" fill="#4bbfe0" />
-          <path d="M15 8 L20 8 L12 21 Z" fill="#3fb4d6" />
-        </svg>
-        Built for Shopify
-      </span>
-    </div>
-  );
-}
 
 
 /* ----------------------------- guided editor ----------------------------- */
@@ -896,7 +829,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
               <h3 className="flex flex-col items-center text-center font-sans text-[22px] font-extrabold leading-[1.2] tracking-tight">
                 <span className="text-foreground">Ready to</span>
                 <span className="flex h-[1.4em] items-center justify-center overflow-hidden text-[#155FFF]">
-                  <RotatingAction paused={!!activeTour} staticText={FINALE[tab].action} />
+                  {FINALE[tab].action}
                 </span>
                 <span className="text-foreground">on your store?</span>
               </h3>
@@ -912,7 +845,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                 </div>
               </div>
             </div>
-            <BuiltForShopifyBadge />
+            <div className="flex justify-center"><BuiltForShopifyBadge /></div>
             <ShopifyAppStoreBadge href={APP_URL} className="w-full" />
           </div>
         </div>

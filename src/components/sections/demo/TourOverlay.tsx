@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { ShopifyAppStoreBadge } from "./ShopifyAppStoreBadge";
+import { BuiltForShopifyBadge } from "./BuiltForShopifyBadge";
 
 const TOUR_ACCENT = "#155FFF";
 
@@ -59,7 +60,6 @@ export function TourOverlay({
   outcome = false,
   outcomeHref,
   outcomeHeadline,
-  nextLabel,
   finalStep = false,
   blurRect,
   displayStep,
@@ -129,9 +129,9 @@ export function TourOverlay({
 
     return createPortal(
       <div className="pointer-events-none fixed inset-0 z-[500]">
-        {/* dim backdrop (no blur) — hides what's behind; tap it (or the cross) to close */}
+        {/* near-solid backdrop — everything behind disappears; tap it (or the cross) to close */}
         <div
-          className="pointer-events-auto absolute inset-0 bg-[rgba(15,23,42,0.55)]"
+          className="pointer-events-auto absolute inset-0 bg-[rgba(9,14,32,0.96)]"
           onClick={onClose}
         />
 
@@ -141,7 +141,7 @@ export function TourOverlay({
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="pointer-events-none absolute inset-0 flex items-end justify-start p-4 sm:p-8"
+          className="pointer-events-none absolute inset-0 flex items-center justify-center p-4 sm:p-8"
         >
            {/* thick light-blue frame (~1cm) + pulsing side glow — compact, squarish card */}
            <motion.div
@@ -168,12 +168,15 @@ export function TourOverlay({
                 <span className="size-1.5 rounded-full bg-[#155FFF]" />
                 You&apos;ve seen it in action
               </div>
-              {/* app logo + name */}
-              <div className="flex flex-col items-center gap-2">
-                <ClickpostMark className="size-11 rounded-[10px] shadow-sm" />
-                <span className="text-[22px] font-extrabold leading-none tracking-tight text-neutral-900">CP Order Editing</span>
+
+              {/* app logo (side) + full name */}
+              <div className="flex items-center gap-3">
+                <ClickpostMark className="size-11 shrink-0 rounded-[10px] shadow-sm" />
+                <span className="text-left text-[20px] font-extrabold leading-tight tracking-tight text-neutral-900">CP Order Editing &amp; Upsell</span>
               </div>
-              <div className="mt-1.5 flex items-center gap-1 text-[13px] text-neutral-900">
+
+              {/* review */}
+              <div className="mt-2 flex items-center gap-1 text-[13px] text-neutral-900">
                 <span className="font-bold">5.0</span>
                 <span aria-hidden>★</span>
                 <span className="underline">(52)</span>
@@ -184,37 +187,13 @@ export function TourOverlay({
                 {headline}
               </h2>
 
-              {/* buttons — Continue (hops) / Book a demo (final) + the main free-trial CTA */}
-              <div className="mt-5 flex w-full flex-col gap-2.5 sm:flex-row">
-                {!finalStep && (
-                  <button
-                    onClick={onAdvance}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border-2 border-[#155FFF] bg-white py-2.5 text-[13px] font-bold text-[#155FFF] transition-colors hover:bg-[#155FFF]/5"
-                  >
-                    Continue to {nextLabel ?? "next"}
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-                  </button>
-                )}
-                <a
-                  href={outcomeHref}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group relative flex flex-1 items-center justify-center gap-1.5 overflow-hidden rounded-lg py-2.5 text-[13px] font-bold text-white transition-all hover:brightness-110 active:scale-[0.99]"
-                  style={{ background: "#155FFF", boxShadow: "0 10px 26px -8px rgba(21,95,255,0.7)" }}
-                >
-                  <motion.span
-                    aria-hidden
-                    className="pointer-events-none absolute inset-y-0 w-1/3 -skew-x-12 bg-white/25"
-                    initial={{ x: "-180%" }}
-                    animate={{ x: "460%" }}
-                    transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 1.4, ease: "easeInOut" }}
-                  />
-                  <span className="relative">Start free trial</span>
-                  <svg className="relative" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M7 17 17 7M9 7h8v8" /></svg>
-                </a>
+              {/* Built for Shopify */}
+              <div className="mt-4">
+                <BuiltForShopifyBadge />
               </div>
 
-              {outcomeHref && <ShopifyAppStoreBadge href={outcomeHref} className="mt-3" />}
+              {/* Available on Shopify App Store */}
+              {outcomeHref && <ShopifyAppStoreBadge href={outcomeHref} className="mt-3 w-full max-w-[280px]" />}
 
             </div>
             </div>

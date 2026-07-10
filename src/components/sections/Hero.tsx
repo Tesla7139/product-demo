@@ -72,8 +72,8 @@ export function Hero() {
         >
           <motion.h1
             variants={fadeUp}
-            className="text-balance tracking-tight text-foreground"
-            style={{ fontFamily: "var(--font-fraunces), Georgia, serif", fontWeight: 900, fontStyle: "italic", fontSize: "clamp(2rem, 5vw, 5.25rem)", lineHeight: 1.04, letterSpacing: "-0.02em" }}
+            className="text-balance font-extrabold tracking-tight text-foreground"
+            style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "clamp(2rem, 5vw, 5.25rem)", lineHeight: 1.04, letterSpacing: "-0.02em" }}
           >
             Reduce Support Tickets and Add Thousands in{" "}
             <span className="text-[#155FFF]">Upsell Revenue</span>

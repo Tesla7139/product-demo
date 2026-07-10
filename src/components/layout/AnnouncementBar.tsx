@@ -2,7 +2,7 @@ const SHOPIFY_LISTING = "https://apps.shopify.com/clickpost-order-edit-cancel";
 
 export function AnnouncementBar() {
   return (
-    <div className="w-full bg-[#155FFF] text-white">
+    <div className="w-full text-white" style={{ background: "linear-gradient(90deg, #001644 0%, #001B61 22%, #155FFF 62%, #0EE2E2 100%)" }}>
       <div className="mx-auto flex max-w-[1240px] items-center justify-center gap-2.5 px-4 py-2.5 text-center text-[0.85rem] sm:px-6">
         <span className="font-semibold tracking-tight">
           Comply with the EU directives with Clickpost Order Editing
