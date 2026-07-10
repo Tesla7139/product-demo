@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Marquee } from "@/components/primitives/Marquee";
-import { customerLogos, type CustomerLogo } from "@/lib/site";
+import { customerLogos, brandInfo, type CustomerLogo } from "@/lib/site";
 
 type Popover = { logo: CustomerLogo; x: number; y: number };
 
@@ -87,9 +87,9 @@ export function CustomerLogos({ embedded = false }: { embedded?: boolean }) {
       <span className="mt-1.5 text-[13px] font-normal text-muted-foreground/80 transition-colors group-hover:text-foreground">
         Read review
       </span>
-      {logo.badge && (
-        <span className="mt-2 rounded-full bg-primary/10 px-3 py-0.5 text-[11px] font-semibold text-primary">
-          {logo.badge}
+      {brandInfo[logo.name]?.tier && (
+        <span className="mt-2 rounded-full bg-primary/10 px-3 py-0.5 text-center text-[11px] font-semibold text-primary">
+          {brandInfo[logo.name].tier}
         </span>
       )}
     </button>

@@ -6,21 +6,11 @@ import { motion } from "framer-motion";
 
 const TOUR_ACCENT = "#155FFF";
 
-/** Clickpost app icon (vector). */
+/** Clickpost app icon — official logo from /public. */
 function ClickpostMark({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 100 100" className={className} role="img" aria-label="Clickpost" xmlns="http://www.w3.org/2000/svg">
-      <rect width="100" height="100" rx="22" fill="#1668FF" />
-      <g fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M42 33 L20 45 L20 71 L42 83 L64 71 L64 45 Z" />
-        <path d="M20 45 L42 57 L64 45" />
-        <path d="M42 57 L42 83" />
-        <path d="M48 86 L77 57" strokeWidth="6" />
-        <circle cx="71" cy="30" r="13" fill="#1668FF" />
-        <path d="M80 39 L88 47" />
-        <path d="M66 25 L76 35 M76 25 L66 35" strokeWidth="3" />
-      </g>
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element -- local brand asset
+    <img src="/clickpost-app-logo.svg" alt="CP Order Editing" className={className} />
   );
 }
 
@@ -177,12 +167,10 @@ export function TourOverlay({
                 <ClickpostMark className="size-11 rounded-[10px] shadow-sm" />
                 <span className="text-[22px] font-extrabold leading-none tracking-tight text-neutral-900">CP Order Editing</span>
               </div>
-              <div className="mt-1.5 flex items-center gap-1.5 text-[12px] text-neutral-500">
-                {/* eslint-disable-next-line @next/next/no-img-element -- Shopify icon from /public */}
-                <img src="/shopify-icon.png" alt="Shopify" className="size-3.5 object-contain" />
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24"><path d="M12 2l3 6.5 7 .6-5.3 4.6 1.6 6.8L12 17.3 5.7 20.5l1.6-6.8L2 9.1l7-.6z" /></svg>
-                <span className="font-bold text-neutral-900">5.0</span>
-                <span>· 52 reviews</span>
+              <div className="mt-1.5 flex items-center gap-1 text-[13px] text-neutral-900">
+                <span className="font-bold">5.0</span>
+                <span aria-hidden>★</span>
+                <span className="underline">(52)</span>
               </div>
 
               {/* headline */}

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUpRight, ChevronRight, Globe, MapPin, Pencil, Play, ShieldCheck, Sparkles, Star, TrendingUp } from "lucide-react";
+import { ArrowUpRight, ChevronRight, Globe, MapPin, Pencil, Play, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
 import type { DemoStore, DemoProduct } from "@/lib/site";
 import type { Addr } from "./DemoMock";
 import { DemoMock } from "./DemoMock";
@@ -282,24 +282,11 @@ const TOUR_STEPS: Record<Tour, TourStepDef[]> = {
   "eu-withdrawal": EU_WITHDRAWAL_TOUR_STEPS,
 };
 
-/** Clickpost "Order Edit & Cancel" app icon — vector recreation (crisp at any size). */
+/** Clickpost "Order Edit & Cancel" app icon — official logo from /public. */
 function ClickpostMark({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 100 100" className={className} role="img" aria-label="Clickpost" xmlns="http://www.w3.org/2000/svg">
-      <rect width="100" height="100" rx="22" fill="#1668FF" />
-      <g fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-        {/* package cube */}
-        <path d="M42 33 L20 45 L20 71 L42 83 L64 71 L64 45 Z" />
-        <path d="M20 45 L42 57 L64 45" />
-        <path d="M42 57 L42 83" />
-        {/* pencil (edit) */}
-        <path d="M48 86 L77 57" strokeWidth="6" />
-        {/* magnifier + X (cancel) */}
-        <circle cx="71" cy="30" r="13" fill="#1668FF" />
-        <path d="M80 39 L88 47" />
-        <path d="M66 25 L76 35 M76 25 L66 35" strokeWidth="3" />
-      </g>
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element -- local brand asset
+    <img src="/clickpost-app-logo.svg" alt="CP Order Editing" className={className} />
   );
 }
 
@@ -786,25 +773,17 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                 <span className="text-[#155FFF]">your store</span>?
               </h3>
             </div>
-            <a
-              href={APP_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="group flex items-center gap-3 rounded-xl border border-neutral-200 bg-white/80 p-3 text-left transition-all hover:border-[#155FFF]/50 hover:shadow-md"
-            >
+            <div className="flex items-center justify-center gap-3">
               <ClickpostMark className="size-10 shrink-0 rounded-[9px] shadow-sm" />
-              <div className="min-w-0 flex-1">
-                <div className="text-[15px] font-extrabold leading-tight tracking-tight text-neutral-900">CP Order Editing &amp; Upsell</div>
-                <div className="mt-1 flex items-center gap-1.5 text-[12px] text-neutral-500">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- Shopify icon from /public */}
-                  <img src="/shopify-icon.png" alt="Shopify" className="size-4 object-contain" />
-                  <Star className="size-3.5 fill-amber-400 text-amber-400" />
-                  <span className="font-bold text-neutral-900">5.0</span>
-                  <span>· 52 reviews</span>
+              <div className="text-left">
+                <div className="whitespace-nowrap text-[15px] font-extrabold leading-tight tracking-tight text-neutral-900">CP Order Editing &amp; Upsell</div>
+                <div className="mt-1 flex items-center gap-1 text-[13px] text-neutral-900">
+                  <span className="font-bold">5.0</span>
+                  <span aria-hidden>★</span>
+                  <span className="underline">(52)</span>
                 </div>
               </div>
-              <ArrowUpRight className="size-4 shrink-0 text-neutral-400 transition-colors group-hover:text-[#155FFF]" />
-            </a>
+            </div>
             <BuiltForShopifyBadge />
             <a
               href={APP_URL}

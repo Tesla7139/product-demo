@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { customerLogos } from "@/lib/site";
+import { customerLogos, brandInfo } from "@/lib/site";
 import { reviews } from "@/lib/reviews";
 
 const SQRT_5000 = Math.sqrt(5000);
@@ -19,7 +19,7 @@ const DATE_BY_NAME = new Map(reviews.map((r) => [r.name.toLowerCase(), fmtDate(r
 // Real Clickpost reviews only (the ones that have a written review + brand logo).
 const REVIEWS = customerLogos
   .filter((c) => c.review)
-  .map((c, i) => ({ tempId: i, name: c.name, review: c.review as string, src: c.src, date: DATE_BY_NAME.get(c.name.toLowerCase()) }));
+  .map((c, i) => ({ tempId: i, name: c.name, review: c.review as string, src: c.src, date: DATE_BY_NAME.get(c.name.toLowerCase()), info: brandInfo[c.name] }));
 
 
 interface TestimonialCardProps {
@@ -89,10 +89,18 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({ position, review, han
       </h3>
 
       <div className={cn(
-        "absolute bottom-8 left-8 right-8 text-[13px] font-semibold",
+        "absolute bottom-8 left-8 right-8 text-[13px]",
         isCenter ? "text-neutral-600" : "text-muted-foreground"
       )}>
-        {review.name}{review.date ? ` · ${review.date}` : ""}
+        <div className="flex items-baseline justify-between gap-2 font-semibold">
+          <span className="truncate">{review.name}{review.info?.country ? ` · ${review.info.country}` : ""}</span>
+          {review.date && <span className="shrink-0">{review.date}</span>}
+        </div>
+        {review.info?.tier && (
+          <span className="mt-1.5 inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+            {review.info.tier}
+          </span>
+        )}
       </div>
     </div>
   );

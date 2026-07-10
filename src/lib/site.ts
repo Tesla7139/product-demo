@@ -265,7 +265,28 @@ export const customerLogos: CustomerLogo[] = [
     review: reviewText("VanillaPura"),
     date: "Aug 27, 2025",
   },
+  {
+    src: "/customers/gharsoaps.png",
+    name: "GHAR SOAPS",
+    reviewer: "GHAR SOAPS Team",
+    role: "E-commerce",
+    review: reviewText("GHAR SOAPS"),
+    date: "Feb 14, 2026",
+  },
 ];
+
+// Credibility info for featured brands — a revenue-tier pill + a country shown
+// alongside the date. Rendered on the brand strip, review carousel, and Wall of
+// Love. Keyed by exact brand name.
+export type BrandInfo = { tier: string; country?: string };
+export const brandInfo: Record<string, BrandInfo> = {
+  "Doonails": { tier: "$100M+ brand", country: "Germany" },
+  "Curl Warehouse": { tier: "7-figure brand", country: "Canada" },
+  "VanillaPura": { tier: "7-figure brand", country: "Utah, USA" },
+  "GHAR SOAPS": { tier: "8-figure brand", country: "UAE" },
+  "MIRAGGIO": { tier: "8-figure brand" },
+  "Mateina": { tier: "Andrew Huberman's favourite", country: "Canada" },
+};
 
 // number of blank placeholder marks to show while `customerLogos` is empty
 export const customerLogoCount = 8;
