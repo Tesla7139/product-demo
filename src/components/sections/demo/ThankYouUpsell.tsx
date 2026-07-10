@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Plus } from "lucide-react";
 import type { DemoStore, DemoProduct } from "@/lib/site";
 import { TooGoodToMiss } from "./TooGoodToMiss";
@@ -10,6 +11,46 @@ const money = (n: number, currency = "USD") =>
 
 function Img({ src, className }: { src?: string | null; className: string }) {
   return <DemoImg src={src} className={className} />;
+}
+
+/** Product card whose "Add to order" button becomes a −1+ stepper once added. */
+function AddCard({
+  p, brand, currency, onAdd, btnRef,
+}: {
+  p: DemoProduct;
+  brand: string;
+  currency: string;
+  onAdd: (p: DemoProduct, discounted: boolean) => void;
+  btnRef?: React.RefObject<HTMLButtonElement | null>;
+}) {
+  const [qty, setQty] = useState(0);
+  const fmt = (n: number) => money(n, currency);
+  const add = () => { onAdd(p, false); setQty((q) => q + 1); };
+  return (
+    <div className="flex w-40 shrink-0 flex-col rounded-xl border border-border p-3">
+      <div className="aspect-square w-full overflow-hidden rounded-lg bg-neutral-50">
+        <Img src={p.image} className="size-full object-cover" />
+      </div>
+      <div className="mt-2 line-clamp-2 text-[12.5px] font-medium leading-tight" style={{ color: brand, minHeight: "2.5em" }}>{p.title}</div>
+      <div className="mt-1 text-[13px] font-bold text-neutral-900">{fmt(p.price)}</div>
+      {qty === 0 ? (
+        <button
+          ref={btnRef}
+          onClick={add}
+          className="mt-2.5 w-full rounded-md py-2 text-[13px] font-semibold text-white transition-all hover:brightness-110"
+          style={{ background: brand }}
+        >
+          Add to order
+        </button>
+      ) : (
+        <div className="mt-2.5 flex items-center justify-between rounded-md" style={{ border: `1.5px solid ${brand}` }}>
+          <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="flex size-8 items-center justify-center text-[18px] font-bold leading-none" style={{ color: brand }} aria-label="Decrease">−</button>
+          <span className="text-[13px] font-bold text-neutral-900">{qty}</span>
+          <button onClick={add} className="flex size-8 items-center justify-center text-[18px] font-bold leading-none" style={{ color: brand }} aria-label="Increase">+</button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 /**
@@ -25,6 +66,8 @@ export function ThankYouUpsell({
   addBtnRef,
   subtotal,
   freeShipAt,
+  shipBoxRef,
+  shipAddBtnRef,
 }: {
   store: DemoStore;
   brand: string;
@@ -34,6 +77,8 @@ export function ThankYouUpsell({
   addBtnRef?: React.RefObject<HTMLButtonElement | null>;
   subtotal?: number;
   freeShipAt?: number;
+  shipBoxRef?: React.RefObject<HTMLDivElement | null>;
+  shipAddBtnRef?: React.RefObject<HTMLButtonElement | null>;
 }) {
   const fmt = (n: number) => money(n, store.currency || "USD");
   const featured = products[products.length - 1] ?? products[0];
@@ -49,29 +94,13 @@ export function ThankYouUpsell({
   const bestSellers = pool.slice(0, half);
   const moreItems = pool.slice(half).length ? pool.slice(half) : pool;
 
-  const Card = ({ p, btnRef }: { p: DemoProduct; btnRef?: React.RefObject<HTMLButtonElement | null> }) => (
-    <div className="flex w-40 shrink-0 flex-col rounded-xl border border-border p-3">
-      <div className="aspect-square w-full overflow-hidden rounded-lg bg-neutral-50">
-        <Img src={p.image} className="size-full object-cover" />
-      </div>
-      <div className="mt-2 line-clamp-2 text-[12.5px] font-medium leading-tight" style={{ color: brand, minHeight: "2.5em" }}>{p.title}</div>
-      <div className="mt-1 text-[13px] font-bold text-neutral-900">{fmt(p.price)}</div>
-      <button
-        ref={btnRef}
-        onClick={() => onAdd(p, false)}
-        className="mt-2.5 w-full rounded-md py-2 text-[13px] font-semibold text-white transition-all hover:brightness-110"
-        style={{ background: brand }}
-      >
-        Add to order
-      </button>
-    </div>
-  );
+  const currency = store.currency || "USD";
 
   return (
     <div className="flex flex-col gap-4">
       {/* Shipping box — best sellers to unlock free shipping */}
       {showShipBar && (
-        <div className="rounded-xl border border-border p-4">
+        <div ref={shipBoxRef} className="rounded-xl border border-border p-4">
           <h4 className="text-[15px] font-bold text-neutral-900">
             {unlocked ? "You've unlocked free shipping!" : "Unlock free shipping by adding best sellers."}
           </h4>
@@ -92,7 +121,7 @@ export function ThankYouUpsell({
           </p>
           <div className="mt-4 -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
             {bestSellers.map((p, i) => (
-              <Card key={i} p={p} />
+              <AddCard key={i} p={p} brand={brand} currency={currency} onAdd={onAdd} btnRef={i === 0 ? shipAddBtnRef : undefined} />
             ))}
           </div>
         </div>
@@ -106,7 +135,7 @@ export function ThankYouUpsell({
         </div>
         <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-2">
           {moreItems.map((p, i) => (
-            <Card key={i} p={p} btnRef={i === 0 ? addBtnRef : undefined} />
+            <AddCard key={i} p={p} brand={brand} currency={currency} onAdd={onAdd} btnRef={i === 0 ? addBtnRef : undefined} />
           ))}
         </div>
         <button

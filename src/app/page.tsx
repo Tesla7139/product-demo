@@ -7,7 +7,7 @@ export default function Home() {
       {/* page 1 — fills the viewport */}
       <Hero />
       {/* page 2 — brand strip (scroll down) */}
-      <div className="relative z-10 border-t border-border/60 bg-background">
+      <div className="relative z-10 border-t border-border/60" style={{ background: "#ffffff" }}>
         <CustomerLogos />
       </div>
     </>

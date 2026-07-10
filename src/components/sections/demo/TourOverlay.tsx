@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
+import { ShopifyAppStoreBadge } from "./ShopifyAppStoreBadge";
 
 const TOUR_ACCENT = "#155FFF";
 
@@ -61,11 +62,16 @@ export function TourOverlay({
   nextLabel,
   finalStep = false,
   blurRect,
+  displayStep,
+  displayTotal,
   onAdvance,
   onClose,
 }: {
   step: number;
   total: number;
+  /** Progress shown in the card ("X/Y" + dots) — counts only steps that show a box. */
+  displayStep?: number;
+  displayTotal?: number;
   rect: TourRect | null;
   title: string;
   desc: string;
@@ -135,7 +141,7 @@ export function TourOverlay({
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="pointer-events-none absolute inset-0 flex items-center justify-center p-3 sm:p-7"
+          className="pointer-events-none absolute inset-0 flex items-end justify-start p-4 sm:p-8"
         >
            {/* thick light-blue frame (~1cm) + pulsing side glow — compact, squarish card */}
            <motion.div
@@ -208,6 +214,8 @@ export function TourOverlay({
                 </a>
               </div>
 
+              {outcomeHref && <ShopifyAppStoreBadge href={outcomeHref} className="mt-3" />}
+
             </div>
             </div>
            </motion.div>
@@ -228,13 +236,21 @@ export function TourOverlay({
   // rail area) so it never covers the content it's pointing at. Only when there's
   // no room there (mobile / full-width window) fall back to below/above.
   const leftSlot = blurRect ? blurRect.left - cardW - GAP : -1;
+  // On transition steps the spotlight is a feature card in the LEFT rail — placing
+  // the card to the left would cover the rail (and the feature you must tap), so
+  // put it to the RIGHT of the spotlight instead.
+  const spotlightLeftOfDemo = blurRect != null && sl.left + sl.width <= blurRect.left + 8;
   let tooltipLeft: number;
   let tooltipTop: number;
   let tooltipBelow = true;
   // Prefer the card to the LEFT of the window (beside it, off the content),
   // vertically centered on the spotlight. Only fall back to below/above when
   // there's genuinely no room to the left (very narrow / full-width window).
-  if (leftSlot >= 12) {
+  if (spotlightLeftOfDemo) {
+    tooltipLeft = Math.min(sl.left + sl.width + GAP, window.innerWidth - cardW - 12);
+    tooltipTop = clampTop(sl.top + sl.height / 2 - cardH / 2);
+    tooltipBelow = false;
+  } else if (leftSlot >= 12) {
     tooltipLeft = leftSlot;
     tooltipTop = clampTop(sl.top + sl.height / 2 - cardH / 2);
     tooltipBelow = false;
@@ -328,19 +344,25 @@ export function TourOverlay({
       >
         <div className="h-[3px] w-full" style={{ background: `linear-gradient(90deg, ${TOUR_ACCENT}, #7c3aed)` }} />
         <div className="p-5">
-          {/* dot navigation */}
+          {/* dot navigation — counts only the steps that show a box */}
+          {(() => {
+            const dStep = displayStep ?? step;
+            const dTotal = displayTotal ?? total;
+            return (
           <div className="mb-3 flex items-center gap-2">
-            <span className="text-[11px] font-semibold tabular-nums text-neutral-400">{step + 1}/{total}</span>
+            <span className="text-[11px] font-semibold tabular-nums text-neutral-400">{dStep + 1}/{dTotal}</span>
             <div className="ml-auto flex items-center gap-1.5">
-              {Array.from({ length: total }).map((_, i) => (
+              {Array.from({ length: dTotal }).map((_, i) => (
                 <span
                   key={i}
                   className="h-1.5 rounded-full transition-all duration-300"
-                  style={{ width: i === step ? 18 : 6, background: i === step ? TOUR_ACCENT : "#dbe3f0" }}
+                  style={{ width: i === dStep ? 18 : 6, background: i === dStep ? TOUR_ACCENT : "#dbe3f0" }}
                 />
               ))}
             </div>
-          </div>
+            </div>
+            );
+          })()}
           <div className="font-serif text-[19px] font-bold leading-tight tracking-tight text-neutral-900">{title}</div>
           <Typewriter key={`tw-${step}`} text={desc} className="mt-2 min-h-[2.6em] text-[13.5px] font-medium leading-relaxed text-neutral-500" />
         </div>

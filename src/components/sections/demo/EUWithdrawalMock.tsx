@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Check, ChevronDown, HelpCircle, Truck } from "lucide-react";
 import type { DemoStore } from "@/lib/site";
@@ -90,7 +90,9 @@ type EUTourRefs = {
 };
 
 /** Shopify-style order status page with the EU Withdrawal Function + a two-step withdrawal request. */
-export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdrawn }: { store: DemoStore; tourRefs?: EUTourRefs; onWithdrawOpened?: () => void; onWithdrawn?: () => void }) {
+const WITHDRAWAL_MESSAGE = "I'd like to withdraw from this purchase within the cooling-off period.";
+
+export function EUWithdrawalMock({ store, tourRefs, autoFill = 0, manualFill = false, onWithdrawOpened, onWithdrawn }: { store: DemoStore; tourRefs?: EUTourRefs; autoFill?: number; manualFill?: boolean; onWithdrawOpened?: () => void; onWithdrawn?: () => void }) {
   const currency = store.currency || "USD";
   const fmt = (n: number) => money(n, currency);
   const product = store.products.find((p) => (p.price ?? 0) > 0) ?? store.products[0];
@@ -101,12 +103,39 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"form" | "done">("form");
   const [agreed, setAgreed] = useState(false);
-  const [reason, setReason] = useState(WITHDRAWAL_REASONS[0]);
+  // start EMPTY — the tour types these in on the "fill" step
+  const [reason, setReason] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [message, setMessage] = useState("");
+  // free-play fills automatically when the form opens; during the tour the fill
+  // is driven by the `autoFill` prop on the dedicated "fill" step (manualFill).
+  const [internalFill, setInternalFill] = useState(0);
+  const fillTrigger = autoFill + internalFill;
+
+  // typewriter fill, triggered by `autoFill` (tour) or opening the form (free-play)
+  useEffect(() => {
+    if (!fillTrigger) return;
+    let cancelled = false;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    timers.push(setTimeout(() => { if (!cancelled) setReason(WITHDRAWAL_REASONS[0]); }, 250));
+    timers.push(setTimeout(() => { if (!cancelled) setEmail(DEFAULT_EMAIL); }, 650));
+    timers.push(setTimeout(() => { if (!cancelled) setPhone(DEFAULT_PHONE); }, 1000));
+    for (let i = 1; i <= WITHDRAWAL_MESSAGE.length; i++) {
+      timers.push(setTimeout(() => { if (!cancelled) setMessage(WITHDRAWAL_MESSAGE.slice(0, i)); }, 1350 + i * 16));
+    }
+    timers.push(setTimeout(() => { if (!cancelled) setAgreed(true); }, 1350 + WITHDRAWAL_MESSAGE.length * 16 + 250));
+    return () => { cancelled = true; timers.forEach(clearTimeout); };
+  }, [fillTrigger]);
 
   const toggle = () => {
     const next = !open;
     setOpen(next);
-    if (next) onWithdrawOpened?.();
+    if (next) {
+      onWithdrawOpened?.();
+      // free-play: fill the form once it's open (the tour drives this itself)
+      if (!manualFill) setInternalFill((k) => k + 1);
+    }
   };
 
   const submit = () => {
@@ -161,13 +190,13 @@ export function EUWithdrawalMock({ store, tourRefs, onWithdrawOpened, onWithdraw
                     >
                       {step === "form" ? (
                         <div className="flex flex-col gap-2.5 px-3.5 pb-4 pt-1">
-                          <ReasonSelect label="Reason for withdrawal" value={reason} onChange={setReason} />
-                          <Field label="Email" value={DEFAULT_EMAIL} />
-                          <Field label="Phone" value={DEFAULT_PHONE} />
+                          <ReasonSelect label="Reason for withdrawal" value={reason || "Select a reason"} onChange={setReason} />
+                          <Field label="Email" value={email} />
+                          <Field label="Phone" value={phone} />
                           <label className="relative block rounded-md border border-border px-3 pt-5 pb-2">
                             <span className="pointer-events-none absolute left-3 top-1.5 text-[10px] font-medium uppercase tracking-wide text-neutral-400">Message (optional)</span>
-                            <span className="block text-sm leading-snug text-neutral-600">
-                              I&apos;d like to withdraw from this purchase within the cooling-off period.
+                            <span className="block min-h-[1.2em] text-sm leading-snug text-neutral-600">
+                              {message}
                             </span>
                           </label>
                           <button

@@ -52,7 +52,8 @@ export function DemoExperience({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] overflow-y-auto bg-background"
+          className="fixed inset-0 z-[100] overflow-y-auto"
+          style={{ background: "#ffffff" }}
         >
           <button
             onClick={onClose}
@@ -320,7 +321,7 @@ function EditingView({ store }: { store: DemoStore }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
-      className="bg-background-muted/40"
+      style={{ background: "#ffffff" }}
     >
       {/* page 1 — reserved left panel + full-bleed blue demo stage (right) */}
       <div className="flex min-h-[100svh] w-full flex-col justify-center px-3 py-6 sm:px-6 sm:py-8 lg:py-0 lg:pl-5 lg:pr-0 xl:pl-6">
@@ -328,7 +329,7 @@ function EditingView({ store }: { store: DemoStore }) {
       </div>
 
       {/* page 2 — moving brand strip + stagger review carousel + footer (one bg) */}
-      <div className="bg-background">
+      <div style={{ background: "#ffffff" }}>
         <CustomerLogos />
         <section className="border-t border-border/60 pt-14 pb-4">
         <div className="mx-auto max-w-3xl px-4 text-center">

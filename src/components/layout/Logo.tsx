@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-export function Logo({ className }: { className?: string }) {
+export function Logo({ className, light = false }: { className?: string; light?: boolean }) {
   return (
     <Link
       href="/"
@@ -17,6 +17,7 @@ export function Logo({ className }: { className?: string }) {
         height={281}
         priority
         className="h-full w-auto object-contain"
+        style={light ? { filter: "brightness(0) invert(1)" } : undefined}
       />
     </Link>
   );

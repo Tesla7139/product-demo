@@ -42,13 +42,17 @@ function ComplianceBadge({ src, label }: { src: string; label: string }) {
 
 export function Footer() {
   return (
-    <footer id="footer" className="relative overflow-hidden border-t border-border bg-background-muted">
+    <footer
+      id="footer"
+      className="relative overflow-hidden border-t border-white/10 text-white"
+      style={{ background: "radial-gradient(120% 130% at 50% 0%, #16224a 0%, #0a1024 55%)" }}
+    >
       <Container className="relative z-10 pt-16 pb-10 md:pt-20 md:pb-12">
         <div className="grid grid-cols-2 gap-10 md:grid-cols-4 lg:grid-cols-8">
           {/* Brand column */}
           <div className="col-span-2 flex flex-col gap-5 lg:col-span-2">
-            <Logo />
-            <p className="max-w-xs text-sm text-muted-foreground">
+            <Logo light />
+            <p className="max-w-xs text-sm text-white/55">
               Self-service order editing, address validation, and post-purchase upsells for
               modern commerce.
             </p>
@@ -58,7 +62,7 @@ export function Footer() {
                   key={i}
                   href="#"
                   aria-label="Social link"
-                  className="flex size-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-all hover:border-primary hover:text-primary"
+                  className="flex size-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/70 transition-all hover:border-white hover:text-white"
                 >
                   <Icon className="size-4" />
                 </a>
@@ -68,7 +72,7 @@ export function Footer() {
 
           {/* Security & compliance — top-aligned column (lines up with the link columns) */}
           <div className="col-span-2 flex flex-col gap-3 lg:col-span-2">
-            <h3 className="text-eyebrow text-muted-foreground">Security &amp; compliance</h3>
+            <h3 className="text-eyebrow text-white/45">Security &amp; compliance</h3>
             <div className="grid w-fit grid-cols-2 gap-x-4 gap-y-3">
               {COMPLIANCE.map((b) => (
                 <ComplianceBadge key={b.label} src={b.src} label={b.label} />
@@ -78,13 +82,13 @@ export function Footer() {
 
           {footerColumns.map((col) => (
             <div key={col.title} className="flex flex-col gap-3">
-              <h3 className="text-eyebrow text-muted-foreground">{col.title}</h3>
+              <h3 className="text-eyebrow text-white/45">{col.title}</h3>
               <ul className="flex flex-col gap-2.5">
                 {col.links.map((link) => (
                   <li key={link.label}>
                     <a
                       href={link.href}
-                      className="text-sm text-foreground/80 transition-colors hover:text-primary"
+                      className="text-sm text-white/70 transition-colors hover:text-white"
                     >
                       {link.label}
                     </a>
@@ -95,16 +99,16 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row">
+        <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-6 text-sm text-white/50 sm:flex-row">
           <p>
             © {/* year set at build via copyright */}
             <span> 2026 {site.name}. All rights reserved.</span>
           </p>
           <div className="flex items-center gap-6">
-            <a href="#" className="transition-colors hover:text-foreground">
+            <a href="#" className="transition-colors hover:text-white">
               Terms
             </a>
-            <a href="#" className="transition-colors hover:text-foreground">
+            <a href="#" className="transition-colors hover:text-white">
               Privacy
             </a>
           </div>
@@ -117,7 +121,7 @@ export function Footer() {
         className="pointer-events-none relative z-0 -mt-6 w-full select-none overflow-hidden"
       >
         <div
-          className="translate-y-[6%] bg-gradient-to-b from-foreground/15 to-transparent bg-clip-text text-center font-extrabold leading-[0.78] tracking-tighter text-transparent"
+          className="translate-y-[6%] bg-gradient-to-b from-white/10 to-transparent bg-clip-text text-center font-extrabold leading-[0.78] tracking-tighter text-transparent"
           style={{ fontSize: "clamp(3rem, 15vw, 13rem)" }}
         >
           {site.name.toUpperCase()}

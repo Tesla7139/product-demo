@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 
 const GlobeScene = dynamic(() => import("./GlobeScene"), { ssr: false });
 
@@ -25,6 +26,9 @@ function supportsWebGL() {
  */
 export function GlobeBackground() {
   const [enabled, setEnabled] = useState(false);
+  const pathname = usePathname();
+  // no globe on the home / demo funnel pages
+  const onHome = pathname === "/" || pathname.startsWith("/product-demo");
 
   useEffect(() => {
     const ok =
@@ -34,6 +38,8 @@ export function GlobeBackground() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time capability check on mount
     setEnabled(ok);
   }, []);
+
+  if (onHome) return null;
 
   return (
     <div

@@ -97,6 +97,8 @@ export function DemoMock({
     payBtn?: React.RefObject<HTMLButtonElement | null>;
     upsellRow?: React.RefObject<HTMLDivElement | null>;
     upsellAddBtn?: React.RefObject<HTMLButtonElement | null>;
+    upsellShipBox?: React.RefObject<HTMLDivElement | null>;
+    upsellShipAddBtn?: React.RefObject<HTMLButtonElement | null>;
     sections?: React.RefObject<HTMLDivElement | null>;
   };
   /** Show the "You may also like" cross-sell at the TOP (thank-you page style). */
@@ -365,7 +367,7 @@ export function DemoMock({
             {/* cross-sell (thank-you page style) */}
             {upsellFirst && !cancelled && (
               <div className="mb-4">
-                <ThankYouUpsell store={store} brand="#111827" products={upsellPool} onAdd={(p, discounted) => addUpsell(p, discounted)} gridRef={tourRefs?.upsellRow} addBtnRef={tourRefs?.upsellAddBtn} subtotal={subtotal} freeShipAt={freeShipAt} />
+                <ThankYouUpsell store={store} brand="#111827" products={upsellPool} onAdd={(p, discounted) => addUpsell(p, discounted)} gridRef={tourRefs?.upsellRow} addBtnRef={tourRefs?.upsellAddBtn} shipBoxRef={tourRefs?.upsellShipBox} shipAddBtnRef={tourRefs?.upsellShipAddBtn} subtotal={subtotal} freeShipAt={freeShipAt} />
               </div>
             )}
 

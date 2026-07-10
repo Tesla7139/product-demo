@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUpRight, ChevronRight, Globe, MapPin, Pencil, Play, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
+import { ChevronRight, Globe, MapPin, Pencil, Play, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
 import type { DemoStore, DemoProduct } from "@/lib/site";
 import type { Addr } from "./DemoMock";
 import { DemoMock } from "./DemoMock";
 import { OneTapUpsellMock } from "./OneTapUpsellMock";
 import { EUWithdrawalMock } from "./EUWithdrawalMock";
 import { TourOverlay, type TourRect } from "./TourOverlay";
+import { ShopifyAppStoreBadge } from "./ShopifyAppStoreBadge";
 
 const APP_URL = "https://apps.shopify.com/clickpost-order-edit-cancel";
 
@@ -64,6 +65,14 @@ type TourStepDef = {
   hideCta?: boolean;
   /** keep the current scroll position (don't scroll the target into view) */
   noScroll?: boolean;
+  /** scroll the whole spotlight to the TOP of the demo (instead of centering the dot) */
+  scrollAlignTop?: boolean;
+  /** advance WITHOUT dropping the highlight (seamless in-place update, e.g. +1 qty) */
+  seamless?: boolean;
+  /** how long to wait before advancing on a seamless step (e.g. let the "added" toast show) */
+  advanceDelayMs?: number;
+  /** auto-advance after N ms with no tap (e.g. a watch-the-details-type step) */
+  autoAdvanceMs?: number;
   /** force the callout card above the spotlight (for steps where below covers content) */
   cardAbove?: boolean;
   /** id of an element to programmatically "click" on step-enter so its animation
@@ -88,26 +97,26 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
     desc: "Customers can edit their order for a window you control — no support ticket needed.",
     cta: "Next",
   },
-  // ---- Address: ONE box explains it; the whole address section (incl. the
-  // Update button) is spotlighted; the red dot points at the address as it
-  // auto-fills, then (no new box) moves to the Update button. ----
+  // ---- Address: ONE persistent box. The shipping section opens with the dot on
+  // the address; tapping it drops in the corrected address; the dot then shifts
+  // to the Update button; tapping it syncs the change. ----
   {
     id: "addr-show",
     title: "Self-serve edits",
-    desc: "Change address, swap items, update contact info — all in seconds. Watch the shopper fix a wrong address, then tap Update to sync it.",
+    desc: "Change the address in seconds. Tap the address to drop in the corrected one, then tap Update to sync it to your store.",
     cta: "Next",
     measureDelayMs: 520,
     spotlightId: "shipping-box", // whole address section, including the Update button
-    dotId: "addr-block", // point at the address strip as it fills in
+    dotId: "addr-block", // point at the address the shopper taps to fix
   },
   {
     id: "addr-update",
     title: "",
     desc: "",
     cta: "Next",
-    measureDelayMs: 1250, // let the address finish auto-filling before pointing at Update
+    measureDelayMs: 700, // let the corrected address drop in before pointing at Update
     noScroll: true,
-    hideCard: true, // no new box — the dot just moves to the Update button
+    hideCard: true, // no 3/7 box — the dot just shifts to the Update button
     spotlightId: "shipping-box",
     dotId: "addr-save",
     autoClickId: "addr-save",
@@ -122,6 +131,7 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
     spotlightId: "order-row", // whole order section, including the Update button
     dotId: "order-plus",
     autoClickId: "order-plus",
+    seamless: true, // +1 updates in place; keep the highlight, just move the dot to Update
   },
   {
     id: "order-apply",
@@ -172,15 +182,43 @@ const UPSELL_TOUR_STEPS: TourStepDef[] = [
     autoClickId: "upsell-add", // tap Add → adds the offer
   },
   {
-    id: "ty-show",
-    title: "And again on the order status page",
-    desc: "Recommend add-ons above the edit options — tap Add and it's charged to the card on file.",
+    id: "ty-ship",
+    title: "Nudge to free shipping",
+    desc: "On the order status page, shoppers see they're one best-seller away from free shipping. Tap Add and it drops into their order.",
     cta: "Next",
-    measureDelayMs: 380,
+    measureDelayMs: 420,
+    spotlightId: "ty-ship",
+    dotId: "ty-ship-add", // tap the Add button in the free-shipping bucket
+    autoClickId: "ty-ship-add",
+    scrollAlignTop: true, // keep the "away from free shipping" line inside the highlight
+    cardAbove: true,
+    seamless: true, // keep the highlight; show the "added to cart" toast, then advance
+    advanceDelayMs: 2300,
+  },
+  {
+    id: "ty-show",
+    title: "Add more, right here",
+    desc: "Recommend add-ons on the order status page too. Tap Add and it drops into their order — they settle the balance at the end.",
+    cta: "Next",
+    measureDelayMs: 420,
     spotlightId: "ty-grid",
     dotId: "ty-add",
     autoClickId: "ty-add", // tap Add → adds the item
+    seamless: true, // show the "added to cart" toast, then advance
+    advanceDelayMs: 2300,
     cardAbove: true, // below covers the "Explore all products" button
+  },
+  {
+    // added item creates a balance — pay it (same as order editing) before moving on
+    id: "ty-pay",
+    title: "",
+    desc: "",
+    cta: "Next",
+    measureDelayMs: 460,
+    hideCard: true,
+    spotlightId: "pay-panel",
+    dotId: "pay-btn",
+    autoClickId: "pay-btn",
   },
   {
     // transition: highlight the Address feature button; tap to open it
@@ -204,6 +242,7 @@ const ADDRESS_TOUR_STEPS: TourStepDef[] = [
     cta: "Next",
     measureDelayMs: 420,
     spotlightId: "addr-flagged",
+    scrollAlignTop: true, // keep the tall address block inside the window (don't spill over the top bar)
   },
   {
     id: "addr-validate",
@@ -215,6 +254,7 @@ const ADDRESS_TOUR_STEPS: TourStepDef[] = [
     spotlightId: "addr-flagged",
     dotId: "addr-validate",
     autoClickId: "addr-validate", // click Update → the address is validated (turns green)
+    scrollAlignTop: true,
   },
   {
     // transition to the last feature — EU withdrawal
@@ -248,7 +288,19 @@ const EU_WITHDRAWAL_TOUR_STEPS: TourStepDef[] = [
     hideCard: true, // no new box — dot points at the withdrawal row
     spotlightId: "eu-withdraw-row",
     dotId: "eu-withdraw-row",
-    autoClickId: "eu-withdraw-row", // open the withdrawal form
+    autoClickId: "eu-withdraw-row", // open the withdrawal form (empty)
+  },
+  {
+    // details type themselves in (empty → filled), then auto-advance to Send
+    id: "eu-fill",
+    title: "",
+    desc: "",
+    cta: "Next",
+    measureDelayMs: 360,
+    hideCard: true,
+    spotlightId: "eu-withdraw-row",
+    dotId: "eu-withdraw-row",
+    autoAdvanceMs: 3400, // let the reason/email/phone/message fill in
   },
   {
     id: "eu-submit",
@@ -397,6 +449,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
   const [qtyBump, setQtyBump] = useState(0); // tour: add one more of the first item
   const [demoResetKey, setDemoResetKey] = useState(0); // bump to remount the demo fresh
   const [euResetKey, setEuResetKey] = useState(0); // bump to remount the EU withdrawal page fresh
+  const [euAutoFill, setEuAutoFill] = useState(0); // bump to type the withdrawal details in
   const [addrResetKey, setAddrResetKey] = useState(0); // bump to remount the address-validation window fresh
   const [upsellResetKey, setUpsellResetKey] = useState(0); // bump to remount the upsell windows fresh
 
@@ -428,6 +481,8 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
   const upsellAddBtnRef = useRef<HTMLButtonElement>(null);
   const tyGridRef = useRef<HTMLDivElement>(null);
   const tyAddBtnRef = useRef<HTMLButtonElement>(null);
+  const tyShipRef = useRef<HTMLDivElement>(null);
+  const tyShipAddRef = useRef<HTMLButtonElement>(null);
   // address-validation tour targets
   const addrSaveBtnRef = useRef<HTMLButtonElement>(null);
   const addrFlaggedRef = useRef<HTMLDivElement>(null);
@@ -450,6 +505,23 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
 
   const steps = activeTour ? TOUR_STEPS[activeTour] : [];
   const curStep = activeTour ? steps[tourStep] : null;
+  // Progress numbering — count only the steps that show a box (skip hideCard /
+  // outcome steps), running continuously across the chained journey.
+  const TOUR_ORDER: Tour[] = ["editing", "upsell", "address", "eu-withdrawal"];
+  const isBoxStep = (s: TourStepDef) => !s.hideCard && !s.outcome;
+  const boxCount = (list: TourStepDef[], upto: number) => list.slice(0, upto).filter(isBoxStep).length;
+  let displayTotal = 0;
+  let displayStep = 0;
+  if (activeTour) {
+    if (singleTourMode) {
+      displayTotal = steps.filter(isBoxStep).length;
+      displayStep = Math.max(0, boxCount(steps, tourStep + 1) - 1);
+    } else {
+      displayTotal = TOUR_ORDER.reduce((n, t) => n + TOUR_STEPS[t].filter(isBoxStep).length, 0);
+      const prior = TOUR_ORDER.slice(0, TOUR_ORDER.indexOf(activeTour)).reduce((n, t) => n + TOUR_STEPS[t].filter(isBoxStep).length, 0);
+      displayStep = Math.max(0, prior + boxCount(steps, tourStep + 1) - 1);
+    }
+  }
 
   // resolve a step's spotlight target — called only from effects/handlers, never render
   function getStepTarget(id: string): HTMLElement | null {
@@ -475,6 +547,8 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
       case "upsell-add": return upsellAddBtnRef.current;
       case "ty-grid": return tyGridRef.current;
       case "ty-add": return tyAddBtnRef.current;
+      case "ty-ship": return tyShipRef.current;
+      case "ty-ship-add": return tyShipAddRef.current;
       case "addr-validate": return addrSaveBtnRef.current;
       case "addr-flagged": return addrFlaggedRef.current;
       case "eu-card": return euCardRef.current;
@@ -494,13 +568,13 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
         setTourForcedOpen(null);
         break;
       case "addr-show":
-        // open the shipping section and auto-fill the corrected address while the box explains
+        // open the shipping section (original address shown; dot on the address)
         setTourForcedOpen("shipping");
-        setAddrOverride(CORRECTED_ADDRESS);
         break;
       case "addr-update":
-        // stay open; the address is filled — dot moves to the Update button (no box)
+        // shopper tapped the address → drop in the corrected one; dot moves to Update
         setTourForcedOpen("shipping");
+        setAddrOverride(CORRECTED_ADDRESS);
         break;
       case "order-add":
         // open the order section with the original quantities
@@ -523,10 +597,16 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
       case "upsell-add":
         setUpsellView("onetap");
         break;
+      case "ty-ship":
       case "ty-show":
       case "ty-add":
+      case "ty-pay":
       case "to-address":
         setUpsellView("thankyou");
+        break;
+      case "eu-fill":
+        // form is open (empty) — type the withdrawal details in
+        setEuAutoFill((k) => k + 1);
         break;
       default:
         // address steps + outcome steps: nothing to pre-open
@@ -568,7 +648,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
 
   // Bring a target into view by scrolling ONLY its nearest inner scroll container
   // (the demo window / offer panel) — never the outer modal, so the top bar isn't cut.
-  function scrollInnerIntoView(el: HTMLElement) {
+  function scrollInnerIntoView(el: HTMLElement, alignTop = false) {
     const root = rootRef.current;
     // only consider scroll containers INSIDE the demo (between el and root);
     // the outer modal is an ancestor of root, so it's never scrolled.
@@ -578,7 +658,9 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
       if ((oy === "auto" || oy === "scroll") && c.scrollHeight > c.clientHeight + 1) {
         const cRect = c.getBoundingClientRect();
         const eRect = el.getBoundingClientRect();
-        const delta = (eRect.top - cRect.top) - (c.clientHeight - eRect.height) / 2;
+        const delta = alignTop
+          ? (eRect.top - cRect.top) - 14 // pin the element's top near the container top
+          : (eRect.top - cRect.top) - (c.clientHeight - eRect.height) / 2;
         c.scrollTop += delta; // instant: target is at its final position for measuring
         return;
       }
@@ -681,7 +763,9 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     const timers: ReturnType<typeof setTimeout>[] = [];
     // capture the spotlight + dot rects from the (now-settled) DOM
     const measureDemo = () => {
-      if (!s.outcome || !demoFrameRef.current) return;
+      // measure on every step so the callout can sit to the LEFT of the demo
+      // window (in the dimmed area) instead of dropping below and covering it
+      if (!demoFrameRef.current) return;
       const d = demoFrameRef.current.getBoundingClientRect();
       setDemoRect({ top: d.top, left: d.left, width: d.width, height: d.height });
     };
@@ -692,7 +776,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
       // button the step taps (autoClickId), else the spotlight.
       const dotEl = getStepTarget(s.dotId ?? s.autoClickId ?? s.spotlightId ?? s.id);
       if (!el || (s.dotId && !dotEl)) return;
-      if (doScroll && !s.noScroll) scrollInnerIntoView(dotEl ?? el);
+      if (doScroll && !s.noScroll) scrollInnerIntoView(s.scrollAlignTop ? el : (dotEl ?? el), s.scrollAlignTop);
       const r = el.getBoundingClientRect();
       setSpotlightRect({ top: r.top, left: r.left, width: r.width, height: r.height });
       const dr = (dotEl ?? el).getBoundingClientRect();
@@ -718,6 +802,8 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
       timers.push(setTimeout(() => capture(false), 300));
     };
     timers.push(setTimeout(() => run(0), s.measureDelayMs ?? 80));
+    // steps with no tap target (e.g. "watch the details type in") advance on a timer
+    if (s.autoAdvanceMs) timers.push(setTimeout(() => { if (!cancelled) advanceTour(); }, s.autoAdvanceMs));
 
     // Interactive: the presenter actually TAPS the highlighted action button. We
     // detect the tap at the document level (robust to re-renders) by checking the
@@ -734,8 +820,15 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
         const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
         if (!inside) return;
         advanced = true;
-        setRevealScreen(true); // highlight off → clean screen + toast
-        timers.push(setTimeout(() => { if (!cancelled) advanceTour(); }, 1400));
+        if (s.seamless) {
+          // keep the highlight up — the update happens in place (e.g. +1 qty, or
+          // "added to cart" toast); then the dot moves to the next spot with no
+          // close/re-open flicker. advanceDelayMs lets the toast show first.
+          timers.push(setTimeout(() => { if (!cancelled) advanceTour(); }, s.advanceDelayMs ?? 550));
+        } else {
+          setRevealScreen(true); // highlight off → clean screen + toast
+          timers.push(setTimeout(() => { if (!cancelled) advanceTour(); }, 1400));
+        }
       };
       document.addEventListener("click", onDocClick, true);
       cleanupClick = () => document.removeEventListener("click", onDocClick, true);
@@ -820,15 +913,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
               </div>
             </div>
             <BuiltForShopifyBadge />
-            <a
-              href={APP_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
-              style={{ background: "#155FFF" }}
-            >
-              Get started for free <ArrowUpRight className="size-4 shrink-0" />
-            </a>
+            <ShopifyAppStoreBadge href={APP_URL} className="w-full" />
           </div>
         </div>
 
@@ -966,7 +1051,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                       maxHeight={560}
                       upsellFirst
                       extraItems={upsellExtras}
-                      tourRefs={{ upsellRow: tyGridRef, upsellAddBtn: tyAddBtnRef }}
+                      tourRefs={{ upsellRow: tyGridRef, upsellAddBtn: tyAddBtnRef, upsellShipBox: tyShipRef, upsellShipAddBtn: tyShipAddRef, payPanel: payPanelRef, payBtn: payBtnRef }}
                     />
                   ) : (
                     <OneTapUpsellMock
@@ -994,6 +1079,8 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                   <EUWithdrawalMock
                     key={`eu-${euResetKey}`}
                     store={store}
+                    autoFill={euAutoFill}
+                    manualFill={activeTour === "eu-withdrawal"}
                     tourRefs={{ euCard: euCardRef, withdrawRow: euWithdrawRowRef, withdrawBtn: euWithdrawBtnRef }}
                   />
                 )}
@@ -1011,6 +1098,8 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
         <TourOverlay
           step={tourStep}
           total={steps.length}
+          displayStep={displayStep}
+          displayTotal={displayTotal}
           rect={spotlightRect}
           title={curStep.title}
           desc={curStep.desc}

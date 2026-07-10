@@ -61,6 +61,7 @@ export function Hero() {
     <section
       id="demo"
       className="relative flex min-h-[100svh] flex-col overflow-hidden pb-8 pt-2 md:pt-3"
+      style={{ background: "#ffffff" }}
     >
       <Container className="flex flex-1 items-start py-4 pt-[5vh] md:pt-[8vh]">
         <motion.div
@@ -71,10 +72,11 @@ export function Hero() {
         >
           <motion.h1
             variants={fadeUp}
-            className="text-balance font-bold tracking-tight text-foreground"
-            style={{ fontFamily: "var(--font-inter), sans-serif", fontSize: "clamp(2rem, 5vw, 5.25rem)", lineHeight: 1.04, letterSpacing: "-0.02em" }}
+            className="text-balance tracking-tight text-foreground"
+            style={{ fontFamily: "var(--font-fraunces), Georgia, serif", fontWeight: 900, fontStyle: "italic", fontSize: "clamp(2rem, 5vw, 5.25rem)", lineHeight: 1.04, letterSpacing: "-0.02em" }}
           >
-            Reduce Support Tickets and Add Thousands in Upsell Revenue
+            Reduce Support Tickets and Add Thousands in{" "}
+            <span className="text-[#155FFF]">Upsell Revenue</span>
           </motion.h1>
 
           <motion.p

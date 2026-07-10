@@ -27,19 +27,16 @@ export function Navbar() {
   };
 
   return (
-    <motion.header className="pointer-events-none sticky top-10 z-40 w-full transition-all duration-300">
-      <div className="pointer-events-auto mx-auto flex w-full max-w-[1240px] justify-center px-4 sm:px-6">
-        <div
-          className={cn(
-            "w-full rounded-full border bg-white/95 px-3 shadow-md backdrop-blur-xl transition-all duration-300 sm:px-4 lg:w-[900px]",
-            scrolled
-              ? "border-border py-2.5 shadow-[0_8px_30px_rgb(0,0,0,0.06)]"
-              : "border-border/60 py-3.5"
-          )}
-        >
-          <nav className="flex w-full items-center gap-5" aria-label="Primary">
-            <div className="pl-1.5">
-              <Logo className="h-4" />
+    <motion.header
+      className={cn(
+        "sticky top-0 z-40 w-full border-b bg-white/95 backdrop-blur-xl transition-shadow duration-300",
+        scrolled ? "border-border shadow-[0_4px_20px_rgb(0,0,0,0.05)]" : "border-border/60"
+      )}
+    >
+      <div className="mx-auto w-full max-w-[1240px] px-4 sm:px-6">
+          <nav className="flex w-full items-center gap-5 py-4" aria-label="Primary">
+            <div className="pl-0.5">
+              <Logo className="h-5" />
             </div>
 
             {/* Desktop links */}
@@ -112,7 +109,7 @@ export function Navbar() {
             <div className="hidden items-center gap-2.5 lg:flex">
               <Link
                 href="/#contact"
-                className="whitespace-nowrap rounded-full bg-foreground px-5 py-2.5 text-[0.85rem] font-semibold text-background transition-all hover:bg-foreground/90 active:scale-[0.98]"
+                className="whitespace-nowrap rounded-full bg-[#155FFF] px-5 py-2.5 text-[0.85rem] font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]"
               >
                 Book a free demo
               </Link>
@@ -121,7 +118,7 @@ export function Navbar() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="View on the Shopify App Store"
-                className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#efe9dd] transition-transform hover:scale-105"
+                className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-border bg-white transition-transform hover:scale-105"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element -- Shopify app-store icon */}
                 <img src="/shopify-icon-black.png" alt="Shopify App Store" className="size-5 object-contain" />
@@ -138,7 +135,6 @@ export function Navbar() {
               Product Tour
             </a>
           </nav>
-        </div>
       </div>
     </motion.header>
   );
