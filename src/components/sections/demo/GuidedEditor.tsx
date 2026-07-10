@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, Globe, MapPin, Pencil, Play, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Globe, MapPin, Pencil, Play, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
 import type { DemoStore, DemoProduct } from "@/lib/site";
 import type { Addr } from "./DemoMock";
 import { DemoMock } from "./DemoMock";
@@ -356,10 +356,40 @@ const FINALE: Record<Tab, { action: string; brand: string; stat: string }> = {
 };
 
 
+/** The "Ready to try…" conversion box — desktop shows it in the left rail; mobile
+ *  shows it at the end (below the demo). */
+function ReadyToTryBox({ tab, className }: { tab: Tab; className?: string }) {
+  return (
+    <div className={`relative flex w-full max-w-sm flex-col gap-5 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-6 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md ${className ?? ""}`}>
+      <div>
+        <h3 className="flex flex-col items-center text-center font-sans text-[22px] font-extrabold leading-[1.2] tracking-tight">
+          <span className="text-foreground">Ready to</span>
+          <span className="flex h-[1.4em] items-center justify-center overflow-hidden text-[#155FFF]">{FINALE[tab].action}</span>
+          <span className="text-foreground">on your store?</span>
+        </h3>
+      </div>
+      <div className="flex items-center justify-center gap-3">
+        <ClickpostMark className="size-10 shrink-0 rounded-[9px] shadow-sm" />
+        <div className="text-left">
+          <div className="whitespace-nowrap text-[15px] font-extrabold leading-tight tracking-tight text-neutral-900">CP Order Editing &amp; Upsell</div>
+          <div className="mt-1 flex items-center gap-1 text-[13px] text-neutral-900">
+            <span className="font-bold">5.0</span>
+            <span aria-hidden>★</span>
+            <span className="underline">(52)</span>
+          </div>
+        </div>
+      </div>
+      <div className="flex justify-center"><BuiltForShopifyBadge /></div>
+      <ShopifyAppStoreBadge href={APP_URL} className="w-full" />
+    </div>
+  );
+}
+
 /* ----------------------------- guided editor ----------------------------- */
 export function GuidedEditor({ store }: { store: DemoStore }) {
   const domain = `${(store.brandName || "yourstore").toLowerCase().replace(/[^a-z0-9]+/g, "")}.com`;
   const [tab, setTab] = useState<Tab>("editing");
+  const [featureMenuOpen, setFeatureMenuOpen] = useState(false); // mobile feature dropdown
   const [activePill, setActivePill] = useState<ActionPill["key"]>("tour");
   const [upsellView, setUpsellView] = useState<"thankyou" | "onetap">("onetap");
   const [editView, setEditView] = useState<"thankyou" | "orderstatus">("thankyou"); // order-edit surface
@@ -694,6 +724,18 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     if (!s) return;
     let cancelled = false;
     const timers: ReturnType<typeof setTimeout>[] = [];
+
+    // On mobile the feature rail is a dropdown, so a transition step can't tap a
+    // (hidden) feature card — spotlighting it would frame a zero-size element.
+    // Instead, just auto-switch to the next feature after a short beat.
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
+    if (isMobile && s.nextTour) {
+      setSpotlightRect(null);
+      setDotRect(null);
+      timers.push(setTimeout(() => { if (!cancelled) advanceTour(); }, 900));
+      return () => { cancelled = true; timers.forEach(clearTimeout); };
+    }
+
     // capture the spotlight + dot rects from the (now-settled) DOM
     const measureDemo = () => {
       // measure on every step so the callout can sit to the LEFT of the demo
@@ -709,7 +751,16 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
       // button the step taps (autoClickId), else the spotlight.
       const dotEl = getStepTarget(s.dotId ?? s.autoClickId ?? s.spotlightId ?? s.id);
       if (!el || (s.dotId && !dotEl)) return;
-      if (doScroll && !s.noScroll) scrollInnerIntoView(s.scrollAlignTop ? el : (dotEl ?? el), s.scrollAlignTop);
+      if (doScroll && !s.noScroll) {
+        const scrollTarget = s.scrollAlignTop ? el : (dotEl ?? el);
+        if (isMobile) {
+          // mobile has no inner scroll container — scroll the page/modal so the
+          // highlighted element is in view (desktop keeps scrollInnerIntoView)
+          scrollTarget.scrollIntoView({ block: s.scrollAlignTop ? "start" : "center", inline: "nearest", behavior: "auto" });
+        } else {
+          scrollInnerIntoView(scrollTarget, s.scrollAlignTop);
+        }
+      }
       const r = el.getBoundingClientRect();
       setSpotlightRect({ top: r.top, left: r.left, width: r.width, height: r.height });
       const dr = (dotEl ?? el).getBoundingClientRect();
@@ -785,8 +836,9 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
           typewriter callouts have clean space to the side. Closing the tour
           (cross / Esc → activeTour = null) restores the normal two-column view. */}
       <div className="demo-scale-grid grid grid-cols-1 items-stretch gap-6 lg:min-h-[100svh] lg:grid-cols-[minmax(0,0.52fr)_minmax(0,1.48fr)] lg:gap-0">
-        {/* LEFT: feature buttons + the "ready to try" box */}
-        <div className="relative z-10 flex flex-col gap-6 px-3 pb-6 lg:items-center lg:justify-start lg:pl-0 lg:pr-8 lg:pt-8 lg:pb-12">
+        {/* LEFT: feature buttons + the "ready to try" box (raised on mobile so the
+            feature dropdown overlays the demo top bar instead of hiding behind it) */}
+        <div className="relative z-10 flex flex-col gap-6 px-3 pb-6 max-lg:z-30 lg:items-center lg:justify-start lg:pl-0 lg:pr-8 lg:pt-8 lg:pb-12">
           {/* heading + feature buttons */}
           <div className="w-full max-w-sm">
             <div className="mb-4">
@@ -796,7 +848,40 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
             <h3 className="mb-5 font-serif text-[1.3rem] font-bold italic leading-tight tracking-tight text-foreground">
               Click a feature to run it live.
             </h3>
-            <div className="flex flex-col gap-3">
+            {/* mobile: custom feature dropdown (desktop uses the vertical rail below) */}
+            <div className="relative lg:hidden">
+              <button
+                type="button"
+                onClick={() => setFeatureMenuOpen((v) => !v)}
+                aria-expanded={featureMenuOpen}
+                className="flex w-full items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white px-5 py-3 text-left text-[15px] font-semibold text-neutral-900 shadow-sm"
+              >
+                <span>{NAV_FEATURES.find((n) => n.key === tab)?.label ?? "Choose a feature"}</span>
+                <ChevronDown className={`size-4 shrink-0 text-[#155FFF] transition-transform ${featureMenuOpen ? "rotate-180" : ""}`} />
+              </button>
+              {featureMenuOpen && (
+                <>
+                  <div className="fixed inset-0 z-20" onClick={() => setFeatureMenuOpen(false)} />
+                  <div className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl">
+                    {NAV_FEATURES.map((n) => {
+                      const active = tab === n.key;
+                      return (
+                        <button
+                          key={n.key}
+                          type="button"
+                          onClick={() => { selectFeature(n.key); setFeatureMenuOpen(false); }}
+                          className={`flex w-full items-center justify-between gap-3 px-5 py-3 text-left text-[15px] font-semibold transition-colors ${active ? "bg-[#155FFF] text-white" : "text-neutral-800 hover:bg-neutral-50"}`}
+                        >
+                          <span>{n.label}</span>
+                          {active && <Check className="size-4 shrink-0" strokeWidth={3} />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="flex flex-col gap-3 max-lg:hidden">
             {NAV_FEATURES.map((n) => {
               const active = tab === n.key;
               return (
@@ -823,31 +908,8 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
             </div>
           </div>
 
-          {/* the "ready to try" box — rotating result + app listing + Book a free demo */}
-          <div className="relative flex w-full max-w-sm flex-col gap-5 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-6 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md">
-            <div>
-              <h3 className="flex flex-col items-center text-center font-sans text-[22px] font-extrabold leading-[1.2] tracking-tight">
-                <span className="text-foreground">Ready to</span>
-                <span className="flex h-[1.4em] items-center justify-center overflow-hidden text-[#155FFF]">
-                  {FINALE[tab].action}
-                </span>
-                <span className="text-foreground">on your store?</span>
-              </h3>
-            </div>
-            <div className="flex items-center justify-center gap-3">
-              <ClickpostMark className="size-10 shrink-0 rounded-[9px] shadow-sm" />
-              <div className="text-left">
-                <div className="whitespace-nowrap text-[15px] font-extrabold leading-tight tracking-tight text-neutral-900">CP Order Editing &amp; Upsell</div>
-                <div className="mt-1 flex items-center gap-1 text-[13px] text-neutral-900">
-                  <span className="font-bold">5.0</span>
-                  <span aria-hidden>★</span>
-                  <span className="underline">(52)</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-center"><BuiltForShopifyBadge /></div>
-            <ShopifyAppStoreBadge href={APP_URL} className="w-full" />
-          </div>
+          {/* the "ready to try" box — desktop only (mobile shows it at the end, below the demo) */}
+          <ReadyToTryBox tab={tab} className="max-lg:hidden" />
         </div>
 
         {/* RIGHT: full-bleed blue demo stage — top pill nav + paired sub-row + sliding window */}
@@ -859,7 +921,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
           <div aria-hidden className="absolute inset-0 z-0 hidden lg:block" style={{ background: "linear-gradient(160deg, #eaf2ff 0%, #cfe0ff 42%, #a8c8ff 100%)" }} />
 
           {/* bar over the editing window — Start tour (left) · brand URL (center) · Start free trial (right) */}
-          <div className="relative z-10 flex items-center justify-between gap-3">
+          <div className="relative z-10 flex items-center justify-between gap-3 max-lg:flex-wrap max-lg:justify-center max-lg:gap-2">
             {/* Start tour — with a shine sweep */}
             <button
               onClick={launchTour}
@@ -921,7 +983,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
               href={APP_URL}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-5 py-2.5 text-[13px] font-bold text-white shadow-md transition-all hover:brightness-110"
+              className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-5 py-2.5 text-[13px] font-bold text-white shadow-md transition-all hover:brightness-110 max-lg:hidden"
               style={{ background: "#155FFF" }}
             >
               Start free trial
@@ -1023,6 +1085,9 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
               </motion.div>
             </AnimatePresence>
           </div>
+
+          {/* mobile: the "ready to try" box at the end, below the demo */}
+          <ReadyToTryBox tab={tab} className="mx-auto mt-2 lg:hidden" />
         </div>
       </div>
 

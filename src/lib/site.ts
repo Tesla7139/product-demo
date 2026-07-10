@@ -452,39 +452,21 @@ export const faqs = [
 // ---- Footer ----
 export const footerColumns = [
   {
-    title: "Product",
+    title: "Legal",
     links: [
-      { label: "Order Editing", href: "#features" },
-      { label: "Address Validation", href: "#features" },
-      { label: "Cancellations", href: "#features" },
-      { label: "Upsells", href: "#features" },
-      { label: "EU Product Withdrawal", href: "#features" },
-    ],
-  },
-  {
-    title: "Solutions",
-    links: [
-      { label: "Reduce tickets", href: "#metrics" },
-      { label: "Recover revenue", href: "#metrics" },
-      { label: "Grow AOV", href: "#metrics" },
-    ],
-  },
-  {
-    title: "Resources",
-    links: [
-      { label: "Live demo", href: "/#demo" },
-      { label: "Integrations", href: "/integrations" },
-      { label: "Analytics", href: "/analytics" },
-      { label: "Pricing", href: "/#pricing" },
-      { label: "FAQ", href: "/#faq" },
+      { label: "Privacy Policy", href: "https://www.clickpost.ai/privacy-policy" },
+      { label: "Cookie Policy", href: "https://www.clickpost.ai/cookie-policy" },
+      { label: "Compliance Statement", href: "https://www.clickpost.ai/gdpr-compliance-statement" },
+      { label: "Terms & Conditions", href: "https://www.clickpost.ai/terms-and-conditions" },
+      { label: "Security Profile", href: "https://app.sprinto.com/trust-center/view/88f7aa29-f137-4d49-b596-69c89d260e85" },
     ],
   },
   {
     title: "Company",
     links: [
-      { label: "About", href: "#" },
-      { label: "Contact", href: "#contact" },
-      { label: "Careers", href: "#" },
+      { label: "About Us", href: "https://www.clickpost.ai/about-us" },
+      { label: "Infosec", href: "https://trust.clickpost.ai/" },
+      { label: "Careers", href: "https://www.clickpost.ai/careers" },
     ],
   },
 ];

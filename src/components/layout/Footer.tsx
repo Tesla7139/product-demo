@@ -84,34 +84,28 @@ export function Footer() {
             <div key={col.title} className="flex flex-col gap-3">
               <h3 className="text-eyebrow text-white/45">{col.title}</h3>
               <ul className="flex flex-col gap-2.5">
-                {col.links.map((link) => (
-                  <li key={link.label}>
-                    <a
-                      href={link.href}
-                      className="text-sm text-white/70 transition-colors hover:text-white"
-                    >
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
+                {col.links.map((link) => {
+                  const external = link.href.startsWith("http");
+                  return (
+                    <li key={link.label}>
+                      <a
+                        href={link.href}
+                        target={external ? "_blank" : undefined}
+                        rel={external ? "noreferrer" : undefined}
+                        className="text-sm text-white/70 transition-colors hover:text-white"
+                      >
+                        {link.label}
+                      </a>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}
         </div>
 
         <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-6 text-sm text-white/50 sm:flex-row">
-          <p>
-            © {/* year set at build via copyright */}
-            <span> 2026 {site.name}. All rights reserved.</span>
-          </p>
-          <div className="flex items-center gap-6">
-            <a href="#" className="transition-colors hover:text-white">
-              Terms
-            </a>
-            <a href="#" className="transition-colors hover:text-white">
-              Privacy
-            </a>
-          </div>
+          <p>©2026 Copyright ClickPost — Felurian Technology Private Limited</p>
         </div>
       </Container>
 

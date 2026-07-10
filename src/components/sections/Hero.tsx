@@ -63,7 +63,7 @@ export function Hero() {
       className="relative flex min-h-[100svh] flex-col overflow-hidden pb-8 pt-2 md:pt-3"
       style={{ background: "#ffffff" }}
     >
-      <Container className="flex flex-1 items-start py-4 pt-[5vh] md:pt-[8vh]">
+      <Container className="flex flex-1 items-center py-4 lg:items-start lg:pt-[8vh]">
         <motion.div
           variants={staggerContainer(0.1)}
           initial="hidden"
