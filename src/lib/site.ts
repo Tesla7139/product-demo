@@ -161,6 +161,15 @@ export type CustomerLogo = {
 // from the Shopify App Store export (reviews.csv).
 export const customerLogos: CustomerLogo[] = [
   {
+    src: "/customers/curlwarehouse.png",
+    name: "Curl Warehouse",
+    reviewer: "Curl Warehouse Team",
+    role: "E-commerce",
+    review:
+      "This has reduced the number of emails we receive to update orders. It's easy to use and set up, and the developers have been very receptive to changes.",
+    date: "Nov 21, 2023",
+  },
+  {
     src: "/customers/mateina.png",
     name: "Mateina",
     reviewer: "Mateina Team",
@@ -177,15 +186,6 @@ export const customerLogos: CustomerLogo[] = [
     review:
       "The team at Clickpost are exceptional developers and great people. They listen to feedback and have built genuinely useful tools for Shopify stores.",
     date: "Jan 8, 2024",
-  },
-  {
-    src: "/customers/curlwarehouse.png",
-    name: "Curl Warehouse",
-    reviewer: "Curl Warehouse Team",
-    role: "E-commerce",
-    review:
-      "This has reduced the number of emails we receive to update orders. It's easy to use and set up, and the developers have been very receptive to changes.",
-    date: "Nov 21, 2023",
   },
   {
     src: "/customers/doonails.svg",

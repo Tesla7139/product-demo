@@ -117,8 +117,11 @@ export function OneTapUpsellMock({ store, onComplete, onViewOrder, accentColor, 
           ref={offerRef}
           className="grid grid-cols-1 md:grid-cols-2"
         >
-          {/* product image */}
-          <div className="flex items-center justify-center bg-neutral-50 p-3">
+          {/* product image — with the urgency line on top */}
+          <div className="flex flex-col items-center justify-center gap-2 bg-neutral-50 p-3">
+            <p className="text-center font-serif text-[13px] font-semibold italic leading-snug text-red-500">
+              Don&apos;t miss out — this offer expires when you leave this page!
+            </p>
             <DemoImg src={offer?.image} alt={offer?.title ?? ""} className="h-[150px] w-full object-contain" />
           </div>
 
@@ -133,9 +136,6 @@ export function OneTapUpsellMock({ store, onComplete, onViewOrder, accentColor, 
                 <span className="text-[15px] text-neutral-400 line-through">{fmt(full)}</span>
                 <span className="text-[20px] font-bold text-red-500">{fmt(deal)}</span>
               </div>
-              <p className="mt-1 text-[12px] text-neutral-500">
-                Don&apos;t miss out on this offer... it expires after you leave this page!
-              </p>
 
               {/* interactive variant selector */}
               {variantList.length > 0 && (

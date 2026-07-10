@@ -448,8 +448,13 @@ export function DemoMock({
                           <button
                             ref={tourRefs?.addrSaveBtn}
                             onClick={() => {
-                              if (addrFlagged) { setAddr(VERIFIED_ADDR); setAddrValidated(true); flash("Address verified & deliverable"); }
-                              else { flash("Shipping address updated"); }
+                              if (addrFlagged) {
+                                // 1st tap: write the corrected address in place
+                                setAddr(VERIFIED_ADDR); setAddrValidated(true); flash("Address verified & deliverable");
+                              } else {
+                                // 2nd tap: close the section and confirm
+                                setOpen(null); flash("Shipping address updated");
+                              }
                               onShippingSaved?.();
                             }}
                             className="mt-1 w-full rounded-md py-3 text-sm font-semibold text-white transition-all hover:brightness-125 active:scale-[0.99]"

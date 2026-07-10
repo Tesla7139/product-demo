@@ -319,6 +319,38 @@ const FINALE: Record<Tab, { action: string; brand: string; stat: string }> = {
   },
 };
 
+// The varying middle of the CTA headline, cycled in a typewriter effect.
+const ROTATING_ACTIONS = NAV_FEATURES.map((n) => FINALE[n.key].action);
+
+/** Types the CTA action phrases in a loop. Freezes on `staticText` when paused (during the tour). */
+function RotatingAction({ paused, staticText }: { paused: boolean; staticText: string }) {
+  const [i, setI] = useState(0);
+  const [text, setText] = useState("");
+  const [phase, setPhase] = useState<"type" | "hold" | "delete">("type");
+  useEffect(() => {
+    if (paused) return;
+    const full = ROTATING_ACTIONS[i] ?? "";
+    let t: ReturnType<typeof setTimeout>;
+    if (phase === "type") {
+      if (text.length < full.length) t = setTimeout(() => setText(full.slice(0, text.length + 1)), 50);
+      else t = setTimeout(() => setPhase("hold"), 3400); // ~5s per phrase incl. type/delete
+    } else if (phase === "hold") {
+      t = setTimeout(() => setPhase("delete"), 100);
+    } else {
+      if (text.length > 0) t = setTimeout(() => setText(text.slice(0, -1)), 25);
+      else t = setTimeout(() => { setI((n) => (n + 1) % ROTATING_ACTIONS.length); setPhase("type"); }, 250);
+    }
+    return () => clearTimeout(t);
+  }, [text, phase, i, paused]);
+  if (paused) return <>{staticText}</>;
+  return (
+    <>
+      {text}
+      <span className="ml-0.5 inline-block w-[2px] animate-pulse text-[#155FFF]">|</span>
+    </>
+  );
+}
+
 /** Official-style "Built for Shopify" badge — light-blue pill + cyan diamond. */
 function BuiltForShopifyBadge() {
   return (
@@ -768,9 +800,12 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
           {/* the "ready to try" box — rotating result + app listing + Book a free demo */}
           <div className="relative flex w-full max-w-sm flex-col gap-5 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-6 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md">
             <div>
-              <h3 className="font-sans text-[22px] font-extrabold leading-[1.15] tracking-tight text-foreground">
-                Ready to {FINALE[tab].action} on{" "}
-                <span className="text-[#155FFF]">your store</span>?
+              <h3 className="flex flex-col items-center text-center font-sans text-[22px] font-extrabold leading-[1.2] tracking-tight">
+                <span className="text-foreground">Ready to</span>
+                <span className="flex h-[1.4em] items-center justify-center overflow-hidden text-[#155FFF]">
+                  <RotatingAction paused={!!activeTour} staticText={FINALE[tab].action} />
+                </span>
+                <span className="text-foreground">on your store?</span>
               </h3>
             </div>
             <div className="flex items-center justify-center gap-3">
@@ -792,7 +827,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
               className="flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-[0.99]"
               style={{ background: "#155FFF" }}
             >
-              Start free trial <ArrowUpRight className="size-4 shrink-0" />
+              Get started for free <ArrowUpRight className="size-4 shrink-0" />
             </a>
           </div>
         </div>
