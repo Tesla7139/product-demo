@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Share2, Globe, Mail, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { Logo } from "./Logo";
 import { Container } from "@/components/primitives/Container";
 import { footerColumns, site } from "@/lib/site";
@@ -56,18 +56,6 @@ export function Footer() {
               Self-service order editing, address validation, and post-purchase upsells for
               modern commerce.
             </p>
-            <div className="flex items-center gap-3">
-              {[Share2, Globe, Mail].map((Icon, i) => (
-                <a
-                  key={i}
-                  href="#"
-                  aria-label="Social link"
-                  className="flex size-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/70 transition-all hover:border-white hover:text-white"
-                >
-                  <Icon className="size-4" />
-                </a>
-              ))}
-            </div>
           </div>
 
           {/* Security & compliance — top-aligned column (lines up with the link columns) */}
