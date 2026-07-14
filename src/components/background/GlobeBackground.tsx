@@ -27,8 +27,11 @@ function supportsWebGL() {
 export function GlobeBackground() {
   const [enabled, setEnabled] = useState(false);
   const pathname = usePathname();
-  // no globe on the home / demo funnel pages
-  const onHome = pathname === "/" || pathname.startsWith("/product-demo");
+  // no globe on the home / demo funnel pages, or the reviews wall
+  const onHome =
+    pathname === "/" ||
+    pathname.startsWith("/product-demo") ||
+    pathname.startsWith("/reviews");
 
   useEffect(() => {
     const ok =

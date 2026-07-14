@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useLayoutEffect, useMemo, useRef } from "react";
-import { Star } from "lucide-react";
+import { Star, ArrowLeft } from "lucide-react";
 import { Container } from "@/components/primitives/Container";
 import { ReviewCard } from "@/components/ui/ReviewCard";
 import { reviews, type Review } from "@/lib/reviews";
-import { customerLogos } from "@/lib/site";
+import { customerLogos, brandInfo } from "@/lib/site";
 import { Button } from "@/components/ui/button";
 
 // Brands featured in the home brand strip — the popular ones. Their reviews are
@@ -96,7 +96,12 @@ const rankedReviews: Review[] = (() => {
   // relative order; everything else follows.
   const strip = ordered.filter((r) => STRIP_BRANDS.has(r.name.toLowerCase().trim()));
   const others = ordered.filter((r) => !STRIP_BRANDS.has(r.name.toLowerCase().trim()));
-  return [...strip, ...others];
+  const byStrip = [...strip, ...others];
+  // Finally, surface reviews that carry a country tag (brandInfo.country) to the
+  // very top — keeping their existing relative order.
+  const withCountry = byStrip.filter((r) => !!brandInfo[r.name]?.country);
+  const withoutCountry = byStrip.filter((r) => !brandInfo[r.name]?.country);
+  return [...withCountry, ...withoutCountry];
 })();
 
 const displayedReviews: Review[] = rankedReviews.slice(0, MAX_REVIEWS_COUNT);
@@ -178,6 +183,14 @@ export default function ReviewsPage() {
       {/* 1. Header Section */}
       <section className="relative overflow-hidden pb-2 pt-6 md:pt-8">
         <Container>
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-black/60 transition-colors hover:text-black"
+          >
+            <ArrowLeft className="size-4" />
+            Back
+          </button>
           <div className="mx-auto max-w-3xl text-center">
             <h1
               className="font-serif font-normal tracking-tight text-black"

@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { ShopifyAppStoreBadge } from "./ShopifyAppStoreBadge";
-import { BuiltForShopifyBadge } from "./BuiltForShopifyBadge";
 
 const TOUR_ACCENT = "#155FFF";
 
@@ -172,13 +171,8 @@ export function TourOverlay({
                 {headline}
               </h2>
 
-              {/* Built for Shopify */}
-              <div className="mt-4">
-                <BuiltForShopifyBadge />
-              </div>
-
               {/* Available on Shopify App Store */}
-              {outcomeHref && <ShopifyAppStoreBadge href={outcomeHref} className="mt-3 w-full max-w-[280px]" />}
+              {outcomeHref && <ShopifyAppStoreBadge href={outcomeHref} className="mt-4 w-full max-w-[280px]" />}
 
               {/* Watch next feature — auto-opens the next feature and starts its tour */}
               {nextFeatureLabel && onNextFeature && (

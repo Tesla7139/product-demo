@@ -39,22 +39,29 @@ export function ReviewCard({ review }: { review: Review }) {
       {/* footer: brand (logo when available), a "country · date" meta line, and an
           optional revenue-tier pill for featured brands */}
       <div className="mt-5 border-t border-black/5 pt-3">
-        <div className="flex items-center justify-between gap-3">
-          {logo ? (
-            // eslint-disable-next-line @next/next/no-img-element -- local customer logo assets
-            <img src={logo} alt={name} className="max-h-5 max-w-[110px] object-contain object-left brightness-0" />
-          ) : (
-            <span className="text-[13px] font-bold text-black">{name}</span>
-          )}
-          <span className="shrink-0 text-right text-[12.5px] font-medium text-black/40">
-            {info?.country ? `${info.country} · ` : ""}{date}
-          </span>
+        <div className="flex items-start justify-between gap-3">
+          {/* brand with the country directly beneath it (left-aligned) */}
+          <div className="flex flex-col items-start gap-1.5">
+            {logo ? (
+              // eslint-disable-next-line @next/next/no-img-element -- local customer logo assets
+              <img src={logo} alt={name} className="max-h-5 max-w-[110px] object-contain object-left brightness-0" />
+            ) : (
+              <span className="text-[13px] font-bold text-black">{name}</span>
+            )}
+            {info?.country && (
+              <span className="text-[12px] font-semibold text-[#D97706]">{info.country}</span>
+            )}
+          </div>
+          {/* tier pill on the right, with the date beneath it */}
+          <div className="flex shrink-0 flex-col items-end gap-1.5">
+            {info?.tier && (
+              <span className="inline-flex items-center rounded-full border border-amber-300/70 bg-gradient-to-b from-amber-50 to-amber-100 px-2.5 py-0.5 text-[11.5px] font-bold text-amber-700 shadow-sm">
+                {info.tier}
+              </span>
+            )}
+            <span className="text-[12.5px] font-medium text-black/40">{date}</span>
+          </div>
         </div>
-        {info?.tier && (
-          <span className="mt-2.5 inline-block rounded-full bg-[#155FFF]/10 px-2.5 py-0.5 text-[11.5px] font-semibold text-[#155FFF]">
-            {info.tier}
-          </span>
-        )}
       </div>
     </div>
   );

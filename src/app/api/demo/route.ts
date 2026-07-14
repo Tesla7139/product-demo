@@ -575,7 +575,7 @@ export async function POST(req: Request) {
   // than DuckDuckGo (which 404s to a gray-chevron placeholder for big sites like
   // flipkart.com), so the browser bar shows the brand icon, never a broken glyph.
   if (!branding.logo) {
-    branding.logo = `https://www.google.com/s2/favicons?domain=${url.hostname.replace(/^www\./, "")}&sz=128`;
+    branding.logo = `https://www.google.com/s2/favicons?domain=${url.hostname.replace(/^www\./, "")}&sz=256`;
   }
 
   const data: Branding = { ...branding, currency, products };

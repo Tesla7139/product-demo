@@ -248,8 +248,8 @@ const ADDRESS_TOUR_STEPS: TourStepDef[] = [
     desc: "Tap Update Shipping Address to lock in the verified, deliverable address on the order — no failed delivery, no return-to-origin.",
     cta: "Next",
     measureDelayMs: 460, // wait for the button to relabel to "Update Shipping Address"
-    spotlightId: "addr-validate", // the same save button, now "Update Shipping Address"
-    dotId: "addr-validate",
+    spotlightId: "addr-flagged", // highlight the full corrected address block…
+    dotId: "addr-validate", // …with the red dot on the Update Shipping Address button
     autoClickId: "addr-validate", // tap → shipping address saved
     scrollAlignTop: true,
   },
@@ -367,18 +367,18 @@ const FINALE: Record<Tab, { action: string; brand: string; stat: string }> = {
  *  shows it at the end (below the demo). */
 function ReadyToTryBox({ tab, className }: { tab: Tab; className?: string }) {
   return (
-    <div className={`relative flex w-full max-w-sm flex-col gap-5 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-6 text-center shadow-[0_1px_2px_rgba(15,15,25,0.06),0_18px_44px_-14px_rgba(15,15,25,0.30)] backdrop-blur-md ${className ?? ""}`}>
+    <div className={`relative flex w-full max-w-sm flex-col gap-3.5 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-5 text-center shadow-[0_1px_2px_rgba(15,15,25,0.06),0_18px_44px_-14px_rgba(15,15,25,0.30)] backdrop-blur-md ${className ?? ""}`}>
       <h3
-        className="text-balance text-[22px] font-semibold leading-[1.15] tracking-tight text-foreground"
+        className="text-balance text-[18px] font-semibold leading-[1.15] tracking-tight text-foreground"
         style={{ fontFamily: "var(--font-display), sans-serif" }}
       >
         Ready to {FINALE[tab].action} on <span className="text-[#155FFF]">your store</span>?
       </h3>
-      <div className="flex items-center justify-center gap-3">
-        <ClickpostMark className="size-14 shrink-0 rounded-[11px] shadow-sm" />
+      <div className="flex items-center justify-center gap-2.5">
+        <ClickpostMark className="size-10 shrink-0 rounded-[9px] shadow-sm" />
         <div className="text-left">
-          <div className="whitespace-nowrap text-[13px] font-medium leading-tight tracking-tight text-neutral-900">CP Order Editing &amp; Upsell</div>
-          <div className="mt-1.5"><BuiltForShopifyBadge compact /></div>
+          <div className="whitespace-nowrap text-[12px] font-medium leading-tight tracking-tight text-neutral-900">CP Order Editing &amp; Upsell</div>
+          <div className="mt-1"><BuiltForShopifyBadge compact /></div>
         </div>
       </div>
       <ShopifyAppStoreBadge href={APP_URL} className="w-full" />
@@ -646,8 +646,16 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     if (!activeTour) return;
     const list = TOUR_STEPS[activeTour];
     const cur = list[tourStep];
-    // each feature tour ends on its own finale (outcome) step — advancing closes it
+    // advancing off the finale box closes the tour
     if (cur?.outcome) { closeTour(); return; }
+    const nextStep = list[tourStep + 1];
+    // The conversion box (outcome step) is shown ONLY at the very end of the journey
+    // (the last feature). For every earlier feature, skip the box and flow straight
+    // into the next feature's tour.
+    if (nextStep?.outcome) {
+      const hasNext = TOUR_ORDER.indexOf(activeTour) < TOUR_ORDER.length - 1;
+      if (hasNext) { goToNextFeature(); return; }
+    }
     if (tourStep >= list.length - 1) {
       setActiveTour(null); setSpotlightRect(null); scrollDemoTop();
     } else {

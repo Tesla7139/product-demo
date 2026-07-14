@@ -44,7 +44,7 @@ function LogoItem({ logo }: { logo: CustomerLogo }) {
           )}
         </span>
         {info?.tier && (
-          <span className="mt-2 rounded-full bg-primary/10 px-3 py-0.5 text-center text-[11px] font-semibold text-primary">
+          <span className="mt-2 inline-flex items-center rounded-full border border-amber-300/70 bg-gradient-to-b from-amber-50 to-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-700 shadow-sm">
             {info.tier}
           </span>
         )}
@@ -68,7 +68,7 @@ function LogoItem({ logo }: { logo: CustomerLogo }) {
           )}
           <div className="mt-2 text-[13px] font-bold text-foreground">{reviewer}</div>
           {info?.country && (
-            <div className="text-[12px] text-muted-foreground">{info.country}</div>
+            <div className="text-[12px] font-semibold text-[#D97706]">{info.country}</div>
           )}
         </div>
       </div>
@@ -90,7 +90,7 @@ export function CustomerLogos({ embedded = false }: { embedded?: boolean }) {
     >
       {/* slow the drift while the pointer is over the strip (instead of stopping)
           so hovered cards can expand without the row sliding away */}
-      <Marquee items={items} duration={40} hoverSlow={0.15} />
+      <Marquee items={items} duration={70} hoverSlow={0.15} />
     </Wrapper>
   );
 }

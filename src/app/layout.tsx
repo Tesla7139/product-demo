@@ -3,7 +3,6 @@ import { Inter, Fraunces } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { GlobeBackground } from "@/components/background/GlobeBackground";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -62,7 +61,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to content
         </a>
-        <GlobeBackground />
         <Navbar />
         <main id="main">{children}</main>
         <Footer />

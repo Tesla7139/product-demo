@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { Logo } from "./Logo";
@@ -107,21 +106,13 @@ export function Navbar() {
 
             {/* Right actions */}
             <div className="hidden items-center gap-2.5 lg:flex">
-              <Link
-                href="/#contact"
-                className="whitespace-nowrap rounded-full bg-[#155FFF] px-5 py-2.5 text-[0.85rem] font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]"
-              >
-                Get started for free
-              </Link>
               <a
                 href={SHOPIFY_LISTING}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="View on the Shopify App Store"
-                className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-border bg-white transition-transform hover:scale-105"
+                className="whitespace-nowrap rounded-full bg-[#155FFF] px-5 py-2.5 text-[0.85rem] font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element -- Shopify app-store icon */}
-                <img src="/shopify-icon-black.png" alt="Shopify App Store" className="size-5 object-contain" />
+                Get started for free
               </a>
             </div>
 

@@ -299,8 +299,8 @@ function WelcomeView({ store, brand, name, domain, onContinue }: { store: DemoSt
               {/* the brand mark, inside the laptop screen (logo preferred, centered) */}
               <div className="relative aspect-[16/10] w-full overflow-hidden bg-white">
                 {storeLogo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={storeLogo} alt={name} className="absolute inset-0 h-full w-full object-contain p-8 sm:p-12" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = "none")} />
+                  // eslint-disable-next-line @next/next/no-img-element -- center + cap size so small favicons stay crisp instead of being blown up full-bleed
+                  <img src={storeLogo} alt={name} className="absolute inset-0 m-auto max-h-[62%] max-w-[72%] object-contain" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = "none")} />
                 ) : productImg ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={productImg} alt={name} className="absolute inset-0 h-full w-full object-cover" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = "none")} />
