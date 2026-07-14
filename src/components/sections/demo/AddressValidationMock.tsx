@@ -122,7 +122,7 @@ export function AddressValidationMock({ store, tourRefs, onValidated, onConfirme
               error={flagged ? "Street address could not be fully validated. Please review." : undefined}
             />
             <Field label="Address 2" value={f.address2} />
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
               <Field label="City" value={f.city} />
               <Field label="Province / State" value={f.state} chevron />
               <Field

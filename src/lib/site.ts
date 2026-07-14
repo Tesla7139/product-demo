@@ -45,7 +45,7 @@ export const mainNav: NavItem[] = [
     label: "Customer Love",
     href: "/reviews",
     items: [
-      { label: "Love Gallery", href: "/reviews", desc: "52 five-star merchant reviews" },
+      { label: "Reviews", href: "/reviews", desc: "52 five-star merchant reviews" },
     ],
   },
 ];

@@ -440,7 +440,7 @@ export function DemoMock({
                           </div>
                           <Field label="Address 1" value={addr.line1} onChange={(v) => setAddr({ ...addr, line1: v })} emphasize={emphasis.line1 || formEmphasis} invalid={addrFlagged} valid={addrValidated} error={addrFlagged ? "Street address could not be fully validated. Please review." : undefined} />
                           <Field label="Address 2" value="" onChange={() => {}} />
-                          <div className="grid grid-cols-3 gap-2.5">
+                          <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-3">
                             <Field label="City" value={addr.city} onChange={(v) => setAddr({ ...addr, city: v })} emphasize={emphasis.city || formEmphasis} />
                             <SelectField label="Province / State" value={addr.state} emphasize={formEmphasis} />
                             <Field label="Postal Code" value={addr.zip} onChange={(v) => setAddr({ ...addr, zip: v })} emphasize={emphasis.zip || formEmphasis} invalid={addrFlagged} valid={addrValidated} error={addrFlagged ? "Postal code could not be validated." : undefined} />
@@ -530,7 +530,7 @@ export function DemoMock({
 
                   <AccordionRow icon={X} label="Cancel Your Order" isOpen={open === "cancel"} onClick={() => toggle("cancel")} locked={addressValidation}>
                     <p className="text-sm text-neutral-600">
-                      Cancel your order for {fmt(subtotal)} and choose how you&apos;d like to be refunded.
+                      {`Cancel your order for ${fmt(subtotal)} and choose how you'd like to be refunded.`}
                     </p>
                     <div className="mt-3 grid grid-cols-2 gap-2">
                       <button

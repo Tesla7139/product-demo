@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Sparkles } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { Logo } from "./Logo";
 import { mainNav } from "@/lib/site";
 import { cn } from "@/lib/utils";
@@ -129,9 +129,8 @@ export function Navbar() {
             <a
               href="/#demo"
               onClick={() => fireDemoShake("/#demo")}
-              className="ml-auto inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[0.9rem] font-semibold text-foreground transition-colors hover:text-primary lg:hidden"
+              className="ml-auto inline-flex items-center rounded-full px-4 py-2 text-[0.9rem] font-semibold text-foreground transition-colors hover:text-primary lg:hidden"
             >
-              <Sparkles className="size-4 text-primary" />
               Product Tour
             </a>
           </nav>
