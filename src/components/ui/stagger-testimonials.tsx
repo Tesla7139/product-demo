@@ -93,11 +93,16 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({ position, review, han
         isCenter ? "text-neutral-600" : "text-muted-foreground"
       )}>
         <div className="flex items-baseline justify-between gap-2 font-semibold">
-          <span className="truncate">{review.name}{review.info?.country ? ` · ${review.info.country}` : ""}</span>
+          <span className="truncate">
+            {review.name}
+            {review.info?.country && (
+              <span className="font-semibold text-[#D97706]"> · {review.info.country}</span>
+            )}
+          </span>
           {review.date && <span className="shrink-0">{review.date}</span>}
         </div>
         {review.info?.tier && (
-          <span className="mt-1.5 inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+          <span className="mt-1.5 inline-flex items-center rounded-full border border-amber-300/70 bg-gradient-to-b from-amber-50 to-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-700 shadow-sm">
             {review.info.tier}
           </span>
         )}
