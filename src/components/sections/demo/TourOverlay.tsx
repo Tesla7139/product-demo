@@ -8,14 +8,6 @@ import { BuiltForShopifyBadge } from "./BuiltForShopifyBadge";
 
 const TOUR_ACCENT = "#155FFF";
 
-/** Clickpost app icon — official logo from /public. */
-function ClickpostMark({ className }: { className?: string }) {
-  return (
-    // eslint-disable-next-line @next/next/no-img-element -- local brand asset
-    <img src="/clickpost-app-logo.svg" alt="CP Order Editing" className={className} />
-  );
-}
-
 /** Types `text` out character by character; restarts whenever `text` changes. */
 function Typewriter({ text, className }: { text: string; className?: string }) {
   const [n, setN] = useState(0);
@@ -64,6 +56,8 @@ export function TourOverlay({
   blurRect,
   displayStep,
   displayTotal,
+  nextFeatureLabel,
+  onNextFeature,
   onAdvance,
   onClose,
 }: {
@@ -101,6 +95,10 @@ export function TourOverlay({
   finalStep?: boolean;
   /** The editing/demo window rect — outcome steps blur only this region. */
   blurRect?: TourRect | null;
+  /** Label of the next feature — when set, the finale shows a "Watch next" CTA. */
+  nextFeatureLabel?: string;
+  /** Jump to the next feature and auto-start its tour. */
+  onNextFeature?: () => void;
   onAdvance: () => void;
   onClose: () => void;
 }) {
@@ -169,21 +167,8 @@ export function TourOverlay({
                 You&apos;ve seen it in action
               </div>
 
-              {/* app logo (side) + full name */}
-              <div className="flex items-center gap-3">
-                <ClickpostMark className="size-11 shrink-0 rounded-[10px] shadow-sm" />
-                <span className="text-left text-[20px] font-extrabold leading-tight tracking-tight text-neutral-900">CP Order Editing &amp; Upsell</span>
-              </div>
-
-              {/* review */}
-              <div className="mt-2 flex items-center gap-1 text-[13px] text-neutral-900">
-                <span className="font-bold">5.0</span>
-                <span aria-hidden>★</span>
-                <span className="underline">(52)</span>
-              </div>
-
               {/* headline */}
-              <h2 className="mt-4 max-w-xs font-sans text-[17px] font-extrabold leading-[1.15] tracking-tight text-neutral-900">
+              <h2 className="max-w-xs font-sans text-[17px] font-extrabold leading-[1.15] tracking-tight text-neutral-900">
                 {headline}
               </h2>
 
@@ -194,6 +179,17 @@ export function TourOverlay({
 
               {/* Available on Shopify App Store */}
               {outcomeHref && <ShopifyAppStoreBadge href={outcomeHref} className="mt-3 w-full max-w-[280px]" />}
+
+              {/* Watch next feature — auto-opens the next feature and starts its tour */}
+              {nextFeatureLabel && onNextFeature && (
+                <button
+                  onClick={onNextFeature}
+                  className="mt-3 flex w-full max-w-[280px] items-center justify-center gap-2 rounded-xl border-2 border-[#155FFF] bg-white px-4 py-2.5 text-[13px] font-bold text-[#155FFF] transition-colors hover:bg-[#155FFF]/5 active:scale-[0.99]"
+                >
+                  Watch next: {nextFeatureLabel}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                </button>
+              )}
 
             </div>
             </div>

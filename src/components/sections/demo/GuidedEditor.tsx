@@ -243,6 +243,17 @@ const ADDRESS_TOUR_STEPS: TourStepDef[] = [
     scrollAlignTop: true, // keep the tall address block inside the window (don't spill over the top bar)
   },
   {
+    id: "addr-update",
+    title: "Save the corrected address",
+    desc: "Tap Update Shipping Address to lock in the verified, deliverable address on the order — no failed delivery, no return-to-origin.",
+    cta: "Next",
+    measureDelayMs: 460, // wait for the button to relabel to "Update Shipping Address"
+    spotlightId: "addr-validate", // the same save button, now "Update Shipping Address"
+    dotId: "addr-validate",
+    autoClickId: "addr-validate", // tap → shipping address saved
+    scrollAlignTop: true,
+  },
+  {
     // end of the address validation tour → conversion screen
     id: "address-finish",
     title: "",
@@ -310,6 +321,9 @@ const TOUR_STEPS: Record<Tour, TourStepDef[]> = {
   address: ADDRESS_TOUR_STEPS,
   "eu-withdrawal": EU_WITHDRAWAL_TOUR_STEPS,
 };
+
+// Order features run in — the finale "Watch next" CTA chains to the next one.
+const TOUR_ORDER: Tour[] = ["editing", "upsell", "address", "eu-withdrawal"];
 
 /** Clickpost "Order Edit & Cancel" app icon — official logo from /public. */
 function ClickpostMark({ className }: { className?: string }) {
@@ -454,6 +468,9 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
 
   const steps = activeTour ? TOUR_STEPS[activeTour] : [];
   const curStep = activeTour ? steps[tourStep] : null;
+  // the feature that runs after the current one (for the finale's "Watch next" CTA)
+  const nextTourKey = activeTour ? TOUR_ORDER[TOUR_ORDER.indexOf(activeTour) + 1] : undefined;
+  const nextFeatureLabel = nextTourKey ? NAV_FEATURES.find((n) => n.key === nextTourKey)?.label : undefined;
   // Progress numbering — count only the steps that show a box (skip hideCard /
   // outcome steps), running continuously across the chained journey.
   const isBoxStep = (s: TourStepDef) => !s.hideCard && !s.outcome;
@@ -565,14 +582,30 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
   }
 
   // "Start tour" — runs the CURRENT feature's own tour, ending on its finale screen.
-  function launchTour() {
+  // Switch to a feature and auto-start its tour from a clean slate.
+  function startFeatureTour(t: Tour) {
     resetDemo(); // fresh 2-item order + fresh timer before we begin
-    const t: Tour = (TOUR_STEPS[tab as Tour] ? (tab as Tour) : "editing");
     setActiveTour(null);
     setSpotlightRect(null);
     setActivePill("tour");
+    setTourForcedOpen(null);
+    // the Upsell tour always begins on the one-tap offer view
+    if (t === "upsell") { setUpsellView("onetap"); setUpsellExtras([]); }
     setTab(t);
     setPendingTour(t);
+  }
+
+  function launchTour() {
+    const t: Tour = (TOUR_STEPS[tab as Tour] ? (tab as Tour) : "editing");
+    startFeatureTour(t);
+  }
+
+  // From a finale, jump to the next feature in TOUR_ORDER and start its tour.
+  function goToNextFeature() {
+    if (!activeTour) return;
+    const next = TOUR_ORDER[TOUR_ORDER.indexOf(activeTour) + 1];
+    if (next) startFeatureTour(next);
+    else closeTour(); // last feature — nothing after it
   }
 
   // Bring a target into view by scrolling ONLY its nearest inner scroll container
@@ -1083,6 +1116,8 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
           nextLabel={curStep.nextLabel}
           finalStep={curStep.finalStep}
           blurRect={demoRect}
+          nextFeatureLabel={nextFeatureLabel}
+          onNextFeature={goToNextFeature}
           onAdvance={advanceTour}
           onClose={closeTour}
         />
