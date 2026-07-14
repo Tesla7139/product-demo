@@ -820,7 +820,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                 type="button"
                 onClick={() => setFeatureMenuOpen((v) => !v)}
                 aria-expanded={featureMenuOpen}
-                className="flex w-full items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white px-5 py-3 text-left text-[15px] font-semibold text-neutral-900 shadow-sm"
+                className="flex w-full items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-left text-[14px] font-semibold text-neutral-900 shadow-sm"
               >
                 <span>{NAV_FEATURES.find((n) => n.key === tab)?.label ?? "Choose a feature"}</span>
                 <ChevronDown className={`size-4 shrink-0 text-[#155FFF] transition-transform ${featureMenuOpen ? "rotate-180" : ""}`} />
@@ -828,7 +828,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
               {featureMenuOpen && (
                 <>
                   <div className="fixed inset-0 z-20" onClick={() => setFeatureMenuOpen(false)} />
-                  <div className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl">
+                  <div className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl">
                     {NAV_FEATURES.map((n) => {
                       const active = tab === n.key;
                       return (
@@ -836,7 +836,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                           key={n.key}
                           type="button"
                           onClick={() => { selectFeature(n.key); setFeatureMenuOpen(false); }}
-                          className={`flex w-full items-center justify-between gap-3 px-5 py-3 text-left text-[15px] font-semibold transition-colors ${active ? "bg-[#155FFF] text-white" : "text-neutral-800 hover:bg-neutral-50"}`}
+                          className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[14px] font-semibold transition-colors ${active ? "bg-[#155FFF] text-white" : "text-neutral-800 hover:bg-neutral-50"}`}
                         >
                           <span>{n.label}</span>
                           {active && <Check className="size-4 shrink-0" strokeWidth={3} />}

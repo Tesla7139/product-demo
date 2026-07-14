@@ -60,22 +60,24 @@ export function DemoUrlInput({
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Enter your store URL"
-            className="h-12 flex-1 bg-transparent pl-5 pr-2 text-[0.95rem] text-foreground placeholder:text-muted-foreground/70 outline-none focus:outline-none focus-visible:outline-none [&:focus-visible]:outline-none lg:h-14 lg:pl-6 lg:text-[1.05rem]"
+            className="h-10 flex-1 bg-transparent pl-4 pr-2 text-[0.85rem] text-foreground placeholder:text-muted-foreground/70 outline-none focus:outline-none focus-visible:outline-none [&:focus-visible]:outline-none lg:h-14 lg:pl-6 lg:text-[1.05rem]"
             style={{ outline: "none", boxShadow: "none" }}
           />
           <button
             type="submit"
             disabled={loading}
             aria-busy={loading}
-            className="flex h-12 shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-primary px-5 text-[0.9rem] font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary/90 active:scale-95 disabled:opacity-70 lg:h-14 lg:px-7 lg:text-[1rem]"
+            className="flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-primary px-3.5 text-[0.8rem] font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary/90 active:scale-95 disabled:opacity-70 lg:h-14 lg:gap-2 lg:px-7 lg:text-[1rem]"
           >
             {loading ? (
               <>
-                <Loader2 className="size-4 animate-spin" /> Generating
+                <Loader2 className="size-4 animate-spin" />
+                <span className="max-lg:hidden">Generating</span>
               </>
             ) : (
               <>
-                See it live <ArrowRight className="size-4" />
+                <span className="max-lg:hidden">See it live</span>
+                <ArrowRight className="size-4" />
               </>
             )}
           </button>
