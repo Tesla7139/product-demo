@@ -183,7 +183,7 @@ export default function ReviewsPage() {
               className="font-serif font-normal tracking-tight text-black"
               style={{ fontSize: "clamp(2.25rem,5vw,3.25rem)", lineHeight: 1.05 }}
             >
-              Love Gallery
+              Trusted by Shopify Merchants
             </h1>
             <p className="mx-auto mt-3 max-w-2xl text-base md:text-lg text-black/70 leading-relaxed font-medium">
               See what real store owners are saying about using Clickpost Order Editing to
@@ -215,7 +215,7 @@ export default function ReviewsPage() {
               className="font-sans font-extrabold tracking-tight text-black"
               style={{ fontSize: "clamp(2.25rem,5vw,3.25rem)", lineHeight: 1.05 }}
             >
-              Wall of love
+              Customer Reviews
             </h2>
             <p className="mt-2 text-sm text-black/50 font-medium">
               52 five-star merchant reviews — synced from our public App Store listing.

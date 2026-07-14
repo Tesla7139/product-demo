@@ -235,7 +235,9 @@ const TICKETS = [
 /* ----------------------------- Welcome ----------------------------- */
 function WelcomeView({ store, brand, name, domain, onContinue }: { store: DemoStore; brand: string; name: string; domain: string; onContinue: () => void }) {
   // full-res image: a product photo if we have one, else the store's hero/logo
-  const heroImg = store.products.find((p) => p.image)?.image || store.logo || null;
+  // prefer the store's logo (cleaner than a random product photo); fall back to a product image
+  const storeLogo = store.logo || null;
+  const productImg = store.products.find((p) => p.image)?.image || null;
   const dom = domain || `${name.toLowerCase().replace(/[^a-z0-9]+/g, "")}.com`;
   // "dive into the laptop": on click, the laptop screen zooms up to fill the
   // viewport, then we hand off to the editing scene.
@@ -294,11 +296,14 @@ function WelcomeView({ store, brand, name, domain, onContinue }: { store: DemoSt
                   <span className="truncate">{dom}</span>
                 </span>
               </div>
-              {/* the picture, inside the laptop screen */}
-              <div className="relative aspect-[16/10] w-full overflow-hidden bg-neutral-100">
-                {heroImg ? (
+              {/* the brand mark, inside the laptop screen (logo preferred, centered) */}
+              <div className="relative aspect-[16/10] w-full overflow-hidden bg-white">
+                {storeLogo ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={heroImg} alt={name} className="absolute inset-0 h-full w-full object-cover" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = "none")} />
+                  <img src={storeLogo} alt={name} className="absolute inset-0 h-full w-full object-contain p-8 sm:p-12" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = "none")} />
+                ) : productImg ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={productImg} alt={name} className="absolute inset-0 h-full w-full object-cover" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = "none")} />
                 ) : (
                   <div aria-hidden className="absolute inset-0 flex items-center justify-center text-white" style={{ background: `linear-gradient(135deg, ${brand}, #0f172a)` }}>
                     <span className="text-6xl font-extrabold opacity-90">{name.charAt(0).toUpperCase()}</span>

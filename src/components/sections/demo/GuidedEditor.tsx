@@ -157,17 +157,14 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
     autoClickId: "pay-btn",
   },
   {
-    // transition: highlight the Upsell feature button (screen stays on editing);
-    // tapping it opens the upsell screen and continues the tour there.
-    id: "to-upsell",
-    title: "Every edit is an upsell opportunity",
-    desc: "Turn every edit into extra revenue with one-tap add-ons. Tap Post-purchase upsell to see it.",
-    cta: "Next",
-    measureDelayMs: 260,
-    spotlightId: "feature-upsell",
-    dotId: "feature-upsell",
-    nextTour: "upsell",
-    nextLabel: "Post-purchase upsell",
+    // end of the order-editing tour → conversion screen
+    id: "editing-finish",
+    title: "",
+    desc: "",
+    cta: "Finish",
+    measureDelayMs: 320,
+    outcome: true,
+    finalStep: true,
   },
 ];
 
@@ -222,16 +219,14 @@ const UPSELL_TOUR_STEPS: TourStepDef[] = [
     autoClickId: "pay-btn",
   },
   {
-    // transition: highlight the Address feature button; tap to open it
-    id: "to-address",
-    title: "Catch bad addresses",
-    desc: "Stop undeliverable orders before they ship. Tap Address validation to see it.",
-    cta: "Next",
-    measureDelayMs: 260,
-    spotlightId: "feature-address",
-    dotId: "feature-address",
-    nextTour: "address",
-    nextLabel: "Address validation",
+    // end of the post-purchase upsell tour → conversion screen
+    id: "upsell-finish",
+    title: "",
+    desc: "",
+    cta: "Finish",
+    measureDelayMs: 320,
+    outcome: true,
+    finalStep: true,
   },
 ];
 
@@ -248,16 +243,14 @@ const ADDRESS_TOUR_STEPS: TourStepDef[] = [
     scrollAlignTop: true, // keep the tall address block inside the window (don't spill over the top bar)
   },
   {
-    // transition to the last feature — EU withdrawal
-    id: "to-eu",
-    title: "One more: EU withdrawal",
-    desc: "New EU rules require a clear withdrawal function. Tap EU withdrawal to see it.",
-    cta: "Next",
-    measureDelayMs: 260,
-    spotlightId: "feature-eu",
-    dotId: "feature-eu",
-    nextTour: "eu-withdrawal",
-    nextLabel: "EU withdrawal",
+    // end of the address validation tour → conversion screen
+    id: "address-finish",
+    title: "",
+    desc: "",
+    cta: "Finish",
+    measureDelayMs: 320,
+    outcome: true,
+    finalStep: true,
   },
 ];
 
@@ -360,26 +353,20 @@ const FINALE: Record<Tab, { action: string; brand: string; stat: string }> = {
  *  shows it at the end (below the demo). */
 function ReadyToTryBox({ tab, className }: { tab: Tab; className?: string }) {
   return (
-    <div className={`relative flex w-full max-w-sm flex-col gap-5 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-6 text-center shadow-[0_4px_16px_-8px_rgba(15,15,25,0.18)] backdrop-blur-md ${className ?? ""}`}>
-      <div>
-        <h3 className="flex flex-col items-center text-center font-sans text-[22px] font-extrabold leading-[1.2] tracking-tight">
-          <span className="text-foreground">Ready to</span>
-          <span className="flex h-[1.4em] items-center justify-center overflow-hidden text-[#155FFF]">{FINALE[tab].action}</span>
-          <span className="text-foreground">on your store?</span>
-        </h3>
-      </div>
+    <div className={`relative flex w-full max-w-sm flex-col gap-5 overflow-hidden rounded-2xl border border-neutral-200/90 bg-white/70 p-6 text-center shadow-[0_1px_2px_rgba(15,15,25,0.06),0_18px_44px_-14px_rgba(15,15,25,0.30)] backdrop-blur-md ${className ?? ""}`}>
+      <h3
+        className="text-balance text-[22px] font-semibold leading-[1.15] tracking-tight text-foreground"
+        style={{ fontFamily: "var(--font-display), sans-serif" }}
+      >
+        Ready to {FINALE[tab].action} on <span className="text-[#155FFF]">your store</span>?
+      </h3>
       <div className="flex items-center justify-center gap-3">
-        <ClickpostMark className="size-10 shrink-0 rounded-[9px] shadow-sm" />
+        <ClickpostMark className="size-14 shrink-0 rounded-[11px] shadow-sm" />
         <div className="text-left">
-          <div className="whitespace-nowrap text-[15px] font-extrabold leading-tight tracking-tight text-neutral-900">CP Order Editing &amp; Upsell</div>
-          <div className="mt-1 flex items-center gap-1 text-[13px] text-neutral-900">
-            <span className="font-bold">5.0</span>
-            <span aria-hidden>★</span>
-            <span className="underline">(52)</span>
-          </div>
+          <div className="whitespace-nowrap text-[13px] font-medium leading-tight tracking-tight text-neutral-900">CP Order Editing &amp; Upsell</div>
+          <div className="mt-1.5"><BuiltForShopifyBadge compact /></div>
         </div>
       </div>
-      <div className="flex justify-center"><BuiltForShopifyBadge /></div>
       <ShopifyAppStoreBadge href={APP_URL} className="w-full" />
     </div>
   );
@@ -403,7 +390,6 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
   const [measuredStep, setMeasuredStep] = useState(-1); // which step the current rect belongs to
   const [demoRect, setDemoRect] = useState<TourRect | null>(null); // editing-window bounds (blurred on outcome steps)
   const [pendingTour, setPendingTour] = useState<Tour | null>(null); // start this tour once its tab mounts
-  const [singleTourMode, setSingleTourMode] = useState(false); // true = don't chain to the next feature's tour
   const [revealScreen, setRevealScreen] = useState(false); // after an action tap: drop the highlight to show the clean screen + toast
 
   // controlled bits during the tour
@@ -470,20 +456,14 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
   const curStep = activeTour ? steps[tourStep] : null;
   // Progress numbering — count only the steps that show a box (skip hideCard /
   // outcome steps), running continuously across the chained journey.
-  const TOUR_ORDER: Tour[] = ["editing", "upsell", "address", "eu-withdrawal"];
   const isBoxStep = (s: TourStepDef) => !s.hideCard && !s.outcome;
   const boxCount = (list: TourStepDef[], upto: number) => list.slice(0, upto).filter(isBoxStep).length;
   let displayTotal = 0;
   let displayStep = 0;
   if (activeTour) {
-    if (singleTourMode) {
-      displayTotal = steps.filter(isBoxStep).length;
-      displayStep = Math.max(0, boxCount(steps, tourStep + 1) - 1);
-    } else {
-      displayTotal = TOUR_ORDER.reduce((n, t) => n + TOUR_STEPS[t].filter(isBoxStep).length, 0);
-      const prior = TOUR_ORDER.slice(0, TOUR_ORDER.indexOf(activeTour)).reduce((n, t) => n + TOUR_STEPS[t].filter(isBoxStep).length, 0);
-      displayStep = Math.max(0, prior + boxCount(steps, tourStep + 1) - 1);
-    }
+    // each feature tour is self-contained — number only its own box steps
+    displayTotal = steps.filter(isBoxStep).length;
+    displayStep = Math.max(0, boxCount(steps, tourStep + 1) - 1);
   }
 
   // resolve a step's spotlight target — called only from effects/handlers, never render
@@ -584,29 +564,15 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     enterStep("editing", 0);
   }
 
-  // "Complete tour" — chains all features: editing → upsell → address → EU withdrawal
+  // "Start tour" — runs the CURRENT feature's own tour, ending on its finale screen.
   function launchTour() {
-    setSingleTourMode(false);
     resetDemo(); // fresh 2-item order + fresh timer before we begin
-    if (tab === "editing") {
-      startEditingTour();
-    } else {
-      setActiveTour(null);
-      setSpotlightRect(null);
-      setTab("editing");
-      setPendingTour("editing");
-    }
-  }
-
-  // hand off from one feature's tour to the next: switch tabs, then start once mounted
-  function goToTour(next: Tour) {
+    const t: Tour = (TOUR_STEPS[tab as Tour] ? (tab as Tour) : "editing");
     setActiveTour(null);
     setSpotlightRect(null);
-    if (next === "upsell") { setUpsellView("onetap"); setUpsellExtras([]); }
-    if (next === "address") setAddrResetKey((k) => k + 1); // fresh address window on handoff
-    if (next === "eu-withdrawal") setEuResetKey((k) => k + 1); // fresh EU page on handoff
-    setTab(next);
-    setPendingTour(next);
+    setActivePill("tour");
+    setTab(t);
+    setPendingTour(t);
   }
 
   // Bring a target into view by scrolling ONLY its nearest inner scroll container
@@ -647,18 +613,8 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     if (!activeTour) return;
     const list = TOUR_STEPS[activeTour];
     const cur = list[tourStep];
-    // finale step (end of the whole chain) — just close
+    // each feature tour ends on its own finale (outcome) step — advancing closes it
     if (cur?.outcome) { closeTour(); return; }
-    // transition step: the next-feature button is highlighted; tapping it opens
-    // that feature NOW (the screen only switches on this tap).
-    if (cur?.nextTour) {
-      if (singleTourMode) { closeTour(); return; }
-      goToTour(cur.nextTour);
-      return;
-    }
-    // Single-feature tours stop before the transition/finale step.
-    const next = list[tourStep + 1];
-    if (singleTourMode && (next?.nextTour || next?.outcome)) { closeTour(); return; }
     if (tourStep >= list.length - 1) {
       setActiveTour(null); setSpotlightRect(null); scrollDemoTop();
     } else {
@@ -677,11 +633,6 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
   }
 
   function selectFeature(k: Tab) {
-    // on an outcome step, clicking the highlighted "next" card advances the chain
-    if (activeTour && curStep?.outcome && curStep.nextTour === k) {
-      goToTour(k as Tour);
-      return;
-    }
     setActiveTour(null);
     setSpotlightRect(null);
     setPendingTour(null);
@@ -700,6 +651,21 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTour]);
+
+  // While a spotlight step is active, block USER scrolling — the spotlight is
+  // measured in viewport coords, so a manual scroll makes it drift out of place.
+  // The tour's own programmatic scroll (scrollIntoView / scrollTop) still works
+  // since it doesn't fire wheel/touch events. (Skip on the finale so its box can scroll.)
+  useEffect(() => {
+    if (!activeTour || curStep?.outcome) return;
+    const block = (e: Event) => e.preventDefault();
+    window.addEventListener("wheel", block, { passive: false });
+    window.addEventListener("touchmove", block, { passive: false });
+    return () => {
+      window.removeEventListener("wheel", block);
+      window.removeEventListener("touchmove", block);
+    };
+  }, [activeTour, curStep?.outcome]);
 
   // start a pending tour once its tab swap has mounted the targets
   useEffect(() => {
@@ -908,8 +874,9 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
             </div>
           </div>
 
-          {/* the "ready to try" box — desktop only (mobile shows it at the end, below the demo) */}
-          <ReadyToTryBox tab={tab} className="max-lg:hidden" />
+          {/* the "ready to try" box — desktop only (mobile shows it at the end, below the demo);
+              mt-auto pushes it to the bottom of the rail so there's a gap under the features */}
+          <ReadyToTryBox tab={tab} className="max-lg:hidden lg:mt-auto" />
         </div>
 
         {/* RIGHT: full-bleed blue demo stage — top pill nav + paired sub-row + sliding window */}

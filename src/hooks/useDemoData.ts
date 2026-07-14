@@ -51,11 +51,8 @@ export function useDemoData() {
       brandName: branding?.brandName || deriveBrandName(url) || mockStore.brandName,
       brandColor: branding?.brandColor || mockStore.brandColor,
       logo: branding?.logo || null,
-      currency: branding?.currency || "USD",
-      products:
-        branding?.products && branding.products.length > 0
-          ? branding.products
-          : mockStore.products,
+      currency: branding?.currency || currencyFromUrl(url) || mockStore.currency || "USD",
+      products: fillProducts(branding?.products),
     });
     setStatus("ready");
   }, []);
@@ -67,6 +64,40 @@ export function useDemoData() {
   }, []);
 
   return { status, store, submittedUrl, generate, reset };
+}
+
+// Keep every real product we captured, then top up with sample products so the demo
+// storefront always looks full — e.g. a store that only exposes 2 products shows those
+// 2 real ones plus sample items to fill the space. Real products are kept ahead of
+// samples, and titles are de-duped so a sample never repeats a real product.
+const SAMPLE_TARGET = 6;
+function fillProducts(captured?: DemoProduct[]): DemoProduct[] {
+  const real = captured ?? [];
+  if (real.length >= SAMPLE_TARGET) return real;
+  const seen = new Set(real.map((p) => p.title.trim().toLowerCase()));
+  const fillers = mockStore.products.filter((p) => !seen.has(p.title.trim().toLowerCase()));
+  return [...real, ...fillers].slice(0, SAMPLE_TARGET);
+}
+
+// Best-effort currency guess from the domain's TLD when the store's real currency
+// can't be read (non-Shopify / blocked sites). Falls through to the caller's default.
+function currencyFromUrl(url: string): string | null {
+  const host = url.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0].toLowerCase();
+  const byTld: [RegExp, string][] = [
+    [/\.in$/, "INR"],
+    [/\.(co\.uk|uk)$/, "GBP"],
+    [/\.(com\.au|au)$/, "AUD"],
+    [/\.ca$/, "CAD"],
+    [/\.(de|fr|it|es|nl|ie|eu|pt|at|be|fi)$/, "EUR"],
+    [/\.(sg)$/, "SGD"],
+    [/\.(ae)$/, "AED"],
+    [/\.(jp)$/, "JPY"],
+  ];
+  for (const [re, cur] of byTld) if (re.test(host)) return cur;
+  // Unknown / generic TLD (.com, .co, .shop …): don't assume USD — fall through so
+  // the caller's India-first default (INR) applies. Real Shopify stores still get
+  // their true currency from cart.js upstream, so this only affects unreadable sites.
+  return null;
 }
 
 function deriveBrandName(url: string): string | null {

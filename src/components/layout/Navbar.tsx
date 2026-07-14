@@ -111,7 +111,7 @@ export function Navbar() {
                 href="/#contact"
                 className="whitespace-nowrap rounded-full bg-[#155FFF] px-5 py-2.5 text-[0.85rem] font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]"
               >
-                Book a free demo
+                Get started for free
               </Link>
               <a
                 href={SHOPIFY_LISTING}

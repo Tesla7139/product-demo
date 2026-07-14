@@ -250,14 +250,6 @@ export const customerLogos: CustomerLogo[] = [
     date: "Jan 8, 2026",
   },
   {
-    src: "/customers/vguard.png",
-    name: "V-Guard Industries Limited",
-    reviewer: "V-Guard Industries Team",
-    role: "E-commerce",
-    review: reviewText("V-Guard Industries Limited"),
-    date: "Jun 2, 2026",
-  },
-  {
     src: "/customers/vanillapura.png",
     name: "VanillaPura",
     reviewer: "VanillaPura Team",
@@ -278,7 +270,7 @@ export const customerLogos: CustomerLogo[] = [
 // Credibility info for featured brands — a revenue-tier pill + a country shown
 // alongside the date. Rendered on the brand strip, review carousel, and Wall of
 // Love. Keyed by exact brand name.
-export type BrandInfo = { tier: string; country?: string };
+export type BrandInfo = { tier?: string; country?: string };
 export const brandInfo: Record<string, BrandInfo> = {
   "Doonails": { tier: "$100M+ brand", country: "Germany" },
   "Curl Warehouse": { tier: "7-figure brand", country: "Canada" },
@@ -286,6 +278,8 @@ export const brandInfo: Record<string, BrandInfo> = {
   "GHAR SOAPS": { tier: "8-figure brand", country: "UAE" },
   "MIRAGGIO": { tier: "8-figure brand" },
   "Mateina": { tier: "Andrew Huberman's favourite", country: "Canada" },
+  "Mars By GHC": { tier: "7-figure brand" },
+  "Renue By Science": { country: "USA" },
 };
 
 // number of blank placeholder marks to show while `customerLogos` is empty
@@ -295,6 +289,7 @@ export const customerLogoCount = 8;
 // brand strip so it stays curated). Keyed by the exact store name in reviews.ts;
 // each was fetched from that brand's own site and verified.
 export const extraReviewLogos: Record<string, string> = {
+  "V-Guard Industries Limited": "/customers/vguard.png",
   "PairieTales": "/customers/pairietales.png",
   "litemed": "/customers/litemed.png",
   "Muffynn": "/customers/muffynn.png",
@@ -494,21 +489,22 @@ export type DemoStore = {
   products: DemoProduct[];
 };
 
-// Category-neutral sample catalog — used when a store's real products can't be
-// read (non-Shopify sites, blocked endpoints). Generic names + variants read as a
-// plausible sample for any vertical (wellness, beauty, food, apparel) instead of
-// showing wrong-category apparel for, say, a supplements brand.
+// Sample catalog — used when a store's real products can't be read (non-Shopify
+// sites, blocked endpoints). A realistic beauty + fashion mix with product images
+// and prices so the demo always looks like a live storefront (INR-priced, since
+// most fallbacks are Indian D2C stores; the currency follows store.currency).
+const UNSPLASH = (id: string) => `https://images.unsplash.com/photo-${id}?w=600&q=80&auto=format&fit=crop`;
 export const mockStore: DemoStore = {
   brandName: "Northwind Goods",
   brandColor: "#1f7a5a",
   currency: "USD",
   products: [
-    { id: "p1", title: "Signature Bundle", variant: "Full size", price: 89, qty: 1 },
-    { id: "p2", title: "Best Seller", variant: "Original", price: 64, qty: 1 },
-    { id: "p3", title: "Starter Kit", variant: "3-piece", price: 128, qty: 1 },
-    { id: "p4", title: "Refill Pack", variant: "2-month", price: 72, qty: 1 },
-    { id: "p5", title: "Travel Size", variant: "Mini", price: 28, qty: 1 },
-    { id: "p6", title: "Gift Set", variant: "Deluxe", price: 95, qty: 1 },
+    { id: "p1", title: "Everyday Glow Makeup Set", variant: "Full kit", price: 29, qty: 1, image: UNSPLASH("1596462502278-27bfdc403348") },
+    { id: "p2", title: "Flowy Evening Gown", variant: "Red · M", price: 54, qty: 1, image: UNSPLASH("1595777457583-95e059d581b8") },
+    { id: "p3", title: "Vitamin C Face Serum", variant: "30 ml", price: 19, qty: 1, image: UNSPLASH("1631730359585-38a4935cbec4") },
+    { id: "p4", title: "Structured Leather Handbag", variant: "Coral", price: 69, qty: 1, image: UNSPLASH("1584917865442-de89df76afd3") },
+    { id: "p5", title: "Nourishing Body Lotion", variant: "200 ml", price: 14, qty: 1, image: UNSPLASH("1620916566398-39f1143ab7be") },
+    { id: "p6", title: "Round Metal Sunglasses", variant: "Gold", price: 24, qty: 1, image: UNSPLASH("1511499767150-a48a237f0083") },
   ],
 };
 

@@ -424,10 +424,24 @@ function upscaleImage(url: string | null): string | null {
 // Site metadata sometimes yields a useless "brand" (a page title like "Home",
 // or literally "Me") — fall back to the domain name in those cases.
 const GENERIC_NAMES = new Set(["me", "home", "shop", "store", "index", "welcome", "page", "cart"]);
+// Error / placeholder / challenge page titles that must NEVER become the "brand" —
+// stores occasionally serve these (or the fetch briefly caught an error/maintenance
+// page), and we'd rather fall back to the domain name than show "Something went wrong".
+const BAD_TITLE_RE =
+  /^(something went wrong|error|oops|internal server error|page not found|not found|404|403|500|access denied|forbidden|unauthorized|just a moment|attention required|checking your browser|service unavailable|temporarily unavailable|site (temporarily )?unavailable|under (construction|maintenance)|maintenance|coming soon|website expired|domain (for sale|expired|parked)|bad gateway|gateway timeout)\b/i;
+// Bot-check / anti-scraping interstitials (Google reCAPTCHA, Amazon "Robot Check",
+// etc.) leak into the <title>/og:site_name as e.g. "Flipkart reCAPTCHA" — reject if
+// these appear ANYWHERE in the name, then fall back to the clean domain name.
+const CHALLENGE_RE =
+  /recaptcha|captcha|are you (a )?(human|robot)|robot check|attention required|access denied|just a moment|verify you are (a )?human|unusual traffic|enable (javascript|cookies)/i;
 function isUsableName(s: string | null | undefined): s is string {
   if (!s) return false;
   const t = s.trim();
-  return t.length >= 2 && !GENERIC_NAMES.has(t.toLowerCase());
+  if (t.length < 2) return false;
+  if (GENERIC_NAMES.has(t.toLowerCase())) return false;
+  if (BAD_TITLE_RE.test(t)) return false;
+  if (CHALLENGE_RE.test(t)) return false;
+  return true;
 }
 
 function parseBranding(html: string, base: URL): Omit<Branding, "products" | "currency"> {
@@ -541,10 +555,10 @@ export async function POST(req: Request) {
 
   const currency = parseCurrency(cartJson);
 
-  if (!html && products.length === 0) {
-    return NextResponse.json({ error: "Could not read store" }, { status: 502 });
-  }
-
+  // Never hard-fail: even when a store blocks us entirely (no readable homepage and
+  // no products — e.g. Flipkart/Amazon-style bot walls), we still return the brand
+  // name (from the domain) + a favicon fallback below, and the client fills in the
+  // sample catalog. The demo should always render a branded preview, never an error.
   const branding = html
     ? parseBranding(html, url)
     : {
@@ -556,11 +570,12 @@ export async function POST(req: Request) {
       };
 
   // Always have a logo: when we couldn't extract the apple-touch-icon (e.g. a
-  // Cloudflare store whose homepage HTML we couldn't read on this request), fall
-  // back to DuckDuckGo's icon service, which fetches the site's real favicon from
-  // any host — so the browser bar shows the brand icon, never a globe.
+  // Cloudflare/bot-protected store whose homepage HTML we couldn't read), fall back
+  // to Google's favicon service — it resolves the real favicon for far more hosts
+  // than DuckDuckGo (which 404s to a gray-chevron placeholder for big sites like
+  // flipkart.com), so the browser bar shows the brand icon, never a broken glyph.
   if (!branding.logo) {
-    branding.logo = `https://icons.duckduckgo.com/ip3/${url.hostname.replace(/^www\./, "")}.ico`;
+    branding.logo = `https://www.google.com/s2/favicons?domain=${url.hostname.replace(/^www\./, "")}&sz=128`;
   }
 
   const data: Branding = { ...branding, currency, products };

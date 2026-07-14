@@ -18,7 +18,7 @@ export function ShopifyAppStoreBadge({ href, className }: { href: string; classN
         src="/shopify-icon-black.png"
         alt=""
         className="size-6 shrink-0 object-contain"
-        style={{ filter: "brightness(0) invert(1)" }}
+        style={{ filter: "invert(1)" }}
       />
       <span className="flex flex-col text-left leading-none">
         <span className="text-[9px] font-medium tracking-wide text-white/80">Available on</span>
