@@ -1075,6 +1075,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                     forceOpen="shipping"
                     maxHeight={560}
                     addressValidation
+                    scriptedValidation={activeTour === "address"}
                     tourRefs={{ shippingRow: addrShippingRowRef, addressBlock: addrFlaggedRef, addrSaveBtn: addrSaveBtnRef }}
                   />
                 )}

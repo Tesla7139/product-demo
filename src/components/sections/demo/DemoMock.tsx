@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import type { DemoStore, DemoProduct } from "@/lib/site";
+import { COUNTRIES, countryByName, lookupPostal } from "@/lib/regions";
 import { readableBrand, dedupeByTitle, dedupeExactTitle } from "@/lib/utils";
 import { DemoImg } from "./DemoImg";
 import { ThankYouMap } from "./ThankYouMap";
@@ -68,6 +69,7 @@ export function DemoMock({
   upsellFirst = false,
   onUpsellAdded,
   addressValidation = false,
+  scriptedValidation = false,
 }: {
   store: DemoStore;
   initialOpen?: Section | null;
@@ -82,6 +84,8 @@ export function DemoMock({
   extraItems?: DemoProduct[];
   /** Address-validation mode: shipping opens with a flagged address that validates on save. */
   addressValidation?: boolean;
+  /** Use the scripted correction (guided tour) instead of a live postal lookup. */
+  scriptedValidation?: boolean;
   /** External refs (owned by a parent tour controller) attached to key elements. */
   tourRefs?: {
     countdown?: React.RefObject<HTMLDivElement | null>;
@@ -142,6 +146,10 @@ export function DemoMock({
   });
   const [open, setOpen] = useState<Section | null>(initialOpen);
   const [addrValidated, setAddrValidated] = useState(false);
+  const [country, setCountry] = useState("United States");
+  const [validating, setValidating] = useState(false);
+  const zipTouched = useRef(false); // only auto-detect once the user actually edits the postal code
+  const lastDetected = useRef(""); // postal code we last resolved (avoid re-firing)
   const addrFlagged = addressValidation && !addrValidated;
   const [cancelled, setCancelled] = useState(false);
   const [processing, setProcessing] = useState<string | null>(null);
@@ -265,6 +273,36 @@ export function DemoMock({
     window.clearTimeout((flash as unknown as { _t?: number })._t);
     (flash as unknown as { _t?: number })._t = window.setTimeout(() => setToast(null), 2200);
   };
+
+  // Auto-detect city + state from the postal code as the user types (debounced,
+  // free Zippopotam lookup). Disabled during the scripted tour so it never fights
+  // the guided flow; only runs after the user actually edits the postal field.
+  useEffect(() => {
+    if (scriptedValidation || !zipTouched.current) return;
+    const zip = addr.zip.replace(/\s/g, "");
+    if (zip.length < 3) return;
+    let cancelled = false;
+    const t = window.setTimeout(async () => {
+      if (cancelled || lastDetected.current === zip) return;
+      // try the selected country first, then the others — so typing any PIN also
+      // auto-detects the right country (e.g. an Indian PIN while "US" is selected).
+      const order = [country, ...COUNTRIES.map((c) => c.name).filter((n) => n !== country)];
+      for (const cn of order) {
+        const hit = await lookupPostal(cn, addr.zip);
+        if (cancelled) return;
+        if (hit && (hit.city || hit.region)) {
+          lastDetected.current = zip;
+          if (cn !== country) setCountry(cn);
+          // auto-fill only — detecting a city from a PIN is NOT address verification,
+          // so don't flip the "verified" state or show a popup.
+          setAddr((a) => ({ ...a, city: hit.city || a.city, state: hit.region || a.state }));
+          return;
+        }
+      }
+    }, 300);
+    return () => { cancelled = true; window.clearTimeout(t); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addr.zip, country, scriptedValidation]);
 
   // Signature of the order (which lines + their quantities). Captured once at
   // mount so "Update your order" only confirms when something actually changed.
@@ -433,7 +471,13 @@ export function DemoMock({
                     >
                       <div ref={tourRefs?.addressBlock} className="flex flex-col gap-2.5">
                         <div ref={tourRefs?.addressForm} className="flex flex-col gap-2.5">
-                          <SelectField label="Country" value="United States" emphasize={formEmphasis} />
+                          <SelectInput
+                            label="Country"
+                            value={country}
+                            onChange={(v) => { setCountry(v); setAddr((a) => ({ ...a, state: countryByName(v).regions[0] })); }}
+                            options={COUNTRIES.map((c) => c.name)}
+                            emphasize={formEmphasis}
+                          />
                           <div className="grid grid-cols-2 gap-2.5">
                             <Field label="First Name" value={addr.first} onChange={(v) => setAddr({ ...addr, first: v })} emphasize={formEmphasis} />
                             <Field label="Last Name" value={addr.last} onChange={(v) => setAddr({ ...addr, last: v })} emphasize={formEmphasis} />
@@ -441,28 +485,48 @@ export function DemoMock({
                           <Field label="Address 1" value={addr.line1} onChange={(v) => setAddr({ ...addr, line1: v })} emphasize={emphasis.line1 || formEmphasis} invalid={addrFlagged} valid={addrValidated} error={addrFlagged ? "Street address could not be fully validated. Please review." : undefined} />
                           <Field label="Address 2" value="" onChange={() => {}} />
                           <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-3">
-                            <Field label="City" value={addr.city} onChange={(v) => setAddr({ ...addr, city: v })} emphasize={emphasis.city || formEmphasis} />
-                            <SelectField label="Province / State" value={addr.state} emphasize={formEmphasis} />
-                            <Field label="Postal Code" value={addr.zip} onChange={(v) => setAddr({ ...addr, zip: v })} emphasize={emphasis.zip || formEmphasis} invalid={addrFlagged} valid={addrValidated} error={addrFlagged ? "Postal code could not be validated." : undefined} />
+                            <Field label="City" value={addr.city} onChange={(v) => setAddr({ ...addr, city: v })} emphasize={emphasis.city || formEmphasis} invalid={addrFlagged} valid={addrValidated} />
+                            <SelectInput label={countryByName(country).regionLabel} value={addr.state} onChange={(v) => setAddr({ ...addr, state: v })} options={countryByName(country).regions} emphasize={emphasis.city || formEmphasis} />
+                            <Field label="Postal Code" value={addr.zip} onChange={(v) => { zipTouched.current = true; setAddr({ ...addr, zip: v }); }} emphasize={emphasis.zip || formEmphasis} invalid={addrFlagged} valid={addrValidated} error={addrFlagged ? "Postal code could not be validated." : undefined} />
                           </div>
                         </div>
                         <div ref={tourRefs?.saveBtn}>
                           <button
                             ref={tourRefs?.addrSaveBtn}
-                            onClick={() => {
-                              if (addrFlagged) {
-                                // 1st tap: write the corrected address in place
-                                setAddr(VERIFIED_ADDR); setAddrValidated(true); flash("Address verified & deliverable");
-                              } else {
+                            disabled={validating}
+                            onClick={async () => {
+                              if (!addrFlagged) {
                                 // 2nd tap: close the section and confirm
-                                setOpen(null); flash("Shipping address updated");
+                                setOpen(null); flash("Shipping address updated"); onShippingSaved?.(); return;
                               }
+                              // 1st tap: validate. Guided tour uses the scripted correction…
+                              if (scriptedValidation) {
+                                setAddr(VERIFIED_ADDR); setAddrValidated(true); flash("Address verified & deliverable"); onShippingSaved?.(); return;
+                              }
+                              // …manual use runs a free live postal-code lookup (Zippopotam).
+                              setValidating(true);
+                              const hit = await lookupPostal(country, addr.zip);
+                              setValidating(false);
+                              if (!hit) {
+                                // postal code doesn't exist for the selected country → NOT deliverable
+                                flash(`Couldn't verify ${addr.zip || "that postal code"} in ${country}.`);
+                                return; // stay flagged; do NOT mark verified
+                              }
+                              const cityWrong = hit.city && hit.city.toLowerCase() !== addr.city.trim().toLowerCase();
+                              const stateWrong = hit.region && hit.region.toLowerCase() !== addr.state.trim().toLowerCase();
+                              if (cityWrong || stateWrong) {
+                                setAddr((a) => ({ ...a, city: hit.city || a.city, state: hit.region || a.state }));
+                                flash(`Corrected to ${[hit.city, hit.region].filter(Boolean).join(", ")}`);
+                              } else {
+                                flash("Address verified & deliverable");
+                              }
+                              setAddrValidated(true);
                               onShippingSaved?.();
                             }}
-                            className="mt-1 w-full rounded-md py-3 text-sm font-semibold text-white transition-all hover:brightness-125 active:scale-[0.99]"
+                            className="mt-1 w-full rounded-md py-3 text-sm font-semibold text-white transition-all hover:brightness-125 active:scale-[0.99] disabled:opacity-70"
                             style={{ background: "#111827" }}
                           >
-                            {addrFlagged ? "Use validated address" : "Update Shipping Address"}
+                            {validating ? "Validating…" : addrFlagged ? "Use validated address" : "Update Shipping Address"}
                           </button>
                         </div>
                       </div>
@@ -783,16 +847,47 @@ function Field({ label, value, onChange, emphasize, invalid, valid, error }: { l
   );
 }
 
-function SelectField({ label, value, emphasize }: { label: string; value: string; emphasize?: boolean }) {
+/** Custom styled dropdown — opens an in-card panel (no native OS overlay), with a
+ *  scrollable option list for long region lists. Matches the form's field style. */
+function SelectInput({
+  label, value, onChange, options, emphasize,
+}: { label: string; value: string; onChange: (v: string) => void; options: string[]; emphasize?: boolean }) {
+  const [open, setOpen] = useState(false);
   return (
-    <div className={`relative rounded-md border px-3 pt-5 pb-1.5 transition-colors duration-300 ${emphasize ? "border-amber-300 bg-amber-50" : "border-border"}`}>
-      <span className="pointer-events-none absolute left-3 top-1.5 text-[10px] font-medium uppercase tracking-wide text-neutral-400">
-        {label}
-      </span>
-      <div className="flex items-center justify-between text-sm text-neutral-800">
-        {value}
-        <ChevronDown className="size-4 text-neutral-400" />
-      </div>
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className={`relative flex w-full items-center rounded-md border px-3 pt-5 pb-1.5 text-left transition-colors duration-300 ${emphasize ? "border-amber-300 bg-amber-50" : open ? "border-neutral-400" : "border-border hover:border-neutral-300"}`}
+      >
+        <span className="pointer-events-none absolute left-3 top-1.5 text-[10px] font-medium uppercase tracking-wide text-neutral-400">
+          {label}
+        </span>
+        <span className="truncate pr-5 text-sm text-neutral-800">{value}</span>
+        <ChevronDown className={`pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} aria-hidden />
+          <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-52 overflow-y-auto rounded-md border border-neutral-200 bg-white py-1 shadow-xl">
+            {options.map((o) => {
+              const active = o === value;
+              return (
+                <button
+                  key={o}
+                  type="button"
+                  onClick={() => { onChange(o); setOpen(false); }}
+                  className={`flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-[13px] transition-colors ${active ? "bg-[#155FFF] text-white" : "text-neutral-800 hover:bg-neutral-50"}`}
+                >
+                  <span className="truncate">{o}</span>
+                  {active && <Check className="size-3.5 shrink-0" strokeWidth={3} />}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 }
