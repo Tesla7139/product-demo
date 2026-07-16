@@ -325,6 +325,14 @@ const TOUR_STEPS: Record<Tour, TourStepDef[]> = {
 // Order features run in — the finale "Watch next" CTA chains to the next one.
 const TOUR_ORDER: Tour[] = ["editing", "upsell", "address", "eu-withdrawal"];
 
+// One-line pitch shown on the "up next" hand-off box before each feature's tour.
+const FEATURE_INTRO: Record<Tour, string> = {
+  editing: "Let shoppers edit their own orders — swaps, add-ons, quantities — without a support ticket.",
+  upsell: "One-tap offers right after checkout that lift average order value with zero extra ad spend.",
+  address: "Catch undeliverable addresses before they ship — fewer failed deliveries and RTO.",
+  "eu-withdrawal": "Automate EU withdrawal requests and stay compliant with zero manual work.",
+};
+
 /** Clickpost "Order Edit & Cancel" app icon — official logo from /public. */
 function ClickpostMark({ className }: { className?: string }) {
   return (
@@ -471,6 +479,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
   // the feature that runs after the current one (for the finale's "Watch next" CTA)
   const nextTourKey = activeTour ? TOUR_ORDER[TOUR_ORDER.indexOf(activeTour) + 1] : undefined;
   const nextFeatureLabel = nextTourKey ? NAV_FEATURES.find((n) => n.key === nextTourKey)?.label : undefined;
+  const nextFeatureDesc = nextTourKey ? FEATURE_INTRO[nextTourKey] : undefined;
   // Progress numbering — count only the steps that show a box (skip hideCard /
   // outcome steps), running continuously across the chained journey.
   const isBoxStep = (s: TourStepDef) => !s.hideCard && !s.outcome;
@@ -648,14 +657,8 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     const cur = list[tourStep];
     // advancing off the finale box closes the tour
     if (cur?.outcome) { closeTour(); return; }
-    const nextStep = list[tourStep + 1];
-    // The conversion box (outcome step) is shown ONLY at the very end of the journey
-    // (the last feature). For every earlier feature, skip the box and flow straight
-    // into the next feature's tour.
-    if (nextStep?.outcome) {
-      const hasNext = TOUR_ORDER.indexOf(activeTour) < TOUR_ORDER.length - 1;
-      if (hasNext) { goToNextFeature(); return; }
-    }
+    // otherwise step forward; the last step is each feature's outcome box (a
+    // "next feature" intro for non-final features, or the conversion box for EU).
     if (tourStep >= list.length - 1) {
       setActiveTour(null); setSpotlightRect(null); scrollDemoTop();
     } else {
@@ -1126,6 +1129,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
           finalStep={curStep.finalStep}
           blurRect={demoRect}
           nextFeatureLabel={nextFeatureLabel}
+          nextFeatureDesc={nextFeatureDesc}
           onNextFeature={goToNextFeature}
           onAdvance={advanceTour}
           onClose={closeTour}

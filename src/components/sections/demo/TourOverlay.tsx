@@ -56,6 +56,7 @@ export function TourOverlay({
   displayStep,
   displayTotal,
   nextFeatureLabel,
+  nextFeatureDesc,
   onNextFeature,
   onAdvance,
   onClose,
@@ -94,8 +95,10 @@ export function TourOverlay({
   finalStep?: boolean;
   /** The editing/demo window rect — outcome steps blur only this region. */
   blurRect?: TourRect | null;
-  /** Label of the next feature — when set, the finale shows a "Watch next" CTA. */
+  /** Label of the next feature — when set, the outcome box is a "next feature" intro. */
   nextFeatureLabel?: string;
+  /** One-line pitch for the next feature, shown on the intro box. */
+  nextFeatureDesc?: string;
   /** Jump to the next feature and auto-start its tour. */
   onNextFeature?: () => void;
   onAdvance: () => void;
@@ -120,6 +123,53 @@ export function TourOverlay({
   // Only the final step shows a card (the full conversion box). In-between feature
   // hops are skipped by the controller — it hands straight off to the next feature.
   if (outcome) {
+    // Non-final features end on a "next feature" hand-off box (intro + Next button),
+    // so the tour tells you what's coming before jumping there.
+    if (nextFeatureLabel && onNextFeature) {
+      return createPortal(
+        <div className="pointer-events-none fixed inset-0 z-[500]">
+          <div className="pointer-events-auto absolute inset-0 bg-[rgba(9,14,32,0.96)]" onClick={onClose} />
+          <motion.div
+            key={`next-${step}`}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="pointer-events-none absolute inset-0 flex items-center justify-center p-4 sm:p-8"
+          >
+            <div className="pointer-events-auto relative flex w-full max-w-sm flex-col overflow-hidden rounded-[20px] border border-[#155FFF]/15 bg-[#faf8f4] px-6 py-7 text-center shadow-2xl">
+              <button
+                onClick={onClose}
+                aria-label="Close"
+                className="absolute right-3 top-3 flex size-7 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-200/70 hover:text-neutral-700"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+              </button>
+              <div className="mx-auto mb-3 inline-flex items-center gap-1.5 rounded-full bg-[#155FFF]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#155FFF]">
+                <span className="size-1.5 rounded-full bg-[#155FFF]" />
+                Up next
+              </div>
+              <h2 className="font-sans text-[22px] font-extrabold leading-tight tracking-tight text-neutral-900">
+                {nextFeatureLabel}
+              </h2>
+              {nextFeatureDesc && (
+                <p className="mx-auto mt-2 max-w-xs text-[13.5px] leading-relaxed text-neutral-500">
+                  {nextFeatureDesc}
+                </p>
+              )}
+              <button
+                onClick={onNextFeature}
+                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#155FFF] px-5 py-3 text-[14px] font-bold text-white transition-all hover:brightness-110 active:scale-[0.99]"
+              >
+                Next
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+              </button>
+            </div>
+          </motion.div>
+        </div>,
+        document.body
+      );
+    }
+
     const headline = finalStep
       ? "Ready to reduce support tickets and boost AOV using CP Order Editing?"
       : outcomeHeadline ?? "You've seen it in action — start your free trial now.";
