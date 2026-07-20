@@ -444,16 +444,31 @@ function isUsableName(s: string | null | undefined): s is string {
   return true;
 }
 
+// Brand names are short. A long descriptive <title> (e.g. "Post-Surgery Bras for
+// Your Unique Body Type at AnaOno") is not a brand — reject it so we fall back to
+// the domain name instead of a stray title fragment.
+function isBrandLike(s: string): boolean {
+  const t = s.trim();
+  return t.length <= 30 && t.split(/\s+/).length <= 4;
+}
+
 function parseBranding(html: string, base: URL): Omit<Branding, "products" | "currency"> {
-  const metaName =
-    metaContent(html, [
-      /<meta[^>]+property=["']og:site_name["'][^>]+content=["']([^"']+)["']/i,
-      /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:site_name["']/i,
-    ]) ||
-    metaContent(html, [/<title[^>]*>([^<]+)<\/title>/i])?.split(/[|–—-]/)[0]?.trim();
-  const siteName = isUsableName(metaName)
-    ? metaName
-    : base.hostname.replace(/^www\./, "").split(".")[0];
+  // Prefer og:site_name (a clean brand). Otherwise take the first segment of the
+  // <title>, but only split on separators surrounded by whitespace or a pipe/dash —
+  // NOT a bare hyphen, so "Post-Surgery Bras … at AnaOno" doesn't become "Post".
+  const ogName = metaContent(html, [
+    /<meta[^>]+property=["']og:site_name["'][^>]+content=["']([^"']+)["']/i,
+    /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:site_name["']/i,
+  ]);
+  const titleName = metaContent(html, [/<title[^>]*>([^<]+)<\/title>/i])
+    ?.split(/\s*[|–—]\s*|\s+-\s+/)[0]
+    ?.trim();
+  const domainName = base.hostname.replace(/^www\./, "").split(".")[0];
+  const siteName = isUsableName(ogName)
+    ? ogName
+    : isUsableName(titleName) && isBrandLike(titleName)
+      ? titleName
+      : domainName;
 
   const themeColor = metaContent(html, [
     /<meta[^>]+name=["']theme-color["'][^>]+content=["']([^"']+)["']/i,
