@@ -11,6 +11,7 @@ type BrandingResponse = {
   logo: string | null;
   currency: string | null;
   products: DemoProduct[];
+  catalog?: DemoProduct[];
 };
 
 /**
@@ -52,7 +53,8 @@ export function useDemoData() {
       brandColor: branding?.brandColor || mockStore.brandColor,
       logo: branding?.logo || null,
       currency: branding?.currency || currencyFromUrl(url) || mockStore.currency || "USD",
-      products: fillProducts(branding?.products),
+      products: variantsFirst(fillProducts(branding?.products)),
+      catalog: fillProducts(branding?.catalog?.length ? branding.catalog : branding?.products),
     });
     setStatus("ready");
   }, []);
@@ -77,6 +79,18 @@ function fillProducts(captured?: DemoProduct[]): DemoProduct[] {
   const seen = new Set(real.map((p) => p.title.trim().toLowerCase()));
   const fillers = mockStore.products.filter((p) => !seen.has(p.title.trim().toLowerCase()));
   return [...real, ...fillers].slice(0, SAMPLE_TARGET);
+}
+
+// The order starts with the first two products, and "Change" on a line item only
+// has something to show when that product has other options. Lift up to two
+// multi-option products to the front (stable otherwise) so the swap is demoable.
+// Gift cards are left alone — their "variants" are denominations, not options.
+function variantsFirst(list: DemoProduct[]): DemoProduct[] {
+  const swappable = (p: DemoProduct) => (p.variants?.length ?? 0) > 1 && !/gift\s*card/i.test(p.title);
+  const lift = list.filter(swappable).slice(0, 2);
+  if (!lift.length) return list;
+  const ids = new Set(lift.map((p) => p.id));
+  return [...lift, ...list.filter((p) => !ids.has(p.id))];
 }
 
 // Best-effort currency guess from the domain's TLD when the store's real currency

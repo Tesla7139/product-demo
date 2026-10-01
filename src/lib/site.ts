@@ -478,7 +478,17 @@ export type DemoProduct = {
   price: number;
   qty: number;
   image?: string | null;
-  variants?: { title: string; price: number }[];
+  /** Shopify's first option name, e.g. "Size" or "Grind" (null when unknown). */
+  optionName?: string | null;
+  variants?: DemoVariant[];
+};
+
+export type DemoVariant = {
+  title: string;
+  price: number;
+  /** false = sold out on the store (shown as "Out of stock", not selectable). */
+  available?: boolean;
+  image?: string | null;
 };
 
 export type DemoStore = {
@@ -487,6 +497,8 @@ export type DemoStore = {
   logo?: string | null; // absolute URL to the store's logo/favicon (when personalized)
   currency?: string | null; // ISO 4217 code, e.g. "INR", "USD", "GBP"
   products: DemoProduct[];
+  /** Wider catalog for "Add more items" / "Explore all products" (falls back to products). */
+  catalog?: DemoProduct[];
 };
 
 // Sample catalog — used when a store's real products can't be read (non-Shopify
@@ -499,9 +511,9 @@ export const mockStore: DemoStore = {
   brandColor: "#1f7a5a",
   currency: "USD",
   products: [
-    { id: "p1", title: "Everyday Glow Makeup Set", variant: "Full kit", price: 29, qty: 1, image: UNSPLASH("1596462502278-27bfdc403348") },
-    { id: "p2", title: "Flowy Evening Gown", variant: "Red · M", price: 54, qty: 1, image: UNSPLASH("1595777457583-95e059d581b8") },
-    { id: "p3", title: "Vitamin C Face Serum", variant: "30 ml", price: 19, qty: 1, image: UNSPLASH("1631730359585-38a4935cbec4") },
+    { id: "p1", title: "Everyday Glow Makeup Set", variant: "Full kit", price: 29, qty: 1, image: UNSPLASH("1596462502278-27bfdc403348"), optionName: "Size", variants: [{ title: "Full kit", price: 29 }, { title: "Mini kit", price: 18 }, { title: "Deluxe kit", price: 45, available: false }] },
+    { id: "p2", title: "Flowy Evening Gown", variant: "Red · M", price: 54, qty: 1, image: UNSPLASH("1595777457583-95e059d581b8"), optionName: "Size", variants: [{ title: "Red · M", price: 54 }, { title: "Red · S", price: 54 }, { title: "Red · L", price: 54, available: false }] },
+    { id: "p3", title: "Vitamin C Face Serum", variant: "30 ml", price: 19, qty: 1, image: UNSPLASH("1631730359585-38a4935cbec4"), optionName: "Size", variants: [{ title: "30 ml", price: 19 }, { title: "50 ml", price: 28 }] },
     { id: "p4", title: "Structured Leather Handbag", variant: "Coral", price: 69, qty: 1, image: UNSPLASH("1584917865442-de89df76afd3") },
     { id: "p5", title: "Nourishing Body Lotion", variant: "200 ml", price: 14, qty: 1, image: UNSPLASH("1620916566398-39f1143ab7be") },
     { id: "p6", title: "Round Metal Sunglasses", variant: "Gold", price: 24, qty: 1, image: UNSPLASH("1511499767150-a48a237f0083") },

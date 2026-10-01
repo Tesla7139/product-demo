@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, Clock, RefreshCw, Star, Truck } from "lucide-react";
 import type { DemoStore, DemoProduct } from "@/lib/site";
-import { readableBrand, dedupeExactTitle } from "@/lib/utils";
+import { readableBrand, dedupeExactTitle, dedupeByTitle } from "@/lib/utils";
 import { DemoImg } from "./DemoImg";
 
 const money = (n: number, currency = "USD") =>
@@ -17,15 +17,20 @@ export function OneTapUpsellMock({ store, onComplete, onViewOrder, accentColor, 
   const priced = store.products.filter((p) => (p.price ?? 0) > 0);
   // keep colour variants so there's enough variety for 3 distinct offers
   const pool = dedupeExactTitle(priced.length ? priced : store.products);
-  // Up to 3 offers. Skip the first 2 products (those show as the "purchased" order
-  // on the status page) so an added offer never duplicates a cart item.
+  // Offer 1 is a subscription on the first item the shopper just bought — the same
+  // pick DemoMock uses for the first line of the order, so the two always agree.
+  const subProduct = dedupeByTitle(priced.length ? priced : store.products)[0];
+  // Then up to 2 one-time offers. Skip the first 2 products (those show as the
+  // "purchased" order on the status page) so an added offer never duplicates a cart item.
   const afterCart = pool.slice(2);
-  const offers = (afterCart.length ? afterCart : pool.slice(1).length ? pool.slice(1) : pool).slice(0, 3);
+  const offers = (afterCart.length ? afterCart : pool.slice(1).length ? pool.slice(1) : pool).slice(0, 2);
 
   const [offerIdx, setOfferIdx] = useState(0);
-  const total = offers.length;
+  const hasSub = !!subProduct;
+  const total = offers.length + (hasSub ? 1 : 0);
   const isLast = offerIdx >= total - 1;
-  const offer = offers[offerIdx] ?? offers[0];
+  const isSub = hasSub && offerIdx === 0;
+  const offer = offers[offerIdx - (hasSub ? 1 : 0)] ?? offers[0];
 
   // variant picker (per offer)
   const variantList =
@@ -58,7 +63,8 @@ export function OneTapUpsellMock({ store, onComplete, onViewOrder, accentColor, 
   };
   const handleAdd = () => {
     onAdded?.();
-    if (offer) {
+    // a subscription bills from its first delivery, so nothing is added to today's order
+    if (offer && !isSub) {
       addedRef.current = [
         ...addedRef.current,
         { ...offer, price: deal, qty: 1, variant: selectedVariant?.title ?? offer.variant ?? "" },
@@ -100,15 +106,44 @@ export function OneTapUpsellMock({ store, onComplete, onViewOrder, accentColor, 
         </div>
 
         {/* before-you-go header */}
-        <div className="border-b border-border px-6 py-2.5 text-center">
-          <div className="text-[16px] font-bold text-neutral-900">Tucker, before you go!</div>
-          <div className="mt-1 text-[12.5px] text-neutral-600">
-            Your order is confirmed but you can still add the following for a limited time{" "}
-            <span className="font-bold tabular-nums text-red-500">{timer}</span>
+        {isSub ? (
+          <div className="border-b border-border px-6 py-2.5 text-center">
+            <div className="text-[16px] font-bold text-neutral-900">Tucker, one thing before you go</div>
+            <div className="mt-1 flex items-center justify-center gap-1.5 text-[12.5px] text-neutral-600">
+              <Clock className="size-3.5" />
+              Held for you on this page · <span className="font-bold tabular-nums text-neutral-900">{timer}</span>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="border-b border-border px-6 py-2.5 text-center">
+            <div className="text-[16px] font-bold text-neutral-900">Tucker, before you go!</div>
+            <div className="mt-1 text-[12.5px] text-neutral-600">
+              Your order is confirmed but you can still add the following for a limited time{" "}
+              <span className="font-bold tabular-nums text-red-500">{timer}</span>
+            </div>
+          </div>
+        )}
 
-        {/* offer (cycles through up to 3 distinct offers) */}
+        {isSub && subProduct ? (
+          <motion.div
+            key="sub"
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+            ref={offerRef}
+          >
+            <SubscriptionOffer
+              product={subProduct}
+              currency={currency}
+              total={total}
+              addBtnRef={addBtnRef}
+              started={justAdded}
+              onStart={handleAdd}
+              onSkip={handleDecline}
+            />
+          </motion.div>
+        ) : (
+        // one-time offers (cycle after the subscription)
         <motion.div
           key={offerIdx}
           initial={{ opacity: 0, x: 24 }}
@@ -205,6 +240,151 @@ export function OneTapUpsellMock({ store, onComplete, onViewOrder, accentColor, 
             </div>
           </div>
         </motion.div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ----------------------------- subscription offer ----------------------------- */
+
+const SUB_DISCOUNT = 0.2; // this offer: 20% off each delivery…
+const STANDARD_SUB_DISCOUNT = 0.1; // …vs the store's usual 10% subscriber discount
+const DELIVERIES_PER_YEAR = 13; // every 4 weeks
+const SUB_INTERVAL_DAYS = 28;
+
+/** Offer 1: turn the item just bought into a "subscribe & save" plan. */
+function SubscriptionOffer({
+  product,
+  currency,
+  total,
+  addBtnRef,
+  started,
+  onStart,
+  onSkip,
+}: {
+  product: DemoProduct;
+  currency: string;
+  total: number;
+  addBtnRef?: React.RefObject<HTMLButtonElement | null>;
+  started: boolean;
+  onStart: () => void;
+  onSkip: () => void;
+}) {
+  // per-delivery prices need cents ($15.20); yearly roll-ups read better rounded ($198)
+  const fmtCents = (n: number) =>
+    new Intl.NumberFormat("en", { style: "currency", currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+  const fmt = (n: number) => money(n, currency);
+
+  const options = (product.variants ?? []).filter((v) => v.title && v.title !== "Default");
+  const [sel, setSel] = useState(() => {
+    const i = options.findIndex((v) => v.title === product.variant && v.available !== false);
+    return i >= 0 ? i : Math.max(0, options.findIndex((v) => v.available !== false));
+  });
+  const chosen = options[sel];
+
+  const full = chosen?.price || product.price || 0;
+  const each = Math.round(full * (1 - SUB_DISCOUNT) * 100) / 100;
+  const yearly = each * DELIVERIES_PER_YEAR;
+  const saved = (full - each) * DELIVERIES_PER_YEAR;
+  const vsStandard = saved - full * STANDARD_SUB_DISCOUNT * DELIVERIES_PER_YEAR;
+  const [firstShip] = useState(() =>
+    new Date(Date.now() + SUB_INTERVAL_DAYS * 864e5).toLocaleDateString("en-US", { month: "long", day: "numeric" })
+  );
+  const image = chosen?.image || product.image;
+
+  return (
+    <div className="grid grid-cols-1 gap-5 px-5 py-4 md:grid-cols-2">
+      {/* product + reassurance */}
+      <div>
+        <div className="flex h-[230px] items-center justify-center overflow-hidden rounded-xl border border-border bg-neutral-50">
+          <DemoImg src={image} alt={product.title} className="size-full object-contain p-4" />
+        </div>
+        <ul className="mt-3 space-y-2 text-[12.5px] text-neutral-700">
+          <li className="flex items-start gap-2"><Truck className="mt-0.5 size-3.5 shrink-0" /> Free shipping on every subscription delivery</li>
+          <li className="flex items-start gap-2"><RefreshCw className="mt-0.5 size-3.5 shrink-0" /> Skip, reschedule or cancel from your account — anytime</li>
+          <li className="flex items-start gap-2"><Star className="mt-0.5 size-3.5 shrink-0" /> 201 reviews · 97% five stars on {product.title}</li>
+        </ul>
+      </div>
+
+      {/* offer details */}
+      <div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[12px] text-neutral-400">Offer 1 of {total}</span>
+          <span className="rounded-full bg-[#111827] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+            20% off — double the usual
+          </span>
+        </div>
+        <h3 className="mt-1.5 text-[20px] font-bold leading-tight text-neutral-900">Keep the {product.title} coming</h3>
+        <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2">
+          <span className="text-[15px] text-neutral-400 line-through">{fmtCents(full)}</span>
+          <span className="text-[22px] font-bold text-neutral-900">{fmtCents(each)}</span>
+          <span className="text-[12.5px] text-neutral-600">per delivery, every 4 weeks</span>
+        </div>
+
+        {options.length > 1 && (
+          <div className="mt-3">
+            <div className="text-[12px] font-semibold text-neutral-900">{product.optionName || "Option"}</div>
+            <div className="mt-1.5 flex flex-wrap gap-2">
+              {options.map((v, i) => {
+                const soldOut = v.available === false;
+                const active = i === sel;
+                return (
+                  <button
+                    key={v.title}
+                    disabled={soldOut}
+                    onClick={() => setSel(i)}
+                    className={`rounded-lg border px-3 py-1.5 text-[12.5px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                      active ? "border-[#111827] bg-[#111827] text-white" : "border-border text-neutral-800 hover:border-neutral-400"
+                    }`}
+                  >
+                    {v.title}{soldOut ? " · Sold out" : ""}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-3 rounded-lg border border-border bg-neutral-50 px-3 text-[12.5px]">
+          <div className="flex justify-between border-b border-border py-2 text-neutral-600">
+            <span>Each delivery, instead of {fmtCents(full)}</span>
+            <span className="font-semibold text-neutral-900">{fmtCents(each)}</span>
+          </div>
+          <div className="flex justify-between border-b border-border py-2 text-neutral-600">
+            <span>{DELIVERIES_PER_YEAR} deliveries a year</span>
+            <span className="font-semibold text-neutral-900">{fmt(yearly)}</span>
+          </div>
+          <div className="py-2">
+            <div className="flex justify-between">
+              <span className="font-semibold text-neutral-900">You save in year one</span>
+              <span className="font-semibold text-emerald-600">{fmt(saved)} saved</span>
+            </div>
+            <p className="mt-0.5 text-[11px] text-neutral-500">
+              That&apos;s {fmt(vsStandard)} more than the standard 10% subscriber discount.
+            </p>
+          </div>
+        </div>
+
+        <button
+          ref={addBtnRef}
+          onClick={onStart}
+          disabled={started}
+          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg py-3 text-[14px] font-semibold text-white shadow-md transition-all hover:brightness-125 active:scale-[0.99]"
+          style={{ background: "#111827" }}
+        >
+          {started ? (
+            <><Check className="size-4" strokeWidth={3} /> Subscription started</>
+          ) : (
+            <>Start subscription · {fmtCents(each)} every 4 weeks</>
+          )}
+        </button>
+        <button onClick={onSkip} className="mt-1.5 w-full py-1.5 text-[13px] font-semibold text-neutral-700 underline underline-offset-2 hover:text-neutral-900">
+          Skip offer
+        </button>
+        <p className="mt-2 text-[11px] leading-snug text-neutral-500">
+          First delivery ships {firstShip}, charged when it ships to the card you just used. Nothing changes about the order you already placed.
+        </p>
       </div>
     </div>
   );

@@ -171,8 +171,8 @@ const EDITING_TOUR_STEPS: TourStepDef[] = [
 const UPSELL_TOUR_STEPS: TourStepDef[] = [
   {
     id: "upsell-offer",
-    title: "One tap to add",
-    desc: "A one-time deal the instant they pay — tap Add and it's charged to the card on file, no re-checkout.",
+    title: "Turn one order into a subscription",
+    desc: "The instant they pay, offer what they just bought on repeat at a better price. One tap starts it on the card on file — no re-checkout.",
     cta: "Next",
     measureDelayMs: 320,
     spotlightId: "upsell-offer",

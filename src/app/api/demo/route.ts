@@ -14,7 +14,8 @@ type DemoProductOut = {
   price: number;
   qty: number;
   image: string | null;
-  variants: { title: string; price: number }[];
+  optionName: string | null;
+  variants: { title: string; price: number; available: boolean; image: string | null }[];
 };
 
 type Branding = {
@@ -23,6 +24,8 @@ type Branding = {
   logo: string | null;
   currency: string | null;
   products: DemoProductOut[];
+  /** Larger slice of the catalog for "Add more items" (falls back to `products`). */
+  catalog: DemoProductOut[];
 };
 
 // --- simple in-memory cache (per server instance) ---
@@ -40,6 +43,10 @@ const JINA_TIMEOUT = 30000;
 // instead: each call gets whatever is left, so the phase always lands in time.
 const JINA_PHASE_BUDGET = 45000;
 const MAX_BYTES = 600_000; // cap HTML we read
+// products.json carries full body_html per product, so the bigger catalog read gets
+// its own cap — the 8-product read above stays on the original, proven budget.
+const CATALOG_LIMIT = 30;
+const CATALOG_MAX_BYTES = 4_000_000;
 
 // Many stores (Cloudflare/WAF) block generic bot User-Agents — even for the
 // public /products.json — so present as a real browser to read public data.
@@ -87,7 +94,7 @@ function isChallenge(text: string): boolean {
 }
 
 /** Read a capped amount of the body (whole for JSON; up to </head> for HTML). */
-async function readCapped(res: Response, htmlHead: boolean): Promise<string | null> {
+async function readCapped(res: Response, htmlHead: boolean, maxBytes = MAX_BYTES): Promise<string | null> {
   if (!res.ok || !res.body) return null;
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
@@ -98,13 +105,13 @@ async function readCapped(res: Response, htmlHead: boolean): Promise<string | nu
     if (done) break;
     total += value.byteLength;
     out += decoder.decode(value, { stream: true });
-    if (total > MAX_BYTES || (htmlHead && /<\/head>/i.test(out))) break;
+    if (total > maxBytes || (htmlHead && /<\/head>/i.test(out))) break;
   }
   reader.cancel().catch(() => {});
   return out;
 }
 
-async function tryFetch(url: string, accept: string, htmlHead: boolean): Promise<string | null> {
+async function tryFetch(url: string, accept: string, htmlHead: boolean, maxBytes = MAX_BYTES): Promise<string | null> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
   try {
@@ -113,7 +120,7 @@ async function tryFetch(url: string, accept: string, htmlHead: boolean): Promise
       redirect: "follow",
       headers: { ...BROWSER_HEADERS, Accept: accept },
     });
-    const text = await readCapped(res, htmlHead);
+    const text = await readCapped(res, htmlHead, maxBytes);
     if (text && isChallenge(text)) return null; // let curl handle it
     return text;
   } catch {
@@ -128,7 +135,7 @@ async function tryFetch(url: string, accept: string, htmlHead: boolean): Promise
  * which fingerprints and blocks Node/undici (returns a "Just a moment" 403) but
  * lets curl through, so we can still read the public /products.json + branding.
  */
-async function curlFetch(url: string, accept: string): Promise<string | null> {
+async function curlFetch(url: string, accept: string, maxBytes = MAX_BYTES): Promise<string | null> {
   try {
     const { stdout } = await execFileP(
       "curl",
@@ -141,7 +148,7 @@ async function curlFetch(url: string, accept: string): Promise<string | null> {
         "-H", `Accept-Language: ${BROWSER_HEADERS["Accept-Language"]}`,
         url,
       ],
-      { maxBuffer: MAX_BYTES + 200_000, timeout: FETCH_TIMEOUT + 6000 }
+      { maxBuffer: maxBytes + 200_000, timeout: FETCH_TIMEOUT + 6000 }
     );
     if (!stdout || isChallenge(stdout)) return null;
     return stdout;
@@ -209,9 +216,9 @@ async function directText(url: string, htmlHead = true): Promise<string | null> 
   );
 }
 
-async function directJson(url: string): Promise<unknown | null> {
+async function directJson(url: string, maxBytes = MAX_BYTES): Promise<unknown | null> {
   return safeJson(
-    (await tryFetch(url, "application/json", false)) ?? (await curlFetch(url, "application/json"))
+    (await tryFetch(url, "application/json", false, maxBytes)) ?? (await curlFetch(url, "application/json", maxBytes))
   );
 }
 
@@ -225,8 +232,9 @@ type ShopifyProduct = {
   handle?: string;
   title?: string;
   vendor?: string;
-  variants?: { title?: string; price?: string | number }[];
-  images?: { src?: string }[];
+  options?: { name?: string }[];
+  variants?: { id?: number | string; title?: string; price?: string | number; available?: boolean; featured_image?: { src?: string } | null }[];
+  images?: { src?: string; variant_ids?: (number | string)[] }[];
 };
 
 /** Brand name from a products.json vendor field — fallback when the homepage is unreadable. */
@@ -239,13 +247,13 @@ function vendorFrom(json: unknown): string | null {
   return v || null;
 }
 
-function parseProducts(json: unknown): DemoProductOut[] {
+function parseProducts(json: unknown, limit = 8): DemoProductOut[] {
   const arr =
     json && typeof json === "object" && Array.isArray((json as { products?: unknown }).products)
       ? ((json as { products: ShopifyProduct[] }).products)
       : [];
   return arr
-    .slice(0, 8)
+    .slice(0, limit)
     .map((p) => {
       const v = p.variants?.[0];
       const variant = v?.title && v.title !== "Default Title" ? v.title : "";
@@ -255,6 +263,11 @@ function parseProducts(json: unknown): DemoProductOut[] {
         .map((vv) => ({
           title: vv?.title && vv.title !== "Default Title" ? vv.title : "Default",
           price: Math.round(Number(vv?.price ?? 0)) || price,
+          available: vv?.available !== false,
+          image:
+            vv?.featured_image?.src ??
+            p.images?.find((im) => (im.variant_ids ?? []).some((id) => String(id) === String(vv?.id)))?.src ??
+            null,
         }))
         .filter((vv) => vv.title !== "Default" || (p.variants ?? []).length === 1);
       return {
@@ -264,6 +277,7 @@ function parseProducts(json: unknown): DemoProductOut[] {
         price,
         qty: 1,
         image,
+        optionName: p.options?.[0]?.name && p.options[0].name !== "Title" ? p.options[0].name : null,
         variants,
       };
     })
@@ -349,6 +363,7 @@ function jsonLdToProduct(node: Record<string, unknown>, base: URL): DemoProductO
     price: jsonLdPrice(node),
     qty: 1,
     image: jsonLdImage(node, base),
+    optionName: null,
     variants: [],
   };
 }
@@ -465,7 +480,7 @@ function isBrandLike(s: string): boolean {
   return t.length <= 30 && t.split(/\s+/).length <= 4;
 }
 
-function parseBranding(html: string, base: URL): Omit<Branding, "products" | "currency"> {
+function parseBranding(html: string, base: URL): Omit<Branding, "products" | "currency" | "catalog"> {
   // Prefer og:site_name (a clean brand). Otherwise take the first segment of the
   // <title>, but only split on separators surrounded by whitespace or a pipe/dash —
   // NOT a bare hyphen, so "Post-Surgery Bras … at AnaOno" doesn't become "Post".
@@ -546,10 +561,12 @@ export async function POST(req: Request) {
 
   // Phase 1 — fast path (Node + curl), concurrent, NO Jina. Handles every store
   // that isn't behind a Node-blocking WAF, with zero rate-limited requests.
-  const [directHtml, directPj, cartJson] = await Promise.all([
+  const [directHtml, directPj, cartJson, catalogJson] = await Promise.all([
     directText(url.toString(), false),
     directJson(productsUrl),
     directJson(`${url.origin}/cart.js`),
+    // best-effort wider read for "Add more items"; never blocks the demo if it fails
+    directJson(`${url.origin}/products.json?limit=${CATALOG_LIMIT}`, CATALOG_MAX_BYTES),
   ]);
   let html = directHtml;
   let productsJson = directPj;
@@ -609,7 +626,9 @@ export async function POST(req: Request) {
     branding.logo = `https://www.google.com/s2/favicons?domain=${url.hostname.replace(/^www\./, "")}&sz=256`;
   }
 
-  const data: Branding = { ...branding, currency, products };
+  const wider = parseProducts(catalogJson, CATALOG_LIMIT);
+  const catalog = wider.length > products.length ? wider : products;
+  const data: Branding = { ...branding, currency, products, catalog };
   // A catalog is what makes a result worth keeping: branding alone means the scrape
   // was blocked, and pinning that for 30 min made every retry return the failure.
   cache.set(key, { data, at: Date.now(), ttl: products.length > 0 ? TTL : FAIL_TTL });

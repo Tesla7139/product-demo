@@ -14,9 +14,11 @@ import {
   Truck,
   UserRound,
   MapPin,
+  Plus,
+  Search,
   X,
 } from "lucide-react";
-import type { DemoStore, DemoProduct } from "@/lib/site";
+import type { DemoStore, DemoProduct, DemoVariant } from "@/lib/site";
 import { COUNTRIES, countryByName, lookupPostal } from "@/lib/regions";
 import { readableBrand, dedupeByTitle, dedupeExactTitle } from "@/lib/utils";
 import { DemoImg } from "./DemoImg";
@@ -30,7 +32,7 @@ type LineItem = DemoProduct & { uid: string; postPurchase?: boolean; dealPrice?:
 
 /** Price actually charged for a line item (post-purchase upsells are discounted). */
 const priceOf = (i: LineItem) => (i.postPurchase && i.dealPrice != null ? i.dealPrice : i.price);
-type Section = "contact" | "shipping" | "order" | "discount" | "cancel";
+type Section = "contact" | "shipping" | "order" | "add" | "discount" | "cancel";
 export type Addr = { first: string; last: string; line1: string; city: string; state: string; zip: string };
 
 // Single source of truth for the demo customer, so every surface (editing window,
@@ -136,6 +138,10 @@ export function DemoMock({
   const variety = dedupeExactTitle(source);
   const rest = variety.filter((p) => !cartIds.has(p.id));
   const upsellPool = rest.length ? rest : usable.slice(1).length ? usable.slice(1) : usable;
+  // "Add more items": the wider store catalog (full price, not a post-purchase deal)
+  const catalogSource = store.catalog?.length ? store.catalog : store.products;
+  const catalogPriced = catalogSource.filter((p) => (p.price ?? 0) > 0);
+  const catalog = dedupeExactTitle(catalogPriced.length ? catalogPriced : catalogSource);
 
   const [items, setItems] = useState<LineItem[]>(() => {
     // never duplicate a cart item with an added upsell of the same title
@@ -154,6 +160,8 @@ export function DemoMock({
   const [cancelled, setCancelled] = useState(false);
   const [processing, setProcessing] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [changeFor, setChangeFor] = useState<string | null>(null); // line item uid in the "Change" modal
+  const [catalogOpen, setCatalogOpen] = useState(false);
 
   // amount already paid at checkout — quantity bumps & in-page upsells owe the difference
   const [paid, setPaid] = useState<number>(() => {
@@ -306,7 +314,7 @@ export function DemoMock({
 
   // Signature of the order (which lines + their quantities). Captured once at
   // mount so "Update your order" only confirms when something actually changed.
-  const orderSig = (list: LineItem[]) => list.map((i) => `${i.uid}:${i.qty}`).sort().join("|");
+  const orderSig = (list: LineItem[]) => list.map((i) => `${i.uid}:${i.variant}:${i.qty}`).sort().join("|");
   const initialOrderSig = useRef<string>("");
   useEffect(() => {
     initialOrderSig.current = orderSig(items);
@@ -336,6 +344,30 @@ export function DemoMock({
       flash(`${p.title.split(" ").slice(0, 3).join(" ")} added — ${fmt(charge)} pending`);
     }, 1300);
   };
+
+  // full-price add from "Add more items" — merges into an existing line of the same item
+  const addItem = (p: DemoProduct, qty = 1) => {
+    setCatalogOpen(false);
+    setProcessing("Adding to your order…");
+    window.setTimeout(() => {
+      setItems((prev) => {
+        const hit = prev.find((i) => i.id === p.id && i.variant === p.variant && !i.postPurchase);
+        if (hit) return prev.map((i) => (i.uid === hit.uid ? { ...i, qty: i.qty + qty } : i));
+        return [...prev, { ...p, uid: uid(), qty }];
+      });
+      setProcessing(null);
+      flash(`${p.title.split(" ").slice(0, 3).join(" ")} added — ${fmt(p.price * qty)} pending`);
+    }, 1000);
+  };
+
+  const changeVariant = (id: string, v: DemoVariant) => {
+    setItems((prev) => prev.map((i) => (i.uid === id ? { ...i, variant: v.title, price: v.price, image: v.image || i.image } : i)));
+    setChangeFor(null);
+    flash(`Changed to ${v.title}`);
+  };
+  const changing = items.find((i) => i.uid === changeFor) ?? null;
+  const inOrder = new Set(items.map((i) => (i.title || "").toLowerCase()));
+  const addRow = catalog.filter((p) => !inOrder.has((p.title || "").toLowerCase())).slice(0, 10);
 
   const payBalance = () => {
     const amount = due;
@@ -544,7 +576,17 @@ export function DemoMock({
                           <Thumb src={item.image} alt={item.title} />
                           <div className="min-w-0 flex-1">
                             <div className="truncate text-sm font-medium text-neutral-800">{item.title}</div>
-                            <div className="text-xs text-neutral-500">{fmt(item.price)}</div>
+                            <div className="truncate text-xs text-neutral-500">
+                              {item.variant && item.variant !== "Default" ? `${item.variant} · ` : ""}{fmt(item.price)}
+                            </div>
+                            {!item.postPurchase && swapOptions(item).length > 1 && (
+                              <button
+                                onClick={() => setChangeFor(item.uid)}
+                                className="mt-1.5 rounded-md border border-border px-2.5 py-1 text-[12px] font-semibold text-neutral-900 transition-colors hover:bg-neutral-50"
+                              >
+                                Change
+                              </button>
+                            )}
                           </div>
                           <Stepper qty={item.qty} onDec={() => setQty(item.uid, -1)} onInc={() => setQty(item.uid, 1)} incRef={i === 0 ? tourRefs?.orderPlusBtn : undefined} />
                           <button
@@ -571,6 +613,22 @@ export function DemoMock({
                     </div>
                   </AccordionRow>
                   </div>
+
+                  {addRow.length > 0 && (
+                    <AccordionRow icon={Plus} label="Add More Items" isOpen={open === "add"} onClick={() => toggle("add")} locked={addressValidation}>
+                      <div className="-mx-1 flex gap-2.5 overflow-x-auto px-1 pb-2">
+                        {addRow.map((p) => (
+                          <AddItemCard key={p.id} product={p} fmt={fmt} onAdd={(qty) => addItem(p, qty)} />
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => setCatalogOpen(true)}
+                        className="w-full rounded-md border border-border py-2.5 text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-50"
+                      >
+                        Explore all products
+                      </button>
+                    </AccordionRow>
+                  )}
 
                   <AccordionRow icon={Tag} label="Apply Discount Code" isOpen={open === "discount"} onClick={() => toggle("discount")} locked={addressValidation}>
                     <div className="flex gap-2">
@@ -752,6 +810,20 @@ export function DemoMock({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Change product option + full catalog — portaled so they cover the whole screen */}
+      {typeof document !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {changing && (
+              <ChangeOptionModal key="change" item={changing} fmt={fmt} onClose={() => setChangeFor(null)} onSelect={(v) => changeVariant(changing.uid, v)} />
+            )}
+            {catalogOpen && (
+              <CatalogModal key="catalog" products={catalog} fmt={fmt} onClose={() => setCatalogOpen(false)} onBuy={(p) => addItem(p, 1)} />
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
 
       {/* Toast — portaled to body so it shows ABOVE the guided-tour scrim */}
       {typeof document !== "undefined" &&
@@ -944,6 +1016,197 @@ function Row({ label, value }: { label: string; value: string }) {
       <span>{label}</span>
       <span className="font-medium text-neutral-900">{value}</span>
     </div>
+  );
+}
+
+/* ----------------------------- change option / add items ----------------------------- */
+
+/** Real options a line item can be swapped to (Shopify's lone "Default" isn't one). */
+function swapOptions(item: DemoProduct): DemoVariant[] {
+  return (item.variants ?? []).filter((v) => v.title && v.title !== "Default");
+}
+
+function ModalShell({ title, onClose, wide, children }: { title: string; onClose: () => void; wide?: boolean; children: React.ReactNode }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[550] flex items-center justify-center bg-neutral-900/40 p-4 backdrop-blur-[2px]"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.96, y: 10 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.96, y: 10 }}
+        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onClick={(e) => e.stopPropagation()}
+        className={`flex max-h-[85vh] w-full flex-col overflow-hidden rounded-2xl bg-white text-left shadow-soft-xl ${wide ? "max-w-3xl" : "max-w-md"}`}
+      >
+        <div className="flex items-center justify-between px-5 pb-3 pt-5">
+          <h3 className="text-lg font-bold text-neutral-900">{title}</h3>
+          <button onClick={onClose} aria-label="Close" className="flex size-8 items-center justify-center rounded-md text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900">
+            <X className="size-5" />
+          </button>
+        </div>
+        {children}
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function ChangeOptionModal({
+  item, fmt, onClose, onSelect,
+}: { item: LineItem; fmt: (n: number) => string; onClose: () => void; onSelect: (v: DemoVariant) => void }) {
+  const options = swapOptions(item).filter((v) => v.title !== item.variant);
+  const [picked, setPicked] = useState<number | null>(null);
+  const choice = picked != null ? options[picked] : null;
+  return (
+    <ModalShell title="Change product option" onClose={onClose}>
+      <div className="overflow-y-auto px-5 pb-5">
+        <div className="text-[13px] font-semibold text-neutral-900">Current item:</div>
+        <div className="mt-2 flex items-center gap-3 rounded-lg border border-border p-3">
+          <Thumb src={item.image} alt={item.title} />
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold text-neutral-900">{item.title}</div>
+            {item.variant && <div className="text-xs text-neutral-500">{item.variant}</div>}
+          </div>
+        </div>
+
+        <div className="mt-4 text-[13px] font-semibold text-neutral-900">Available options:</div>
+        <div className="mt-2 flex flex-col gap-2">
+          {options.map((v, i) => {
+            const soldOut = v.available === false;
+            const delta = v.price - item.price;
+            const active = picked === i;
+            return (
+              <button
+                key={v.title}
+                disabled={soldOut}
+                onClick={() => setPicked(i)}
+                aria-pressed={active}
+                className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-colors disabled:cursor-not-allowed ${
+                  active ? "border-[#111827] ring-1 ring-[#111827]" : "border-border hover:border-neutral-400"
+                } ${soldOut ? "opacity-70" : ""}`}
+              >
+                <Thumb src={v.image || item.image} alt={v.title} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold text-neutral-900">{v.title}</div>
+                  {soldOut && (
+                    <span className="mt-1 inline-block rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600">Out of stock</span>
+                  )}
+                </div>
+                <div className="shrink-0 text-right text-[13px]">
+                  <div className="font-semibold text-neutral-900">{fmt(v.price)}</div>
+                  {delta !== 0 && (
+                    <div className={delta > 0 ? "text-red-500" : "text-emerald-600"}>
+                      {delta > 0 ? "+" : "−"}{fmt(Math.abs(delta))}
+                    </div>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-5 grid grid-cols-2 gap-2.5">
+          <button onClick={onClose} className="rounded-md border border-border py-2.5 text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-50">
+            Cancel
+          </button>
+          <button
+            disabled={!choice}
+            onClick={() => choice && onSelect(choice)}
+            className="rounded-md py-2.5 text-sm font-semibold text-white transition-all hover:brightness-125 disabled:bg-neutral-100 disabled:text-neutral-400 disabled:hover:brightness-100"
+            style={choice ? { background: "#111827" } : undefined}
+          >
+            Select Option
+          </button>
+        </div>
+      </div>
+    </ModalShell>
+  );
+}
+
+function AddItemCard({ product, fmt, onAdd }: { product: DemoProduct; fmt: (n: number) => string; onAdd: (qty: number) => void }) {
+  const [qty, setQty] = useState(1);
+  return (
+    <div className="flex w-[148px] shrink-0 flex-col rounded-lg border border-border p-2.5">
+      <div className="aspect-square overflow-hidden rounded-md bg-neutral-50">
+        <DemoImg src={product.image} alt={product.title} className="size-full object-contain" />
+      </div>
+      <div className="mt-2 line-clamp-2 min-h-[2.5em] text-[13px] leading-tight text-neutral-800">{product.title}</div>
+      <div className="mt-1 text-[13px] font-semibold text-neutral-900">{fmt(product.price)}</div>
+      <div className="mt-2 flex items-center justify-between rounded-md border border-border px-1">
+        <button onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Decrease quantity" className="size-7 text-neutral-500 hover:text-neutral-900">−</button>
+        <span className="text-sm font-medium tabular-nums">{qty}</span>
+        <button onClick={() => setQty((q) => q + 1)} aria-label="Increase quantity" className="size-7 text-neutral-500 hover:text-neutral-900">+</button>
+      </div>
+      <button
+        onClick={() => { onAdd(qty); setQty(1); }}
+        className="mt-2 w-full rounded-md py-2 text-[13px] font-semibold text-white transition-all hover:brightness-125 active:scale-[0.99]"
+        style={{ background: "#111827" }}
+      >
+        Add
+      </button>
+    </div>
+  );
+}
+
+function CatalogModal({
+  products, fmt, onClose, onBuy,
+}: { products: DemoProduct[]; fmt: (n: number) => string; onClose: () => void; onBuy: (p: DemoProduct) => void }) {
+  const [q, setQ] = useState("");
+  const shown = q.trim() ? products.filter((p) => p.title.toLowerCase().includes(q.trim().toLowerCase())) : products;
+  return (
+    <ModalShell title="Add More Items" onClose={onClose} wide>
+      <div className="px-5 pb-3">
+        <label className="flex items-center gap-2 rounded-md border border-border px-3 focus-within:border-neutral-400">
+          <Search className="size-4 shrink-0 text-neutral-400" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search Products"
+            autoFocus
+            // the global :focus-visible ring is unlayered and beats utilities; the
+            // wrapper's border already shows focus, so drop the inner ring inline
+            style={{ outline: "none" }}
+            className="h-11 w-full bg-transparent text-sm text-neutral-800"
+          />
+        </label>
+      </div>
+      <div className="overflow-y-auto px-5 pb-5">
+        {shown.length === 0 ? (
+          <p className="py-10 text-center text-sm text-neutral-500">No products match &ldquo;{q}&rdquo;.</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+            {shown.map((p) => (
+              <div key={p.id} className="flex flex-col rounded-lg border border-border p-3">
+                <div className="aspect-square overflow-hidden rounded-md bg-neutral-50">
+                  <DemoImg src={p.image} alt={p.title} className="size-full object-contain" />
+                </div>
+                <div className="mt-2 line-clamp-2 min-h-[2.5em] text-[13px] leading-tight text-neutral-800">{p.title}</div>
+                <div className="mt-1 text-[13px] font-semibold text-neutral-900">{fmt(p.price)}</div>
+                <button
+                  onClick={() => onBuy(p)}
+                  className="mt-2.5 w-full rounded-md py-2 text-[13px] font-semibold text-white transition-all hover:brightness-125 active:scale-[0.99]"
+                  style={{ background: "#111827" }}
+                >
+                  Buy Now
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </ModalShell>
   );
 }
 
