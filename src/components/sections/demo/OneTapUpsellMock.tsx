@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Check, ChevronDown, Clock, RefreshCw, Star, Truck } from "lucide-react";
+import { Check, ChevronDown, Clock, RefreshCw, Truck } from "lucide-react";
 import type { DemoStore, DemoProduct } from "@/lib/site";
 import { readableBrand, dedupeExactTitle, dedupeByTitle } from "@/lib/utils";
 import { DemoImg } from "./DemoImg";
@@ -248,8 +248,7 @@ export function OneTapUpsellMock({ store, onComplete, onViewOrder, accentColor, 
 
 /* ----------------------------- subscription offer ----------------------------- */
 
-const SUB_DISCOUNT = 0.2; // this offer: 20% off each delivery…
-const STANDARD_SUB_DISCOUNT = 0.1; // …vs the store's usual 10% subscriber discount
+const SUB_DISCOUNT = 0.2; // this offer: 20% off each delivery
 const DELIVERIES_PER_YEAR = 13; // every 4 weeks
 const SUB_INTERVAL_DAYS = 28;
 
@@ -271,9 +270,9 @@ function SubscriptionOffer({
   onStart: () => void;
   onSkip: () => void;
 }) {
-  // per-delivery prices need cents ($15.20); yearly roll-ups read better rounded ($198)
-  const fmtCents = (n: number) =>
-    new Intl.NumberFormat("en", { style: "currency", currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+  // cents only when there are any ($15.20, but ₹3,592 — not ₹3,592.00)
+  const fmtPrice = (n: number) =>
+    new Intl.NumberFormat("en", { style: "currency", currency, minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits: 2 }).format(n);
   const fmt = (n: number) => money(n, currency);
 
   const options = (product.variants ?? []).filter((v) => v.title && v.title !== "Default");
@@ -284,10 +283,10 @@ function SubscriptionOffer({
   const chosen = options[sel];
 
   const full = chosen?.price || product.price || 0;
-  const each = Math.round(full * (1 - SUB_DISCOUNT) * 100) / 100;
-  const yearly = each * DELIVERIES_PER_YEAR;
+  // whole units on bigger prices (₹3,999, not ₹3,999.20); cents kept on small ones ($15.20)
+  const raw = full * (1 - SUB_DISCOUNT);
+  const each = full >= 100 ? Math.round(raw) : Math.round(raw * 100) / 100;
   const saved = (full - each) * DELIVERIES_PER_YEAR;
-  const vsStandard = saved - full * STANDARD_SUB_DISCOUNT * DELIVERIES_PER_YEAR;
   const [firstShip] = useState(() =>
     new Date(Date.now() + SUB_INTERVAL_DAYS * 864e5).toLocaleDateString("en-US", { month: "long", day: "numeric" })
   );
@@ -300,10 +299,9 @@ function SubscriptionOffer({
         <div className="flex h-[230px] items-center justify-center overflow-hidden rounded-xl border border-border bg-neutral-50">
           <DemoImg src={image} alt={product.title} className="size-full object-contain p-4" />
         </div>
-        <ul className="mt-3 space-y-2 text-[12.5px] text-neutral-700">
-          <li className="flex items-start gap-2"><Truck className="mt-0.5 size-3.5 shrink-0" /> Free shipping on every subscription delivery</li>
-          <li className="flex items-start gap-2"><RefreshCw className="mt-0.5 size-3.5 shrink-0" /> Skip, reschedule or cancel from your account — anytime</li>
-          <li className="flex items-start gap-2"><Star className="mt-0.5 size-3.5 shrink-0" /> 201 reviews · 97% five stars on {product.title}</li>
+        <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-[12.5px] text-neutral-600">
+          <li className="flex items-center gap-1.5"><Truck className="size-3.5 shrink-0" /> Free shipping</li>
+          <li className="flex items-center gap-1.5"><RefreshCw className="size-3.5 shrink-0" /> Skip or cancel anytime</li>
         </ul>
       </div>
 
@@ -312,15 +310,16 @@ function SubscriptionOffer({
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[12px] text-neutral-400">Offer 1 of {total}</span>
           <span className="rounded-full bg-[#111827] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-            20% off — double the usual
+            Subscribe &amp; save 20%
           </span>
         </div>
-        <h3 className="mt-1.5 text-[20px] font-bold leading-tight text-neutral-900">Keep the {product.title} coming</h3>
+        <h3 className="mt-1.5 line-clamp-2 text-[20px] font-bold leading-tight text-neutral-900">{product.title}</h3>
         <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2">
-          <span className="text-[15px] text-neutral-400 line-through">{fmtCents(full)}</span>
-          <span className="text-[22px] font-bold text-neutral-900">{fmtCents(each)}</span>
-          <span className="text-[12.5px] text-neutral-600">per delivery, every 4 weeks</span>
+          <span className="text-[15px] text-neutral-400 line-through">{fmtPrice(full)}</span>
+          <span className="text-[22px] font-bold text-neutral-900">{fmtPrice(each)}</span>
+          <span className="text-[12.5px] text-neutral-600">every 4 weeks</span>
         </div>
+        <div className="mt-1 text-[12.5px] font-semibold text-emerald-600">Save {fmt(saved)} in your first year</div>
 
         {options.length > 1 && (
           <div className="mt-3">
@@ -346,44 +345,24 @@ function SubscriptionOffer({
           </div>
         )}
 
-        <div className="mt-3 rounded-lg border border-border bg-neutral-50 px-3 text-[12.5px]">
-          <div className="flex justify-between border-b border-border py-2 text-neutral-600">
-            <span>Each delivery, instead of {fmtCents(full)}</span>
-            <span className="font-semibold text-neutral-900">{fmtCents(each)}</span>
-          </div>
-          <div className="flex justify-between border-b border-border py-2 text-neutral-600">
-            <span>{DELIVERIES_PER_YEAR} deliveries a year</span>
-            <span className="font-semibold text-neutral-900">{fmt(yearly)}</span>
-          </div>
-          <div className="py-2">
-            <div className="flex justify-between">
-              <span className="font-semibold text-neutral-900">You save in year one</span>
-              <span className="font-semibold text-emerald-600">{fmt(saved)} saved</span>
-            </div>
-            <p className="mt-0.5 text-[11px] text-neutral-500">
-              That&apos;s {fmt(vsStandard)} more than the standard 10% subscriber discount.
-            </p>
-          </div>
-        </div>
-
         <button
           ref={addBtnRef}
           onClick={onStart}
           disabled={started}
-          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg py-3 text-[14px] font-semibold text-white shadow-md transition-all hover:brightness-125 active:scale-[0.99]"
+          className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg py-3 text-[14px] font-semibold text-white shadow-md transition-all hover:brightness-125 active:scale-[0.99]"
           style={{ background: "#111827" }}
         >
           {started ? (
             <><Check className="size-4" strokeWidth={3} /> Subscription started</>
           ) : (
-            <>Start subscription · {fmtCents(each)} every 4 weeks</>
+            <>Start subscription</>
           )}
         </button>
         <button onClick={onSkip} className="mt-1.5 w-full py-1.5 text-[13px] font-semibold text-neutral-700 underline underline-offset-2 hover:text-neutral-900">
           Skip offer
         </button>
-        <p className="mt-2 text-[11px] leading-snug text-neutral-500">
-          First delivery ships {firstShip}, charged when it ships to the card you just used. Nothing changes about the order you already placed.
+        <p className="mt-1 text-center text-[11px] text-neutral-400">
+          {`First delivery ${firstShip} · today's order stays the same`}
         </p>
       </div>
     </div>
