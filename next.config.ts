@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // allow the LAN IP to load dev/HMR resources (testing on a phone)
-  allowedDevOrigins: ["192.168.29.248"],
+  allowedDevOrigins: ["192.168.29.248", "192.168.1.4"],
 };
 
 export default nextConfig;

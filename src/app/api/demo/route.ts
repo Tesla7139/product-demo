@@ -40,6 +40,12 @@ const JINA_TIMEOUT = 30000;
 // instead: each call gets whatever is left, so the phase always lands in time.
 const JINA_PHASE_BUDGET = 45000;
 const MAX_BYTES = 600_000; // cap HTML we read
+// products.json carries full body_html per product, so a 30-product page can run
+// well past the HTML cap — truncated JSON fails to parse and drops the catalog.
+const MAX_JSON_BYTES = 3_000_000;
+// Fetch more than we show: stores list newest first, and fresh listings often
+// have no photos yet, so we need spares to fill the 8 slots with imaged products.
+const FETCH_LIMIT = 30;
 
 // Many stores (Cloudflare/WAF) block generic bot User-Agents — even for the
 // public /products.json — so present as a real browser to read public data.
@@ -98,7 +104,7 @@ async function readCapped(res: Response, htmlHead: boolean): Promise<string | nu
     if (done) break;
     total += value.byteLength;
     out += decoder.decode(value, { stream: true });
-    if (total > MAX_BYTES || (htmlHead && /<\/head>/i.test(out))) break;
+    if (total > (htmlHead ? MAX_BYTES : MAX_JSON_BYTES) || (htmlHead && /<\/head>/i.test(out))) break;
   }
   reader.cancel().catch(() => {});
   return out;
@@ -141,7 +147,7 @@ async function curlFetch(url: string, accept: string): Promise<string | null> {
         "-H", `Accept-Language: ${BROWSER_HEADERS["Accept-Language"]}`,
         url,
       ],
-      { maxBuffer: MAX_BYTES + 200_000, timeout: FETCH_TIMEOUT + 6000 }
+      { maxBuffer: MAX_JSON_BYTES + 200_000, timeout: FETCH_TIMEOUT + 6000 }
     );
     if (!stdout || isChallenge(stdout)) return null;
     return stdout;
@@ -244,7 +250,12 @@ function parseProducts(json: unknown): DemoProductOut[] {
     json && typeof json === "object" && Array.isArray((json as { products?: unknown }).products)
       ? ((json as { products: ShopifyProduct[] }).products)
       : [];
-  return arr
+  // A product without a photo renders as a blank card, so put imaged ones first
+  // (stable sort keeps the store's own order within each group).
+  const ranked = [...arr].sort(
+    (a, b) => Number(!a.images?.[0]?.src) - Number(!b.images?.[0]?.src)
+  );
+  return ranked
     .slice(0, 8)
     .map((p) => {
       const v = p.variants?.[0];
@@ -541,8 +552,8 @@ export async function POST(req: Request) {
     return NextResponse.json(hit.data);
   }
 
-  const productsUrl = `${url.origin}/products.json?limit=8`;
-  const collectionsUrl = `${url.origin}/collections/all/products.json?limit=8`;
+  const productsUrl = `${url.origin}/products.json?limit=${FETCH_LIMIT}`;
+  const collectionsUrl = `${url.origin}/collections/all/products.json?limit=${FETCH_LIMIT}`;
 
   // Phase 1 — fast path (Node + curl), concurrent, NO Jina. Handles every store
   // that isn't behind a Node-blocking WAF, with zero rate-limited requests.
