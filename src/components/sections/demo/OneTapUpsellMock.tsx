@@ -79,7 +79,7 @@ export function OneTapUpsellMock({ store, onComplete, onViewOrder, accentColor, 
   return (
     <div className="mx-auto w-full bg-white">
       {/* page body */}
-      <div className="lg:h-[560px] lg:overflow-y-auto lg:no-scrollbar">
+      <div className="lg:h-[var(--demo-h,560px)] lg:overflow-y-auto lg:no-scrollbar">
         {/* confirmation header — matches order editing */}
         <div className="border-b border-border px-6 py-4">
           <div className="flex items-center gap-3">

@@ -145,7 +145,7 @@ export function EUWithdrawalMock({ store, tourRefs, autoFill = 0, manualFill = f
 
   return (
     <div className="w-full bg-white">
-      <div className="p-6 lg:h-[560px] lg:overflow-y-auto lg:no-scrollbar">
+      <div className="p-6 lg:h-[var(--demo-h,560px)] lg:overflow-y-auto lg:no-scrollbar">
         {/* header */}
         <div className="flex items-start gap-3">
           <div className="flex items-start gap-2">

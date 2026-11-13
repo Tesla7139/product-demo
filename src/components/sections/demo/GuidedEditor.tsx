@@ -1,20 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, ChevronDown, ChevronRight, Globe, MapPin, Pencil, Play, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
+import { BarChart3, Check, ChevronDown, ChevronRight, Globe, MapPin, Pencil, Play, Settings, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
 import type { DemoStore, DemoProduct } from "@/lib/site";
 import type { Addr } from "./DemoMock";
 import { DemoMock } from "./DemoMock";
 import { OneTapUpsellMock } from "./OneTapUpsellMock";
 import { EUWithdrawalMock } from "./EUWithdrawalMock";
+import { AnalyticsMock } from "./AnalyticsMock";
+import { SettingsMock } from "./SettingsMock";
 import { TourOverlay, type TourRect } from "./TourOverlay";
 import { ShopifyAppStoreBadge } from "./ShopifyAppStoreBadge";
 import { BuiltForShopifyBadge } from "./BuiltForShopifyBadge";
 
 const APP_URL = "https://apps.shopify.com/clickpost-order-edit-cancel";
 
-type Tab = "editing" | "upsell" | "address" | "cancel" | "eu-withdrawal";
+type Tab = "editing" | "upsell" | "address" | "cancel" | "eu-withdrawal" | "analytics" | "config";
 type Tour = "editing" | "upsell" | "address" | "eu-withdrawal";
 type Section = "contact" | "shipping" | "order" | "discount" | "cancel";
 
@@ -27,7 +29,18 @@ const NAV_FEATURES: { key: Tab; label: string; icon: React.ComponentType<{ class
   { key: "upsell", label: "Post-purchase upsell", icon: TrendingUp },
   { key: "address", label: "Address validation", icon: MapPin },
   { key: "eu-withdrawal", label: "EU withdrawal", icon: ShieldCheck },
+  // no guided tour — these just show their screen
+  { key: "analytics", label: "Analytics", icon: BarChart3 },
+  { key: "config", label: "Configurations", icon: Settings },
 ];
+
+/** Demo window body height bounds, and the space kept below the window (the stage's bottom padding). */
+const DEMO_MIN_H = 560;
+const DEMO_MAX_H = 900;
+const DEMO_BOTTOM_GAP = 52;
+
+/** Merchant-side screens, not the storefront, so they skip the store-URL browser bezel. */
+const NO_BEZEL: ReadonlySet<Tab> = new Set(["analytics", "config"]);
 
 
 type ActionPill = {
@@ -342,7 +355,7 @@ function ClickpostMark({ className }: { className?: string }) {
 }
 
 /** Per-feature CTA copy: a store-specific headline verb + one real brand proof point. */
-const FINALE: Record<Tab, { action: string; brand: string; stat: string }> = {
+const FINALE: Record<Tab, { action: string; brand?: string; stat?: string }> = {
   editing: {
     action: "cut support tickets",
     brand: "Doonails",
@@ -367,6 +380,12 @@ const FINALE: Record<Tab, { action: string; brand: string; stat: string }> = {
     action: "handle cancellations",
     brand: "Gladful",
     stat: "saw far fewer cancelled orders once shoppers could self-edit instead.",
+  },
+  analytics: {
+    action: "track every edit and upsell",
+  },
+  config: {
+    action: "set up order editing",
   },
 };
 
@@ -434,6 +453,9 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
 
   const rootRef = useRef<HTMLDivElement>(null);
   const demoFrameRef = useRef<HTMLDivElement>(null); // the editing/demo window (blurred on outcome steps)
+  const demoWindowRef = useRef<HTMLDivElement>(null); // the bordered browser window itself
+  const bezelRef = useRef<HTMLDivElement>(null);
+  const [bodyH, setBodyH] = useState(DEMO_MIN_H);
 
   // tour ref registry
   const countdownRef = useRef<HTMLDivElement>(null);
@@ -686,6 +708,26 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     if (k === "upsell") { setUpsellView("onetap"); setUpsellExtras([]); }
     setTab(k);
   }
+
+  // Demo window body height: fill the screen below the window's top edge, so taller
+  // screens show more of the page (e.g. the upsell row under the editing window)
+  // without scrolling inside it. Never shorter than the original 560px; desktop only.
+  useEffect(() => {
+    const measure = () => {
+      const win = demoWindowRef.current;
+      const grid = rootRef.current?.firstElementChild;
+      if (!win || !grid || window.innerWidth < 1024) { setBodyH(DEMO_MIN_H); return; }
+      // `zoom` on the scale root scales rects too, so convert back to unzoomed px
+      const zoom = parseFloat(getComputedStyle(rootRef.current!).zoom) || 1;
+      const above = (win.getBoundingClientRect().top - grid.getBoundingClientRect().top) / zoom;
+      const bezel = bezelRef.current?.offsetHeight ?? 0;
+      const avail = window.innerHeight / zoom - above - bezel - DEMO_BOTTOM_GAP;
+      setBodyH(Math.round(Math.min(DEMO_MAX_H, Math.max(DEMO_MIN_H, avail))));
+    };
+    const raf = requestAnimationFrame(measure);
+    window.addEventListener("resize", measure);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", measure); };
+  }, [tab]);
 
   // Esc exits the tour
   useEffect(() => {
@@ -1013,9 +1055,10 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
           </div>
 
           {/* body — the editing window: browser bezel (store URL) + sliding mock */}
-          <div className="relative z-10 w-full overflow-hidden rounded-2xl bg-white shadow-soft-xl" style={{ border: "1.5px solid #1f2430" }}>
+          <div ref={demoWindowRef} className="relative z-10 w-full overflow-hidden rounded-2xl bg-white shadow-soft-xl" style={{ border: "1.5px solid #1f2430", "--demo-h": `${bodyH}px` } as CSSProperties}>
             {/* browser bezel with the store URL */}
-            <div className="flex items-center gap-2 border-b border-neutral-200 bg-neutral-50 px-4 py-2.5">
+            {!NO_BEZEL.has(tab) && (
+            <div ref={bezelRef} className="flex items-center gap-2 border-b border-neutral-200 bg-neutral-50 px-4 py-2.5">
               {/* store logo — in place of the traffic-light dots */}
               {store.logo ? (
                 // eslint-disable-next-line @next/next/no-img-element -- store favicon/logo
@@ -1027,6 +1070,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                 {domain}
               </div>
             </div>
+            )}
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={tab === "upsell" ? `upsell-${upsellView}` : tab === "editing" ? `editing-${editView}` : tab}
@@ -1042,7 +1086,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                     initialOpen={null}
                     forceOpen={editingForceOpen}
                     pageContext={editView}
-                    maxHeight={560}
+                    maxHeight={bodyH}
                     tourRefs={{ countdown: countdownRef, shippingRow: shippingRowRef, addressForm: addressFormRef, addressBlock: addressBlockRef, saveBtn: saveBtnRef, orderRow: orderRowRef, orderBtn: orderBtnRef, orderPlusBtn: orderPlusBtnRef, payPanel: payPanelRef, payBtn: payBtnRef, sections: sectionsRef }}
                     addressOverride={addrOverride}
                     qtyBump={qtyBump}
@@ -1054,7 +1098,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                       key={`ty-demo-${upsellResetKey}`}
                       store={store}
                       initialOpen={null}
-                      maxHeight={560}
+                      maxHeight={bodyH}
                       upsellFirst
                       extraItems={upsellExtras}
                       tourRefs={{ upsellRow: tyGridRef, upsellAddBtn: tyAddBtnRef, upsellShipBox: tyShipRef, upsellShipAddBtn: tyShipAddRef, payPanel: payPanelRef, payBtn: payBtnRef }}
@@ -1076,7 +1120,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                     store={store}
                     initialOpen="shipping"
                     forceOpen="shipping"
-                    maxHeight={560}
+                    maxHeight={bodyH}
                     addressValidation
                     scriptedValidation={activeTour === "address"}
                     tourRefs={{ shippingRow: addrShippingRowRef, addressBlock: addrFlaggedRef, addrSaveBtn: addrSaveBtnRef }}
@@ -1092,8 +1136,10 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
                   />
                 )}
                 {tab === "cancel" && (
-                  <DemoMock store={store} initialOpen="cancel" forceOpen="cancel" maxHeight={560} />
+                  <DemoMock store={store} initialOpen="cancel" forceOpen="cancel" maxHeight={bodyH} />
                 )}
+                {tab === "analytics" && <AnalyticsMock store={store} embedded withHome maxHeight={bodyH} />}
+                {tab === "config" && <SettingsMock store={store} maxHeight={bodyH} />}
               </motion.div>
             </AnimatePresence>
           </div>
