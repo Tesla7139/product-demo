@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BarChart3, Check, ChevronDown, ChevronRight, Globe, MapPin, Pencil, Play, Settings, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
+import { BarChart3, Check, ChevronDown, ChevronRight, Globe, MapPin, PanelLeftClose, PanelLeftOpen, Pencil, Play, Settings, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
 import type { DemoStore, DemoProduct } from "@/lib/site";
 import type { Addr } from "./DemoMock";
 import { DemoMock } from "./DemoMock";
@@ -34,10 +34,13 @@ const NAV_FEATURES: { key: Tab; label: string; icon: React.ComponentType<{ class
   { key: "config", label: "Configurations", icon: Settings },
 ];
 
-/** Demo window body height bounds, and the space kept below the window (the stage's bottom padding). */
+/** Minimum demo window body height, and the most height/width the window may take: in
+ *  practice it fills the screen down to DEMO_BOTTOM_GAP above the bottom (the cap). */
 const DEMO_MIN_H = 560;
-const DEMO_MAX_H = 900;
-const DEMO_BOTTOM_GAP = 52;
+const DEMO_RATIO = 0.85;
+const DEMO_BOTTOM_GAP = 24;
+/** Share of the row the open feature rail takes on desktop. */
+const RAIL_SHARE = 0.26;
 
 /** Merchant-side screens, not the storefront, so they skip the store-URL browser bezel. */
 const NO_BEZEL: ReadonlySet<Tab> = new Set(["analytics", "config"]);
@@ -456,6 +459,20 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
   const demoWindowRef = useRef<HTMLDivElement>(null); // the bordered browser window itself
   const bezelRef = useRef<HTMLDivElement>(null);
   const [bodyH, setBodyH] = useState(DEMO_MIN_H);
+  const gridRef = useRef<HTMLDivElement>(null); // rail + stage row
+  const [railOpen, setRailOpen] = useState(true); // desktop feature rail — collapses so the demo window widens
+  const [topMenuOpen, setTopMenuOpen] = useState(false); // desktop feature dropdown, shown while the rail is collapsed
+
+  // The rail's open width (26% of the row). Its contents keep this width while the
+  // rail's own width animates to 0, so they slide out of view instead of squashing.
+  const [railW, setRailW] = useState<number | null>(null);
+  useEffect(() => {
+    const el = gridRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setRailW(Math.round(el.clientWidth * RAIL_SHARE)));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   // tour ref registry
   const countdownRef = useRef<HTMLDivElement>(null);
@@ -709,24 +726,30 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     setTab(k);
   }
 
-  // Demo window body height: fill the screen below the window's top edge, so taller
-  // screens show more of the page (e.g. the upsell row under the editing window)
-  // without scrolling inside it. Never shorter than the original 560px; desktop only.
+  // Demo window size: its height follows its width (up to DEMO_RATIO), so collapsing the
+  // rail grows the window in both directions instead of just stretching it sideways. The
+  // cap keeps the whole window on screen, ending DEMO_BOTTOM_GAP above the bottom. Never
+  // shorter than the original 560px body; desktop only.
   useEffect(() => {
+    const win = demoWindowRef.current;
+    if (!win) return;
     const measure = () => {
-      const win = demoWindowRef.current;
       const grid = rootRef.current?.firstElementChild;
-      if (!win || !grid || window.innerWidth < 1024) { setBodyH(DEMO_MIN_H); return; }
+      if (!grid || window.innerWidth < 1024) { setBodyH(DEMO_MIN_H); return; }
       // `zoom` on the scale root scales rects too, so convert back to unzoomed px
       const zoom = parseFloat(getComputedStyle(rootRef.current!).zoom) || 1;
       const above = (win.getBoundingClientRect().top - grid.getBoundingClientRect().top) / zoom;
       const bezel = bezelRef.current?.offsetHeight ?? 0;
-      const avail = window.innerHeight / zoom - above - bezel - DEMO_BOTTOM_GAP;
-      setBodyH(Math.round(Math.min(DEMO_MAX_H, Math.max(DEMO_MIN_H, avail))));
+      const cap = window.innerHeight / zoom - above - DEMO_BOTTOM_GAP;
+      const windowH = Math.min(cap, win.offsetWidth * DEMO_RATIO);
+      setBodyH(Math.round(Math.max(DEMO_MIN_H, windowH - bezel)));
     };
     const raf = requestAnimationFrame(measure);
+    // the window's width changes as the rail collapses/expands, not only on viewport resize
+    const ro = new ResizeObserver(measure);
+    ro.observe(win);
     window.addEventListener("resize", measure);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", measure); };
+    return () => { cancelAnimationFrame(raf); ro.disconnect(); window.removeEventListener("resize", measure); };
   }, [tab]);
 
   // Esc exits the tour
@@ -874,6 +897,23 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTour, tourStep]);
 
+  const currentFeature = NAV_FEATURES.find((n) => n.key === tab);
+
+  // collapse the feature rail (desktop) — top-right of the rail while it's open; once it's
+  // collapsed, a reopen icon + feature picker sit at the start of the stage's top bar
+  const railToggle = (
+    <button
+      type="button"
+      onClick={() => { setRailOpen(false); setTopMenuOpen(false); }}
+      aria-label="Hide features"
+      aria-expanded={railOpen}
+      title="Hide features"
+      className="hidden size-9 shrink-0 items-center justify-center rounded-full bg-white text-neutral-700 shadow-soft-md ring-1 ring-neutral-200 transition-colors hover:bg-neutral-50 hover:text-neutral-950 lg:flex"
+    >
+      <PanelLeftClose className="size-[18px]" />
+    </button>
+  );
+
   // editing-window open state: tour-controlled during the tour, pill-controlled otherwise
   const editingForceOpen: Section | null =
     activeTour === "editing"
@@ -887,15 +927,34 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
       {/* During the tour, the left rail slides away and the demo centers so the
           typewriter callouts have clean space to the side. Closing the tour
           (cross / Esc → activeTour = null) restores the normal two-column view. */}
-      <div className="demo-scale-grid grid grid-cols-1 items-stretch gap-6 lg:min-h-[100svh] lg:grid-cols-[minmax(0,0.52fr)_minmax(0,1.48fr)] lg:gap-0">
+      {/* The rail collapses like Shopify's sidebar: on desktop the row is a flex row and
+          the rail's width animates between 26% and 0 (the stage grows with it), while
+          the rail's contents keep their open width and slide left under the clip. */}
+      <div
+        ref={gridRef}
+        className="demo-scale-grid grid grid-cols-1 items-stretch gap-6 lg:flex lg:min-h-[100svh] lg:gap-0"
+      >
         {/* LEFT: feature buttons + the "ready to try" box (raised on mobile so the
             feature dropdown overlays the demo top bar instead of hiding behind it) */}
-        <div className="relative z-10 flex flex-col gap-6 px-3 pb-6 max-lg:z-30 lg:items-center lg:justify-start lg:pl-0 lg:pr-8 lg:pt-8 lg:pb-12">
+        <div
+          aria-hidden={!railOpen || undefined}
+          inert={!railOpen || undefined}
+          className={`relative z-10 max-lg:z-30 lg:shrink-0 lg:overflow-hidden lg:transition-[width] lg:duration-500 lg:ease-[cubic-bezier(.65,0,.35,1)] ${
+            railOpen ? "lg:w-[26%]" : "lg:w-0"
+          }`}
+        >
+        <div
+          style={railW ? ({ "--rail-w": `${railW}px` } as CSSProperties) : undefined}
+          className={`flex h-full flex-col gap-6 px-3 pb-6 lg:w-[var(--rail-w,100%)] lg:items-center lg:justify-start lg:pl-0 lg:pr-8 lg:pt-8 lg:pb-12 lg:transition-[opacity,translate] lg:duration-500 lg:ease-[cubic-bezier(.65,0,.35,1)] ${
+            railOpen ? "" : "lg:-translate-x-1/3 lg:opacity-0"
+          }`}
+        >
           {/* heading + feature buttons */}
           <div className="w-full max-w-sm">
-            <div className="mb-4">
+            <div className="mb-4 flex items-center justify-between gap-3">
               {/* eslint-disable-next-line @next/next/no-img-element -- brand wordmark from clickpost.ai */}
               <img src="/clickpost-wordmark.png" alt="Clickpost" className="h-6 w-auto" />
+              {railToggle}
             </div>
             <h3 className="mb-5 font-serif text-[1.3rem] font-bold italic leading-tight tracking-tight text-foreground">
               Click a feature to run it live.
@@ -964,17 +1023,70 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
               mt-auto pushes it to the bottom of the rail so there's a gap under the features */}
           <ReadyToTryBox tab={tab} className="max-lg:hidden lg:mt-auto" />
         </div>
+        </div>
 
         {/* RIGHT: full-bleed blue demo stage — top pill nav + paired sub-row + sliding window */}
         <div
           ref={demoFrameRef}
-          className="relative flex w-full flex-col justify-center gap-4 lg:justify-start lg:gap-5 lg:px-10 lg:pt-8 lg:pb-12 xl:px-16"
+          className="relative flex w-full flex-col justify-center gap-4 lg:min-w-0 lg:flex-1 lg:justify-start lg:gap-5 lg:px-10 lg:pt-8 lg:pb-12 xl:px-16"
         >
-          {/* blue backdrop (desktop only) */}
-          <div aria-hidden className="absolute inset-0 z-0 hidden lg:block" style={{ background: "linear-gradient(160deg, #eaf2ff 0%, #cfe0ff 42%, #a8c8ff 100%)" }} />
+          {/* blue backdrop (desktop only); with the rail collapsed it also covers the page's
+              left gutter (DemoExperience's lg:pl-5 / xl:pl-6) */}
+          <div aria-hidden className={`absolute inset-0 z-0 hidden transition-[left] duration-500 ease-[cubic-bezier(.65,0,.35,1)] lg:block ${railOpen ? "" : "-left-6"}`} style={{ background: "linear-gradient(160deg, #eaf2ff 0%, #cfe0ff 42%, #a8c8ff 100%)" }} />
 
-          {/* bar over the editing window — Start tour (left) · brand URL (center) · Start free trial (right) */}
-          <div className="relative z-10 flex items-center justify-between gap-3 max-lg:flex-wrap max-lg:justify-center max-lg:gap-2">
+          {/* bar over the editing window — Start tour (left) · brand URL (center) · Start free trial (right);
+              z-20 so the collapsed-rail feature dropdown opens over the window below */}
+          <div className="relative z-20 flex items-center justify-between gap-3 max-lg:flex-wrap max-lg:justify-center max-lg:gap-2">
+            <div className="flex shrink-0 items-center gap-2">
+            {/* rail collapsed (desktop): a plain reopen-the-rail icon, then the current feature
+                as a solid dark pill that opens the feature list */}
+            {!railOpen && (
+              <div className="relative flex items-center gap-1.5 max-lg:hidden">
+                <button
+                  type="button"
+                  onClick={() => { setRailOpen(true); setTopMenuOpen(false); }}
+                  aria-label="Show features"
+                  aria-expanded={false}
+                  title="Show features"
+                  className="flex size-9 shrink-0 items-center justify-center rounded-lg text-neutral-700 transition-colors hover:bg-white/60 hover:text-neutral-950"
+                >
+                  <PanelLeftOpen className="size-[18px]" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTopMenuOpen((v) => !v)}
+                  aria-expanded={topMenuOpen}
+                  aria-haspopup="menu"
+                  className="flex items-center gap-2 whitespace-nowrap rounded-full bg-neutral-900 py-2.5 pl-4 pr-3 text-[12.5px] font-semibold text-white transition-colors hover:bg-neutral-800"
+                >
+                  {currentFeature?.label}
+                  <ChevronDown className={`size-3.5 text-white/70 transition-transform ${topMenuOpen ? "rotate-180" : ""}`} />
+                </button>
+                {topMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-20" onClick={() => setTopMenuOpen(false)} />
+                    <div role="menu" className="absolute left-0 top-full z-30 mt-2 w-60 overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-xl">
+                      {NAV_FEATURES.map((n) => {
+                        const active = tab === n.key;
+                        return (
+                          <button
+                            key={n.key}
+                            type="button"
+                            role="menuitem"
+                            onClick={() => { selectFeature(n.key); setTopMenuOpen(false); }}
+                            className={`flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-[13.5px] font-semibold transition-colors ${active ? "bg-[#eaf2ff] text-[#155FFF]" : "text-neutral-800 hover:bg-neutral-50"}`}
+                          >
+                            <n.icon className="size-4 shrink-0" />
+                            <span className="flex-1">{n.label}</span>
+                            {active && <Check className="size-4 shrink-0" strokeWidth={3} />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
             {/* Start tour — with a shine sweep */}
             <button
               onClick={launchTour}
@@ -991,6 +1103,7 @@ export function GuidedEditor({ store }: { store: DemoStore }) {
               <Play className="relative z-10 size-3 fill-current" />
               <span className="relative z-10">Start tour</span>
             </button>
+            </div>
 
             {/* Order-edit sub-tabs — Thank you page / Order status page */}
             {tab === "editing" && (
