@@ -267,6 +267,19 @@ export const customerLogos: CustomerLogo[] = [
   },
 ];
 
+// India-based merchants (tagged in OE-DEMO-IN, checked against each brand's own
+// site). They stay in `customerLogos` so review cards keep their logos, but this
+// US/EU site's brand strip and review carousel show US + global brands only.
+const INDIAN_BRANDS: ReadonlySet<string> = new Set([
+  "Modomu",
+  "Haute Sauce",
+  "Westside Global",
+  "MyBorosil",
+  "Wellbeing Nutrition",
+  "Mars By GHC",
+]);
+export const stripLogos: CustomerLogo[] = customerLogos.filter((c) => !INDIAN_BRANDS.has(c.name));
+
 // Credibility info for featured brands — a revenue-tier pill + a country shown
 // alongside the date. Rendered on the brand strip, review carousel, and Wall of
 // Love. Keyed by exact brand name.

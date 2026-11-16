@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { customerLogos, brandInfo } from "@/lib/site";
+import { stripLogos, brandInfo } from "@/lib/site";
 import { reviews } from "@/lib/reviews";
 
 const SQRT_5000 = Math.sqrt(5000);
@@ -17,7 +17,7 @@ function fmtDate(d: string): string {
 const DATE_BY_NAME = new Map(reviews.map((r) => [r.name.toLowerCase(), fmtDate(r.date)]));
 
 // Real Clickpost reviews only (the ones that have a written review + brand logo).
-const REVIEWS = customerLogos
+const REVIEWS = stripLogos
   .filter((c) => c.review)
   .map((c, i) => ({ tempId: i, name: c.name, review: c.review as string, src: c.src, date: DATE_BY_NAME.get(c.name.toLowerCase()), info: brandInfo[c.name] }));
 
