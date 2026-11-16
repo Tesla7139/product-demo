@@ -265,20 +265,38 @@ export const customerLogos: CustomerLogo[] = [
     review: reviewText("GHAR SOAPS"),
     date: "Feb 14, 2026",
   },
+  {
+    // wordmark keyed out of the store's header logo (white lettering cut into a green pill)
+    src: "/customers/vegogarden-wordmark.png",
+    name: "Vego Garden",
+    reviewer: "Vego Garden Team",
+    role: "E-commerce",
+    review: null, // no review in the App Store export yet
+  },
+  {
+    // white background keyed out of the store's horizontal logo
+    src: "/customers/stonestreetcoffee.png",
+    name: "Stone Street Coffee",
+    reviewer: "Stone Street Coffee Team",
+    role: "E-commerce",
+    review:
+      "Great app! We've used it for 30 days and results are impressive. Pays for itself between time saved in customer service and the upsells. Highly recommend.",
+    date: "Oct 7, 2026",
+  },
 ];
 
-// India-based merchants (tagged in OE-DEMO-IN, checked against each brand's own
-// site). They stay in `customerLogos` so review cards keep their logos, but this
-// US/EU site's brand strip and review carousel show US + global brands only.
-const INDIAN_BRANDS: ReadonlySet<string> = new Set([
+// Brands kept out of the brand strip and review carousel: mostly India-based
+// merchants (tagged in OE-DEMO-IN), since this US/EU site shows US + global brands.
+// They stay in `customerLogos` so review cards keep their logos.
+const NOT_IN_STRIP: ReadonlySet<string> = new Set([
   "Modomu",
   "Haute Sauce",
   "Westside Global",
   "MyBorosil",
   "Wellbeing Nutrition",
-  "Mars By GHC",
+  "GHAR SOAPS",
 ]);
-export const stripLogos: CustomerLogo[] = customerLogos.filter((c) => !INDIAN_BRANDS.has(c.name));
+export const stripLogos: CustomerLogo[] = customerLogos.filter((c) => !NOT_IN_STRIP.has(c.name));
 
 // Credibility info for featured brands — a revenue-tier pill + a country shown
 // alongside the date. Rendered on the brand strip, review carousel, and Wall of
@@ -293,6 +311,8 @@ export const brandInfo: Record<string, BrandInfo> = {
   "Mateina": { tier: "Andrew Huberman's favourite", country: "Canada" },
   "Mars By GHC": { tier: "7-figure brand" },
   "Renue By Science": { country: "USA" },
+  "Vego Garden": { country: "USA" },
+  "Stone Street Coffee": { country: "USA" },
 };
 
 // number of blank placeholder marks to show while `customerLogos` is empty

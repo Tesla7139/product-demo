@@ -19,7 +19,7 @@ const DATE_BY_NAME = new Map(reviews.map((r) => [r.name.toLowerCase(), fmtDate(r
 // Real Clickpost reviews only (the ones that have a written review + brand logo).
 const REVIEWS = stripLogos
   .filter((c) => c.review)
-  .map((c, i) => ({ tempId: i, name: c.name, review: c.review as string, src: c.src, date: DATE_BY_NAME.get(c.name.toLowerCase()), info: brandInfo[c.name] }));
+  .map((c, i) => ({ tempId: i, name: c.name, review: c.review as string, src: c.src, date: DATE_BY_NAME.get(c.name.toLowerCase()) ?? c.date, info: brandInfo[c.name] }));
 
 
 interface TestimonialCardProps {
